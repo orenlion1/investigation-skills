@@ -27,7 +27,9 @@ printf '[extend]\nuseDefault = true\n' > "$scan_dir/config.toml"
 # as a scan-only ref as well as every mirrored branch and tag.
 head=$(git -C "$repository" rev-parse HEAD)
 git -C "$scan_dir/repository.git" update-ref refs/scan/head "$head"
-# Patch scanning omits commit/tag messages. Export reachable metadata separately;
+# Export every reachable blob independently of patch generation, including content
+# introduced only in merges and blobs referenced directly by tags. Also export
+# metadata and unquoted tree paths; none of the original names become disk paths.
 # Git's object traversal includes nested annotations without their own refs.
 metadata_dir="$scan_dir/metadata"
 mkdir "$metadata_dir"
@@ -37,12 +39,18 @@ git -C "$scan_dir/repository.git" cat-file --batch-check='%(objectname) %(object
   < "$scan_dir/objects" > "$scan_dir/object-types"
 while read -r object kind; do
   case "$kind" in
-    commit|tag)
+    blob|commit|tag)
       git -C "$scan_dir/repository.git" cat-file "$kind" "$object" \
         > "$metadata_dir/$object"
       ;;
+    tree)
+      git -C "$scan_dir/repository.git" ls-tree -r -z --name-only "$object" \
+        | tr '\0' '\n' > "$metadata_dir/$object"
+      ;;
   esac
 done < "$scan_dir/object-types"
+git -C "$scan_dir/repository.git" for-each-ref --format='%(refname)' \
+  > "$metadata_dir/refs"
 set +e
 "$scanner" git "$scan_dir/repository.git" --log-opts='--all --full-history' \
   --config "$scan_dir/config.toml" --gitleaks-ignore-path /dev/null \
