@@ -23,11 +23,19 @@ succeed and the saved task is reread. New tasks receive their title-derived
 `TASK-{slug}.md` name; existing tasks keep their established names. At least one
 actual resource is required; individual resource fields remain optional.
 
-The routing view expands the activities into their skill responsibilities.
-Dashed arrows mean invocation or routing; peer placement does not establish
-ordering between skills. Only the integrations needed by the task are invoked.
-Edit-only and initialization-only requests limit the continuation. Execution and
-reporting retain the user's authorization and the repository's required gates.
+The routing view expands the activities into their skill responsibilities. Each
+activity also carries the editor mode it runs in — Initialize is Open and Edit,
+Investigate is Close and Execute — so the routing and lifecycle views describe
+the same modes in the same words. Dashed arrows mean invocation or routing; peer
+placement does not establish ordering between skills. Only the integrations
+needed by the task are invoked. Edit-only and initialization-only requests limit
+the continuation. Execution and reporting retain the user's authorization and
+the repository's required gates.
+
+Publish is the view's fourth activity. It invokes Publish It and Rovo Dev MCP,
+and the single solid arrow is a delivery rather than an invocation: the artifact
+lands in a repository or content system so the next lifecycle step can pick it
+up. Delivery still requires separate publication authorization.
 
 The workflow is defined by [Templated Tasks](../AGENTS.md#templated-tasks), the
 [editor contract](../skills/open-edit-close-execute/references/open-edit-close-execute.md),

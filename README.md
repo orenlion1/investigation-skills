@@ -30,6 +30,9 @@ it routes to.
 - **The systems you already use.** AWS, Grafana, Slack, Bitbucket, Jira, and
   Confluence are reached through scoped read-only skills — only the ones your
   task actually names.
+- **Access is part of the job, not a prerequisite.** Each skill owns its own
+  sign-in and diagnoses its own failures, so an investigation does not stall on
+  an expired session or a profile that was never set up correctly.
 - **Evidence you can audit.** Reports keep inspected source, observed runtime
   behavior, inference, and proposal apart, and link material claims to a
   revision-pinned evidence index.
@@ -37,8 +40,9 @@ it routes to.
   captions, stated limitations, and token accounting; optional one-command
   publication to Confluence.
 - **Work that compounds.** A published report is the input to the next step of
-  the incident lifecycle and the record a teammate extends, instead of a
-  transcript that expires with the session.
+  the incident lifecycle and the record a teammate extends — instead of a
+  transcript that expires with the session, or the same alert investigated twice
+  by two people who never saw each other's notes.
 - **Authorization stays with you.** A task describes work. It never grants
   permission to commit, update a ticket, deploy, or publish.
 
@@ -131,12 +135,15 @@ page configured in the task.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-skill-routing-dark.png">
-  <img alt="Investigation activities route to task initialization skills, selected resource skills, and report naming, token usage, and diagramming skills." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
+  <img alt="Initialize in Open and Edit mode invokes the naming and editor skills; Investigate in Close and Execute mode routes to the resource skills; Report invokes the naming, token usage, and diagramming skills; Publish invokes Publish It and Rovo Dev MCP, which deliver the artifact to a repository or content system where the next lifecycle step picks it up." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
 </picture>
 
 **Figure 2 — Skill routing.** The same lifecycle expanded into the skill that
-owns each step. Dashed arrows mean invocation; peer placement implies no
-ordering. Listing a skill does not make its resource field mandatory.
+owns each step, with each activity labelled by the editor mode it runs in, so
+both views share one vocabulary. Dashed arrows mean invocation or routing; the
+solid arrow is delivery — Publish hands the artifact to a repository or content
+system, where the next lifecycle step picks it up. Peer placement implies no
+ordering, and listing a skill does not make its resource field mandatory.
 
 [Editable routing diagram](diagrams/DIAGRAM-investigation-skill-routing.dot) ·
 [Light SVG](diagrams/DIAGRAM-investigation-skill-routing-light.svg) ·
@@ -156,6 +163,30 @@ proposes a parallel Grafana Assistant and `investigate-alert` plan and waits for
 your explicit authorization. See the
 [alert investigation entry point](AGENTS.md#grafana-investigation-entry-point).
 
+## What a run looks like
+
+A flapping alert is the ordinary case. Illustrative, with placeholder
+identifiers — not a recorded finding:
+
+**What goes into the task.** Paste the alert text straight out of the on-call
+thread as the problem. Name the resources it touches: the Slack channel the
+thread is in, the Grafana context that holds the alert, the AWS profile and
+Region the workload runs in, the repository that owns the service. Then state
+what a good answer looks like, as acceptance tests — *identify the root cause*,
+*propose a resolution*, *say what remains unverified*.
+
+**What comes back.** A task named from its own title, so the investigation is
+addressable, and a report containing a timeline that puts the alert transitions,
+the metric series, the deploy, and the thread on one clock; the cause the
+evidence supports; a diagram of the path involved; a proposed fix; the questions
+still open; and the duration and token cost of the run.
+
+**Why it is worth writing down.** A flapping alert is often not a threshold that
+needs widening — it is a symptom with a cause underneath, such as a duplicated
+collection path double-counting a series so a threshold is crossed and cleared
+repeatedly. Tuning the alert hides it; the report names it, and the next person
+who sees the alert flap starts from that instead of from scratch.
+
 ## What you get
 
 | Path | Purpose |
@@ -170,11 +201,14 @@ your explicit authorization. See the
 | [skills/](skills/) | Self-contained skill packages and their references or helpers. |
 
 Investigation output stays local: `docs/tasks/`, `docs/reports/*`, `logs/`, and
-`outputs/` are ignored, while the task template stays tracked. Findings about
-live systems are not committed here, so the published page — not this checkout —
-is the shared copy. Custom destinations need their own tracking decision. Paths
-are resolved before any write, and an existing draft or a destination collision
-is preserved for you to resolve rather than overwritten or suffixed.
+`outputs/` are ignored, while the task template stays tracked. That split is
+deliberate. Source control is for code and reviewed policy; a report is durable
+prose that wants versioned pages, comments, and search, so it belongs in a
+content system instead. Findings about live systems are therefore never
+committed here — the published page, not this checkout, is the shared copy.
+Custom destinations need their own tracking decision. Paths are resolved before
+any write, and an existing draft or a destination collision is preserved for you
+to resolve rather than overwritten or suffixed.
 
 ## Publish to Confluence
 
@@ -217,6 +251,17 @@ Republish a revised report rather than editing the page away from its evidence.
 | [Slack MCP](skills/slack-mcp/SKILL.md) | Establish and verify scoped Slack access. |
 | [AWS MCP](skills/aws-mcp/SKILL.md) | Authenticate a selected AWS profile, wait for browser sign-in, and investigate root causes through scoped AWS MCP queries. |
 | [AWS architecture diagrams](skills/aws-architecture-diagrams/SKILL.md) | Document AWS architecture with the bundled diagram conventions. |
+
+Each skill does one thing, and the repository [policy](AGENTS.md) is a router
+rather than a manual: it says which request goes to which skill and holds only
+what no skill owns. That shape is load-bearing. Policy that absorbs every rule
+becomes a single file nobody can refine safely, while a skill with one
+responsibility can be read, tested, and reused on its own — authenticating a
+Grafana context is useful well beyond an investigation. It also has a cost worth
+respecting: every skill is something the agent must consider before choosing
+one, so the answer to a new requirement is usually a narrower skill or a bundled
+reference, not a broader one. Depth lives in each skill's `references/`, where
+it loads only when that skill is selected.
 
 ## Where the rules live
 
