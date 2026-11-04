@@ -1,0 +1,21 @@
+// Independent skill routes; peer placement is not an execution-order edge.
+digraph InvestigationSkillRouting {
+  graph [rankdir=TB, margin=0, pad=0.3, nodesep=0.85, ranksep=0.9,
+         fontname="Trebuchet MS", fontsize=15, splines=polyline];
+  node [shape=plaintext, fontname="Trebuchet MS", fontsize=15, margin="0.25,0.10"];
+  edge [fontname="Trebuchet MS", fontsize=12, arrowsize=0.7, penwidth=1.2];
+
+  initialize [label="Initialize"];
+  investigate [label="Investigate"];
+  report [label="Report"];
+  setup_skills [label="Skills\nWorkflow Artifact Naming\nOpen/Edit/Close/Execute"];
+  resource_skills [label="Resource skills\nRovo Dev MCP\nGrafana CLI\nSlack MCP / AWS MCP"];
+  report_skills [label="Report skills\nWorkflow Artifact Naming\nToken Usage\nDiagramming Style"];
+
+  { rank=same; initialize; investigate; report; }
+  { rank=same; setup_skills; resource_skills; report_skills; }
+  initialize -> investigate -> report [style=invis, weight=100];
+  initialize -> setup_skills [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>invokes</TD></TR></TABLE>>, style=dashed];
+  investigate -> resource_skills [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>routes</TD></TR></TABLE>>, style=dashed];
+  report -> report_skills [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>invokes</TD></TR></TABLE>>, style=dashed];
+}
