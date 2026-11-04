@@ -101,9 +101,9 @@ class Scanner:
         self.seen_entries = set()
         self.failures = set()
 
-    def git(self, *args):
+    def git(self, *args, input=None):
         return subprocess.check_output(['git', '-C', str(self.repository), *args],
-                                       stderr=subprocess.DEVNULL)
+                                       input=input, stderr=subprocess.DEVNULL)
 
     def report(self, rule, identity):
         # Paths and refs can themselves contain sensitive values or workflow commands.
@@ -170,12 +170,18 @@ class Scanner:
                         header, path = entry.split(b'\t', 1)
                         mode, _, oid = header.decode().split()
                         self.entry(mode, oid, path)
+            # Include intermediate annotated tags even when they have no ref of their own.
+            objects = self.git('rev-list', '--objects', '--all', '--no-object-names', 'HEAD')
+            types = self.git('cat-file', '--batch-check=%(objectname) %(objecttype)', input=objects)
+            for line in types.decode().splitlines():
+                oid, kind = line.split()
+                if kind == 'tag':
+                    self.content(oid)
             for ref in self.git('for-each-ref', '--format=%(objectname) %(objecttype) %(refname)').decode().splitlines():
                 oid, kind, name = ref.split(' ', 2)
                 for rule in content_rules(name, self.policy):
                     self.report(rule, oid)
                 if kind == 'tag':
-                    self.content(oid)
                     target = self.git('rev-parse', oid + '^{}').decode().strip()
                     if self.git('cat-file', '-t', target).strip() != b'commit':
                         self.report('noncommit-ref', oid)

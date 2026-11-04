@@ -213,6 +213,8 @@ With Gitleaks 8.30.1 installed, validate the secret gate locally with
 `python3 scripts/test_secret_scan.py` and `bash scripts/scan-secrets.sh .`.
 The scanner requires a complete Git checkout, redacts findings, and rejects
 repository suppressions and inline allow comments.
+It scans commit messages and every reachable tag annotation as well as historical file
+patches, including nested annotations whose individual refs have been deleted.
 
 The [Security workflow](.github/workflows/security.yml) runs the real Gitleaks regression
 tests and full-history credential scan plus the institutional-data gate on PRs, merge

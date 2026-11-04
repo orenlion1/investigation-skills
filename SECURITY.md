@@ -33,11 +33,15 @@ and a checksum-pinned standalone Gitleaks release. It uses `pull_request`, never
 
 - **Secret scan** first runs `python3 scripts/test_secret_scan.py`, then
   `bash scripts/scan-secrets.sh .`. The real-scanner tests exercise deleted credentials,
-  detached heads, missing tools, shallow clones, and suppression attempts. The scan uses a
+  detached heads, commit messages, direct and nested tag annotations, missing tools,
+  shallow clones, and suppression attempts. The scan uses a
   temporary bare mirror, every fetched ref, and the exact detached checkout head; repository
   ignore files, inline allow comments, and custom Gitleaks configuration cannot suppress it.
+  Gitleaks scans both historical patches and private temporary exports of every reachable
+  commit and tag object, including intermediate annotations without their own refs.
 - **Institutional data** tests the disclosure controls, then scans the index, all reachable
-  commit trees, branch/ref names, and commit and annotated-tag metadata. It blocks private
+  commit trees, branch/ref names, and commit and annotated-tag metadata, including every
+  annotation in a nested tag chain even when only its outer ref remains. It blocks private
   artifact paths even if force-added, non-public email addresses, unreviewed URL hosts,
   account and ticket identifiers, and configured institution-name fingerprints. Symlinks,
   submodules, oversize objects, and unreviewed binary content fail closed. Binary exceptions
