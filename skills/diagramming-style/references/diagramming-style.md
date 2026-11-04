@@ -8,7 +8,9 @@ requires no particular repository, naming tool, template, external image, or hos
 
 - Prefer plain text labels. Use wording, whitespace, alignment, and typographic hierarchy for
   emphasis. Do not add decorative boxes, pills, shaded panels, filled clusters, or opaque
-  backgrounds behind edge labels merely to highlight text.
+  backgrounds behind edge labels merely to highlight text. When the user explicitly asks
+  to match a supplied workflow reference, use the scoped
+  [lifecycle with integration branches](#lifecycle-with-integration-branches) pattern below.
 - Keep minimal structural outlines when they carry meaning, such as an ER table boundary.
   Use the canvas color or transparency inside them in both modes; white backplates are not
   acceptable in dark mode. Explain meaningful shapes in a legend;
@@ -149,6 +151,7 @@ stable activity or artifact name across views connects them without crowding one
 | --- | --- | --- |
 | Activity/artifact overview | Entry points, main activities, named inputs and outputs, terminal outcome | Internal skill fan-out and detailed review criteria |
 | Skill routing | Invoking activity, selected skill, delegation/routing edges, produced artifact | An implied timeline between independent routes |
+| Lifecycle with integrations | Short lifecycle plus a small set of explicitly requested invocation branches | Artifact detail, conditional integration selection, and authorization conditions |
 | Review/merge gates | Verified check, pass/fail or retry path, required merge/deployment verification | A claim that review dimensions execute sequentially |
 
 Use these conventions when adapting a real workflow:
@@ -175,8 +178,8 @@ Use these conventions when adapting a real workflow:
   Show supported retry/stop paths; describe missing evidence beside the diagram. Do not copy
   an outcome such as deployment into an investigation that only produces reports.
 - Group by real responsibility through headings, whitespace, and aligned peer rows. The
-  reference uses shapes and filled clusters; this package retains its plain-label rules.
-  Role words and relationship labels convey meaning without decorative enclosures.
+  default examples retain plain labels. Use the scoped pattern below when matching an
+  explicitly requested reference with meaningful activity shapes and responsibility groups.
 
 Adapt [workflow-overview.dot](../assets/workflow-overview.dot) and
 [workflow-routing.dot](../assets/workflow-routing.dot) as a pair. The fictional overview
@@ -191,6 +194,75 @@ report examples and substituting `workflow-overview workflow-routing` for the ex
 Check overlap, theme parity, labels, and delivery-size readability in both views. As with all
 diagram sets, one canonical source generates both themes; primary Markdown presentation uses
 verified host-aware rendering or paired themed images with adjacent captions.
+
+### Lifecycle with integration branches
+
+Use this compact view when the reader needs to understand both **what happens next** and
+**what one activity invokes**, and the user requests that combination or supplies a visual
+model. A lifecycle alone hides the integrations; a detailed artifact graph can bury the
+main path. A vertical stack of integration nodes can also turn a short process into a tall,
+mostly empty canvas. Keep larger fan-outs in a separate routing view.
+
+Inspect the supplied rendered reference as well as its editable source. Matching only
+`rankdir` or the topology does not reproduce its visual language. Identify the features
+the user is asking to retain: activity shapes, component shapes, group boundaries, relative
+placement, spacing, typography, and palette. For this explicitly requested mode, oval
+activities, boxed integrations, and restrained shaded responsibility groups are appropriate;
+the plain-label defaults continue to apply to other diagrams. Do not copy the reference's
+project-specific lifecycle, branding, or unsupported relationships.
+
+Arrange the lifecycle as a horizontal row with solid handoff arrows. Put the integration
+peers in a second horizontal group below it, with dashed arrows from the invoking activity,
+each labeled `invokes`. Keep exact user-selected labels, capitalization, and arrow direction.
+For example, an investigation can show:
+
+```dot
+digraph LifecycleWithIntegrations {
+  rankdir=TB; newrank=true;
+  graph [fontname="Trebuchet MS", fontsize=12, nodesep=0.65, ranksep=1.1];
+  node [fontname="Trebuchet MS", fontsize=12, style=filled, height=0.45];
+  edge [fontname="Trebuchet MS", fontsize=11];
+  subgraph cluster_lifecycle {
+    label="Investigation lifecycle"; labeljust=l; style=filled;
+    node [shape=oval];
+    open [label="Open and Edit"]; save [label="Save and close"];
+    investigate [label="Investigate"]; report [label="Report"]; publish [label="Publish"];
+    { rank=same; open; save; investigate; report; publish; }
+    open -> save -> investigate -> report -> publish [weight=100];
+  }
+  subgraph cluster_integrations {
+    label="Investigation integrations"; labeljust=l; labelloc=b; style=filled;
+    node [shape=box];
+    aws [label="aws-mcp"]; gcx [label="gcx-cli"];
+    slack [label="slack-mcp"]; rovo [label="rovo-dev-mcp"];
+    { rank=same; aws; gcx; slack; rovo; }
+    aws -> gcx -> slack -> rovo [style=invis, weight=100];
+  }
+  investigate -> { aws gcx slack rovo } [label="  invokes", style=dashed];
+}
+```
+
+Here `rankdir=TB` separates the two rows while `rank=same` keeps each row horizontal.
+Invisible edges stabilize peer placement only; they convey no integration order or
+parallel-execution guarantee. Move a group heading below the nodes when incoming arrows
+would cross it. Check the render rather than assuming a cluster protects its heading.
+
+Keep artifact details and qualifications in adjacent prose: the example's stages produce
+a draft task, saved task, findings/evidence, and Markdown/PDF reports. Integrations are
+selected as needed for the task. `Report → Publish` depicts a possible authorized handoff;
+it neither authorizes publication nor makes it automatic. Use a different lifecycle when
+the actual workflow differs.
+
+Generate both themes from the same source and a committed renderer. For the reference-style
+groups, a useful palette is light canvas `#ffffff`, group `#fffde7`, node `#ececff`, and dark
+canvas `#0f172a`, group `#374151`, node `#1e293b`. Pair dark text `#f1f5f9`, node outlines
+`#a5b4fc`, edges `#94a3b8`, and action labels `#a5f3fc`; inspect contrast on the actual fills.
+These are mode-specific options, not changes to every diagram's palette. After even a label
+or arrow edit, regenerate all delivered PNG/SVG variants, including any adaptive SVG, and
+update captions and alt text. Preserve shape, label, edge, and geometry parity across themes;
+visually inspect both and run the overlap checker. Where a repository approves binary assets
+by path and hash, retain reviewed historical hashes as well as the new reviewed render so
+full-history scans remain valid.
 
 ## Light and dark profiles
 
