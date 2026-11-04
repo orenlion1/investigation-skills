@@ -33,17 +33,22 @@ and a checksum-pinned standalone Gitleaks release. It uses `pull_request`, never
 
 - **Secret scan** first runs `python3 scripts/test_secret_scan.py`, then
   `bash scripts/scan-secrets.sh .`. The real-scanner tests exercise deleted credentials,
-  detached heads, commit messages, direct and nested tag annotations, missing tools,
+  detached heads, merge-only content, deleted paths, blob-only tags, ref names,
+  commit messages, direct and nested tag annotations, missing tools,
   shallow clones, and suppression attempts. The scan uses a
   temporary bare mirror, every fetched ref, and the exact detached checkout head; repository
   ignore files, inline allow comments, and custom Gitleaks configuration cannot suppress it.
   Gitleaks scans both historical patches and private temporary exports of every reachable
-  commit and tag object, including intermediate annotations without their own refs.
+  blob, commit, and tag object, including intermediate annotations without their own refs.
+  Every reachable tree's unquoted paths and all ref names are scanned as text too.
+  Exports use object IDs as filenames and never materialize repository paths or symlinks.
 - **Institutional data** tests the disclosure controls, then scans the index, all reachable
   commit trees, branch/ref names, and commit and annotated-tag metadata, including every
   annotation in a nested tag chain even when only its outer ref remains. It blocks private
   artifact paths even if force-added, non-public email addresses, unreviewed URL hosts,
-  account and ticket identifiers, and configured institution-name fingerprints. Symlinks,
+  account and ticket identifiers, and configured institution-name fingerprints. Identifier
+  checks also inspect URL paths, queries, and fragments after one URL-decoding pass;
+  an approved URL host does not exempt its embedded identifiers. Symlinks,
   submodules, oversize objects, and unreviewed binary content fail closed. Binary exceptions
   require an exact path and SHA-256 digest in the reviewed policy. Scanner failures omit
   matched content and paths, including filenames that could contain workflow commands.

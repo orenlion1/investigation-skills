@@ -40,6 +40,60 @@ class SecretScanTest(unittest.TestCase):
     def test_clean_history_passes(self):
         self.assertEqual(self.scan().returncode, 0)
 
+    def test_merge_only_credential_is_scanned(self):
+        original = self.git('branch', '--show-current').stdout.strip()
+        self.git('checkout', '-qb', 'fixture-side')
+        (self.repo / 'side.txt').write_text('Public side.\n')
+        self.commit()
+        self.git('checkout', original)
+        (self.repo / 'main.txt').write_text('Public main.\n')
+        self.commit()
+        self.git('merge', '--no-commit', '--no-ff', 'fixture-side')
+        fake = 'ghp_' + ''.join(random.Random(4821).choices(
+            string.ascii_letters + string.digits, k=36))
+        (self.repo / 'fixture.txt').write_text('token = ' + repr(fake) + '\n')
+        self.commit()
+        # Deleting the merge-only content must not hide its reachable blob.
+        (self.repo / 'fixture.txt').unlink()
+        self.git('add', '-A')
+        self.git('commit', '-qm', 'Public later revision')
+        result = self.scan()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn(fake, result.stdout + result.stderr)
+
+    def test_credentials_in_deleted_paths_are_scanned_without_disclosure(self):
+        fake = 'ghp_' + ''.join(random.Random(4822).choices(
+            string.ascii_letters + string.digits, k=36))
+        path = self.repo / ('quoted\n"' + fake + '.txt')
+        path.write_text('Public content.\n')
+        self.commit()
+        path.unlink()
+        self.git('add', '-A')
+        self.git('commit', '-qm', 'Public later revision')
+        result = self.scan()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn(fake, result.stdout + result.stderr)
+
+    def test_blob_only_tag_credentials_are_scanned(self):
+        fake = 'ghp_' + ''.join(random.Random(4823).choices(
+            string.ascii_letters + string.digits, k=36))
+        path = self.repo / 'uncommitted.txt'
+        path.write_text('token = ' + repr(fake) + '\n')
+        oid = self.git('hash-object', '-w', str(path)).stdout.strip()
+        self.git('tag', 'blob-fixture', oid)
+        path.unlink()
+        result = self.scan()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn(fake, result.stdout + result.stderr)
+
+    def test_credentials_in_ref_names_are_scanned(self):
+        fake = 'ghp_' + ''.join(random.Random(4824).choices(
+            string.ascii_letters + string.digits, k=36))
+        self.git('branch', fake)
+        result = self.scan()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn(fake, result.stdout + result.stderr)
+
     def test_deleted_secret_fails_without_logging_value_or_honoring_suppressions(self):
         # Construct a fake credential only in the temporary fixture, never in project history.
         fake = 'ghp_' + ''.join(random.Random(8741).choices(

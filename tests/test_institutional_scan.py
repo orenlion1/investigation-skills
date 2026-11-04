@@ -63,6 +63,39 @@ class InstitutionalScanTests(unittest.TestCase):
         self.assertEqual(self.scan('--staged', repo=unborn).returncode, 0)
         self.assertNotEqual(self.scan(repo=unborn).returncode, 0)
 
+    def test_private_identifiers_in_public_url_components_are_blocked(self):
+        email = 'person' + '@' + 'private-hospital.org'
+        base = 'https://github.com/'
+        fixtures = [
+            (base + 'search?q=' + email, 'email'),
+            (base + 'contact/' + email, 'email'),
+            (base + '#' + email, 'email'),
+            (base + 'search?q=person%40private-hospital.org', 'email'),
+            (base + 'contact/person%40private-hospital.org', 'email'),
+            (base + '?account=%31' + '23456789012', 'account-identifier'),
+            (base + '?ticket=CASE%2D' + '3471', 'ticket-identifier'),
+        ]
+        for url, rule in fixtures:
+            with self.subTest(rule=rule, url=url):
+                self.write('link.md', url)
+                self.git('add', '.')
+                result = self.scan('--staged')
+                self.assertEqual(result.returncode, 1)
+                self.assertIn('rule=' + rule, result.stdout)
+                self.assertNotIn(url, result.stdout + result.stderr)
+                self.assertNotIn(email, result.stdout + result.stderr)
+
+    def test_reserved_and_public_identifiers_in_url_components_pass(self):
+        self.write('link.md', '\n'.join([
+            'https://github.com/?q=fixture%40example.invalid',
+            'https://github.com/contact/fixture@example.invalid',
+            'https://github.com/?q=40065251%2Borenlion1%40users.noreply.github.com',
+            'https://github.com/?q=SHA%2D256',
+        ]))
+        self.commit()
+        result = self.scan()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_github_merge_bot_is_allowed_without_allowing_other_github_addresses(self):
         self.git('-c', 'user.email=noreply@github.com', 'commit', '--allow-empty', '-qm',
                  'Public merge fixture')
@@ -145,6 +178,20 @@ class InstitutionalScanTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn('institution-fingerprint', result.stdout)
         self.assertNotIn('SYNTHETIC', result.stdout + result.stderr)
+
+    def test_encoded_institution_in_public_url_is_blocked(self):
+        policy = json.loads(POLICY.read_text())
+        canonical = 'syntheticinstitution'
+        policy['blocked_fingerprints'] = [{
+            'length': len(canonical), 'sha256': hashlib.sha256(canonical.encode()).hexdigest()}]
+        private_policy = Path(self.temp.name) / 'policy.json'
+        private_policy.write_text(json.dumps(policy))
+        self.write('link.md', 'https://github.com/' + '?q=%73ynthetic%69nstitution')
+        self.git('add', '.')
+        result = self.scan('--staged', policy=private_policy)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('rule=institution-fingerprint', result.stdout)
+        self.assertNotIn('synthetic', result.stdout + result.stderr)
 
     def test_commit_and_tag_metadata_are_scanned(self):
         self.write('note.md', 'Public text.\n')

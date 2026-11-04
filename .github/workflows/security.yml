@@ -40,7 +40,7 @@ jobs:
           echo "$scanner_dir" >> "$GITHUB_PATH"
       - name: Run Gitleaks regression tests
         run: python3 scripts/test_secret_scan.py
-      - name: Scan fetched history, commit metadata, and nested tag annotations
+      - name: Scan reachable blobs, paths, refs, and commit and tag metadata
         run: bash scripts/scan-secrets.sh .
 
   institutional-data:

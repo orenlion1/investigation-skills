@@ -9,7 +9,7 @@ import re
 import subprocess
 import sys
 import unicodedata
-from urllib.parse import urlsplit
+from urllib.parse import unquote, unquote_plus, urlsplit
 
 
 DEFAULT_POLICY = Path(__file__).resolve().parents[1] / 'security/disclosure-policy.json'
@@ -57,7 +57,7 @@ def load_policy(path):
     return policy
 
 
-def content_rules(text, policy):
+def identifier_rules(text, policy):
     rules = set()
     canonical = normalize(text)
     for entry in policy['blocked_fingerprints']:
@@ -67,12 +67,24 @@ def content_rules(text, policy):
             rules.add('institution-fingerprint')
     if any(not reserved(m.group(1).lower()) and m.group(1).lower()
            not in policy['public_email_domains'] and m.group().lower()
-           not in policy['public_email_addresses'] for m in EMAIL.finditer(URL.sub('', text))):
+           not in policy['public_email_addresses'] for m in EMAIL.finditer(text)):
         rules.add('email')
+    if ACCOUNT.search(text):
+        rules.add('account-identifier')
+    if any(match.group() not in PUBLIC_STANDARDS for match in TICKET.finditer(text)):
+        rules.add('ticket-identifier')
+    return rules
+
+
+def content_rules(text, policy):
+    rules = identifier_rules(text, policy)
     for match in URL.finditer(text):
         try:
             # Documentation sometimes quotes an escaped URL regex rather than a literal URL.
             parsed = urlsplit(re.sub(r'\\+(?=\.)', '', match.group()))
+            for component in (unquote(parsed.path), unquote_plus(parsed.query),
+                              unquote(parsed.fragment)):
+                rules.update(identifier_rules(component, policy))
             host = parsed.hostname
             if parsed.username is not None or parsed.password is not None:
                 rules.add('url-userinfo')
@@ -86,10 +98,6 @@ def content_rules(text, policy):
                     pass
         except ValueError:
             rules.add('invalid-url')
-    if ACCOUNT.search(text):
-        rules.add('account-identifier')
-    if any(match.group() not in PUBLIC_STANDARDS for match in TICKET.finditer(text)):
-        rules.add('ticket-identifier')
     return rules
 
 
