@@ -1,0 +1,52 @@
+name: Skill Quality
+
+on:
+  pull_request:
+    branches: [main]
+  merge_group:
+    types: [checks_requested]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: skill-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  skill-quality:
+    name: Skill Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Record tool versions
+        run: |
+          set -eu
+          git --version
+          node --version
+          python3 --version
+
+      - name: Evaluate every skill
+        run: |
+          set -o pipefail
+          results="$RUNNER_TEMP/skill-quality-results"
+          mkdir -p "$results"
+          scripts/run-skill-quality-gate.sh --output-dir "$results" \
+            2>&1 | tee "$results/runner.log"
+
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: skill-quality-gate-${{ github.run_id }}
+          path: ${{ runner.temp }}/skill-quality-results
+          if-no-files-found: warn
+          retention-days: 7

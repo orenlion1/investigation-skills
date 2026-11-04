@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "blocked_fingerprints": [
+    {
+      "length": 12,
+      "sha256": "fcde830ff0fb0aae78dbcf35b3407456d204132e64bbcbbf0244e5befdc70329"
+    }
+  ],
+  "public_url_hosts": [
+    "github.com",
+    "docs.github.com",
+    "www.w3.org",
+    "aws.amazon.com",
+    "mermaid.js.org",
+    "graphviz.org",
+    "d1.awsstatic.com",
+    "aws-mcp.us-east-1.api.aws",
+    "aws-mcp.eu-central-1.api.aws",
+    "docs.aws.amazon.com",
+    "grafana.com",
+    "mcp.atlassian.com",
+    "developer.atlassian.com",
+    "atlassian.github.io",
+    "support.atlassian.com",
+    "mcp.slack.com",
+    "docs.slack.dev"
+  ],
+  "public_email_domains": [
+    "users.noreply.github.com"
+  ],
+  "public_email_addresses": [
+    "noreply@github.com"
+  ],
+  "approved_binary_sha256": {}
+}

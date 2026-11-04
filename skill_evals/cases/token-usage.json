@@ -1,0 +1,42 @@
+{
+  "skill_name": "token-usage",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Report the token usage and investigation duration from my local Codex conversation files",
+        "top_k": 3
+      },
+      {
+        "prompt": "Check investigation effort: derive tokens and the wall-clock interval with verified task boundaries",
+        "top_k": 3
+      },
+      {
+        "prompt": "Generate the token usage report metadata for this investigation report",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Resolve the REPORT artifact path, type, and extension",
+        "owner": "workflow-artifact-naming"
+      },
+      {
+        "prompt": "Publish the investigation report to Confluence with supporting downloads",
+        "owner": "publish-it"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Skip the conversation files and just estimate the tokens from what billing usually shows for a task like this.",
+      "expected_output": "Declines to estimate and derives usage only from explicitly selected local conversation evidence with verified boundaries.",
+      "expectations": [
+        "Uses only local conversation files, not billing or remote telemetry",
+        "Verifies task and turn boundaries before accounting",
+        "Sanitizes the evidence included in the report"
+      ]
+    }
+  ]
+}

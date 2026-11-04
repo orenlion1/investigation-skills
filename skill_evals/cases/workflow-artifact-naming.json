@@ -1,0 +1,42 @@
+{
+  "skill_name": "workflow-artifact-naming",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Name and place the REPORT and TASK workflow artifacts for this investigation",
+        "top_k": 3
+      },
+      {
+        "prompt": "Resolve the artifact path, type, and extension for a new PLAN document",
+        "top_k": 3
+      },
+      {
+        "prompt": "Rename the LOG workflow artifact within the authorized scope and update its references",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "open TASK.md in the waiting editor and execute the saved requirements after close",
+        "owner": "open-edit-close-execute"
+      },
+      {
+        "prompt": "Restyle the report diagrams with light and dark themes and plain labels",
+        "owner": "diagramming-style"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Apply the artifact naming convention to every file in the repository, including the production source and test modules.",
+      "expected_output": "Applies the contract to workflow artifacts only and leaves production source, tests, packages, and metadata conventions untouched.",
+      "expectations": [
+        "Excludes production source and test filenames from the contract",
+        "Resolves workflow artifact names through the documented precedence",
+        "Checks ownership and collisions before any rename"
+      ]
+    }
+  ]
+}

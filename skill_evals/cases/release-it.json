@@ -1,0 +1,42 @@
+{
+  "skill_name": "release-it",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "run release-it and publish the new GitHub release",
+        "top_k": 3
+      },
+      {
+        "prompt": "Cut a new repository release on GitHub with validated version metadata and an annotated tag",
+        "top_k": 3
+      },
+      {
+        "prompt": "Release investigation-skills: verify exact-SHA release CI and publish curated GitHub release notes",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Publish the investigation report to Confluence with cited assets",
+        "owner": "publish-it"
+      },
+      {
+        "prompt": "Authenticate my AWS profile and investigate an expired AWS MCP session",
+        "owner": "aws-mcp"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Release CI failed on the tagged SHA, but the tests passed locally yesterday. Publish the GitHub release anyway.",
+      "expected_output": "Refuses to publish without successful exact-SHA release CI and completes the protected workflow first.",
+      "expectations": [
+        "Requires successful release CI on the exact tagged SHA",
+        "Does not bypass the protected merge, tag verification, or read-back steps",
+        "States what must pass before the release can be published"
+      ]
+    }
+  ]
+}

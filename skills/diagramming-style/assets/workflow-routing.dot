@@ -1,0 +1,21 @@
+// Fictional teaching example. Dashed invocations do not specify execution order.
+digraph WorkflowRouting {
+  graph [rankdir=TB, pad=0.3, nodesep=0.9, ranksep=0.85,
+         fontname="Trebuchet MS", fontsize=16];
+  node [shape=plaintext, fontname="Trebuchet MS", fontsize=16];
+  edge [fontname="Trebuchet MS", fontsize=13, arrowsize=0.7, penwidth=1.2];
+
+  review [label="Activity\nReview evidence"];
+  reader [label="Skill\nRead sources"];
+  writer [label="Skill\nDocument findings"];
+  evidence [label="Artifact\nSource evidence"];
+  findings [label="Artifact\nFindings"];
+
+  { rank=same; reader; writer; }
+  { rank=same; evidence; findings; }
+  review -> reader [label="invokes", style=dashed];
+  review -> writer [label="invokes", style=dashed];
+  // Empty cells keep action words clear of the vertical handoff edges.
+  reader -> evidence [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>returns</TD></TR></TABLE>>];
+  writer -> findings [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>produces</TD></TR></TABLE>>];
+}

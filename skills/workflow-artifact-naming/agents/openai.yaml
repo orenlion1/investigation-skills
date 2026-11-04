@@ -1,0 +1,6 @@
+interface:
+  display_name: "Workflow Artifact Naming"
+  short_description: "Name and place workflow documents and assets"
+  default_prompt: "Use $workflow-artifact-naming to resolve names and destinations for the supplied workflow artifacts."
+policy:
+  allow_implicit_invocation: true

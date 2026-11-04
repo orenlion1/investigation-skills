@@ -1,0 +1,42 @@
+{
+  "skill_name": "open-edit-close-execute",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "open TASK.md and wait for me to close the editor, then execute the saved requirements",
+        "top_k": 3
+      },
+      {
+        "prompt": "edit task: open the existing input for editing and run the supplied checks after close",
+        "top_k": 3
+      },
+      {
+        "prompt": "Open this PROMPT file for editing, wait for close, then execute it within my authorization",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Resolve the name and destination directory for a new TASK workflow artifact",
+        "owner": "workflow-artifact-naming"
+      },
+      {
+        "prompt": "Publish the finished task and report to Confluence with downloadable evidence",
+        "owner": "publish-it"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "The editor launcher exited immediately after opening the file. Treat the task as closed and run it now.",
+      "expected_output": "Refuses to treat a launcher exit as completion and waits for a true close signal or explicit saved-and-closed confirmation.",
+      "expectations": [
+        "Identifies that a launcher exit is not a wait-for-close signal",
+        "Requires a tracked close or explicit user confirmation before executing",
+        "Runs the saved requirements only after the barrier completes"
+      ]
+    }
+  ]
+}

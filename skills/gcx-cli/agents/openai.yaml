@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grafana CLI"
+  short_description: "Authenticate Grafana and investigate with gcx"
+  default_prompt: "Use $gcx-cli for Grafana setup or read-only troubleshooting. For an alert investigation, first propose parallel Grafana Assistant and investigate-alert sub-agents without running commands; wait for explicit authorization to execute the plan."

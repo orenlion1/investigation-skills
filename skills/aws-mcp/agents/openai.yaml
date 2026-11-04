@@ -1,0 +1,4 @@
+interface:
+  display_name: "AWS MCP"
+  short_description: "Authenticate AWS profiles and investigate root causes"
+  default_prompt: "Use $aws-mcp with my AWS profile to sign in if needed, wait for authentication, and investigate the problem through read-only AWS MCP queries."

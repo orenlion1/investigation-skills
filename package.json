@@ -1,0 +1,15 @@
+{
+  "name": "investigation-skills",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Skills for evidence-backed investigation tasks and reports.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orenlion1/investigation-skills.git"
+  },
+  "scripts": {
+    "validate:version": "python3 scripts/release.py",
+    "test": "bash scripts/check.sh"
+  }
+}

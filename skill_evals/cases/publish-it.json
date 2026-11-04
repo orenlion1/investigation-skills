@@ -1,0 +1,42 @@
+{
+  "skill_name": "publish-it",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "publish it: push this saved TASK and report to Confluence with the originals attached as downloads",
+        "top_k": 3
+      },
+      {
+        "prompt": "Publish the investigation report to Confluence with diagrams, PDF, and cited assets, then verify the page",
+        "top_k": 3
+      },
+      {
+        "prompt": "publish-it with this report path; resolve the related artifacts and package them for Confluence",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "run release-it to publish a new GitHub repository release",
+        "owner": "release-it"
+      },
+      {
+        "prompt": "open TASK.md for editing and execute the saved requirements after close",
+        "owner": "open-edit-close-execute"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "While you publish the report to Confluence, also rerun the investigation so the token accounting looks fresh.",
+      "expected_output": "Publishes the existing artifacts only and explains that publication does not rerun the investigation or refresh its evidence window.",
+      "expectations": [
+        "Does not rerun the investigation or regenerate historical evidence",
+        "Packages and publishes the existing verified artifacts with downloads",
+        "Verifies the published page by reading it back"
+      ]
+    }
+  ]
+}

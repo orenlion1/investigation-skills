@@ -1,0 +1,37 @@
+name: Verify Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-release:
+    name: Verify tagged skills
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - name: Install diagram test dependency
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+      - name: Validate tag and run all checks
+        run: |
+          python3 scripts/release.py --tag "$GITHUB_REF_NAME"
+          bash scripts/check.sh
+      - name: Verify extracted tagged source
+        run: |
+          archive_dir="$(mktemp -d)"
+          git archive HEAD | tar -x -C "$archive_dir"
+          diff -r --exclude=__pycache__ skills "$archive_dir/skills"
+          diff -r templates "$archive_dir/templates"
+          cmp LICENSE "$archive_dir/LICENSE"
+          cmp VERSION "$archive_dir/VERSION"
+          cmp package.json "$archive_dir/package.json"
