@@ -1,0 +1,22 @@
+# Investigation outputs and evidence stay local.
+docs/*
+logs/*
+/outputs/
+/inputs/
+/docs/tasks/
+/logs/
+docs/reports/*
+
+# Local tooling and generated files.
+/.codegraph/
+/.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Private key material.
+*.pem
+*.key
