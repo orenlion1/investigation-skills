@@ -34,7 +34,13 @@
   "approved_binary_sha256": {
     "diagrams/DIAGRAM-investigation-skill-routing-dark.png": "7b1830fc12c2a28c9ab7feda347f603f4deba5ad91e999b70620a42848cd7e2b",
     "diagrams/DIAGRAM-investigation-skill-routing-light.png": "4f1d162214ef09e038eebe5d1ab6aed5a6625d19af36c65ce6c93f6b1c5f5831",
-    "diagrams/DIAGRAM-investigation-workflow-dark.png": "6da3e55a306e7f15f8fc24b5e9461967670eac1147987ce8124f7e3af764ee76",
-    "diagrams/DIAGRAM-investigation-workflow-light.png": "b6cd02928bd70ba8ee5a9de3b5455fe3c798f99db1d1aaa137e764d36e75b068"
+    "diagrams/DIAGRAM-investigation-workflow-dark.png": [
+      "6da3e55a306e7f15f8fc24b5e9461967670eac1147987ce8124f7e3af764ee76",
+      "b88275a72c735444e867dd3542e671e13bf1cef0a00919533677e80f0b58cf76"
+    ],
+    "diagrams/DIAGRAM-investigation-workflow-light.png": [
+      "b6cd02928bd70ba8ee5a9de3b5455fe3c798f99db1d1aaa137e764d36e75b068",
+      "11302bd4fcd9777b6875f71dc353cf43e6ae08e6de2de4c5f665e3b75db5c4d2"
+    ]
   }
 }

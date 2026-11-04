@@ -39,15 +39,20 @@ at that boundary. Existing task edits preserve their filenames.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-workflow-dark.png">
-  <img alt="Initialize an investigation, save and close the task editor to start execution, investigate, and produce Markdown and PDF reports, with each activity's artifacts." src="diagrams/DIAGRAM-investigation-workflow-light.png">
+  <img alt="Open and edit an investigation task, save and close the task editor to start execution, investigate using aws-mcp, gcx-cli, slack-mcp, and rovo-dev-mcp as needed, produce Markdown and PDF reports, then Publish when authorized." src="diagrams/DIAGRAM-investigation-workflow-light.png">
 </picture>
 
-**Figure 1 — Activities and artifacts.** Initialize the task, save and close its
-editor to start execution, then investigate and produce verified reports. Supplied
+**Figure 1 — Lifecycle and integrations.** Open and edit the task, save and close its
+editor to start execution, then investigate and produce verified reports. The
+artifacts progress from `TASK.md` to the saved task, findings and evidence, and
+Markdown/PDF reports. Supplied
 checks must pass and the saved task must be reread before execution. New drafts
 receive a title-derived filename; existing tasks keep their identity. Edit-only
 and initialization-only requests limit the continuation. Missing information or
-unresolved ownership blocks only dependent work.
+unresolved ownership blocks only dependent work. Dashed arrows show Investigate
+invoking `aws-mcp`, `gcx-cli`, `slack-mcp`, and `rovo-dev-mcp` as needed for the
+task; these integrations have no implied execution order. The Report → Publish
+handoff requires separate publication authorization.
 
 [Editable diagram](diagrams/DIAGRAM-investigation-workflow.dot) ·
 [Light SVG](diagrams/DIAGRAM-investigation-workflow-light.svg) ·
@@ -223,6 +228,10 @@ institution fingerprints, corporate email addresses, unreviewed hosts, and ident
 account/ticket values without logging matched content. See [SECURITY.md](SECURITY.md) for
 coverage, policy review, required GitHub checks, and the local pre-push hook. Run
 `bash scripts/check-disclosure.sh` before uploading: CI cannot prevent the initial upload.
+
+Binary approvals in `security/disclosure-policy.json` bind each path to a SHA-256
+digest or a nonempty list of reviewed digests. Keep previously approved versions
+when updating a binary so the complete-history scan can verify both revisions.
 
 ## Versioning and releases
 
