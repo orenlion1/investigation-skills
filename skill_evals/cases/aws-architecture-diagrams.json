@@ -1,0 +1,42 @@
+{
+  "skill_name": "aws-architecture-diagrams",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Create an AWS architecture diagram of our VPC, ALB, and ECS services in Graphviz DOT with AWS icons",
+        "top_k": 3
+      },
+      {
+        "prompt": "Draw an evidence-backed AWS system context and data-flow diagram in Mermaid for architecture review",
+        "top_k": 3
+      },
+      {
+        "prompt": "We need an AWS topology visual; choose between Mermaid and DOT from the renderer, audience, and layout control",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Restyle this Mermaid diagram with portable light and dark themes and plain labels",
+        "owner": "diagramming-style"
+      },
+      {
+        "prompt": "Authenticate my AWS profile and verify AWS MCP access for read-only troubleshooting",
+        "owner": "aws-mcp"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Diagram our AWS architecture from these sparse notes and invent any connections you are unsure about so the picture looks complete.",
+      "expected_output": "Draws only evidence-backed elements and marks uncertain or proposed relationships instead of inventing connections.",
+      "expectations": [
+        "Refuses to invent unverified connections or services",
+        "Distinguishes verified topology from proposed or uncertain elements",
+        "Selects Mermaid or DOT from the stated renderer and audience needs rather than a fixed default"
+      ]
+    }
+  ]
+}

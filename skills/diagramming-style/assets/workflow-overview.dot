@@ -1,0 +1,16 @@
+// Fictional teaching example. Scope and line-style captions belong beside the render.
+digraph WorkflowOverview {
+  graph [rankdir=LR, pad=0.3, nodesep=0.6, ranksep=0.8,
+         fontname="Trebuchet MS", fontsize=16];
+  node [shape=plaintext, fontname="Trebuchet MS", fontsize=16];
+  edge [fontname="Trebuchet MS", fontsize=13, arrowsize=0.7, penwidth=1.2];
+
+  task [label="Artifact\nTask requirements"];
+  review [label="Activity\nReview evidence"];
+  findings [label="Artifact\nFindings"];
+  report [label="Activity\nWrite report"];
+
+  task -> review [label="input"];
+  review -> findings [label="produces"];
+  findings -> report [label="input"];
+}

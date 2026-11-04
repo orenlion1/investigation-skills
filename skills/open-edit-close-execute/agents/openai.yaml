@@ -1,0 +1,6 @@
+interface:
+  display_name: "Open/Edit/Close/Execute"
+  short_description: "Edit an input, wait for close, execute requirements"
+  default_prompt: "Use $open-edit-close-execute to open the supplied TASK or other input for edits, wait for close and required checks, then automatically execute its saved requirements within my authorized scope."
+policy:
+  allow_implicit_invocation: true

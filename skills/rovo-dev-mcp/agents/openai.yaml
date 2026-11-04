@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rovo Dev MCP"
+  short_description: "Connect to Bitbucket, Jira, and Confluence through MCP"
+  default_prompt: "Use $rovo-dev-mcp to establish or diagnose Atlassian Rovo MCP v2 connectivity to Bitbucket, Jira, and Confluence with separate scoped grants, then validate access by reading only the requested resources."

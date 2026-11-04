@@ -1,0 +1,42 @@
+{
+  "skill_name": "diagramming-style",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Restyle this Graphviz diagram with portable light and dark themes and plain labels",
+        "top_k": 3
+      },
+      {
+        "prompt": "Review my Mermaid diagrams for consistent rendered outputs in both themes",
+        "top_k": 3
+      },
+      {
+        "prompt": "Create a Mermaid diagram using the plain-label style with light and dark profiles",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Create an AWS-style architecture diagram with icon fidelity in Graphviz DOT",
+        "owner": "aws-architecture-diagrams"
+      },
+      {
+        "prompt": "Resolve the destination path and extension for this REPORT artifact",
+        "owner": "workflow-artifact-naming"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Add a note inside the diagram title saying the data is unverified, so readers see the caveat in the rendered image.",
+      "expected_output": "Keeps caveats outside the rendered diagram and places the qualification in an adjacent caption instead.",
+      "expectations": [
+        "Does not put the caveat in a rendered title, node, edge, or legend",
+        "Moves the qualification to an adjacent caption or prose without changing the claim",
+        "Verifies both light and dark rendered outputs"
+      ]
+    }
+  ]
+}

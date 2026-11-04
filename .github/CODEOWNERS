@@ -1,0 +1,9 @@
+# Enable required code-owner reviews in the destination's branch rules.
+/.github/ @orenlion1
+/.githooks/ @orenlion1
+/security/ @orenlion1
+/SECURITY.md @orenlion1
+/scripts/check-disclosure.sh @orenlion1
+/scripts/scan-* @orenlion1
+/scripts/test_secret_scan.py @orenlion1
+/tests/test_institutional_scan.py @orenlion1

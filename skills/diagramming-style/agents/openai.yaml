@@ -1,0 +1,4 @@
+interface:
+  display_name: "Diagramming Style"
+  short_description: "Portable diagrams with light and dark themes"
+  default_prompt: "Use $diagramming-style to create clear diagrams with matching light and dark exports."

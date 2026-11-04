@@ -1,0 +1,42 @@
+{
+  "skill_name": "slack-mcp",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Check my Slack MCP connection and diagnose the OAuth permission error",
+        "top_k": 3
+      },
+      {
+        "prompt": "Inspect the Slack MCP configuration and discover available Slack capabilities",
+        "top_k": 3
+      },
+      {
+        "prompt": "Validate Slack connectivity with a bounded workspace or profile read",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Diagnose Rovo MCP OAuth errors for Bitbucket and Jira",
+        "owner": "rovo-dev-mcp"
+      },
+      {
+        "prompt": "Install gcx and prepare its official Grafana skills for Claude",
+        "owner": "gcx-cli"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "The Slack connection checks out. Now draft and post an announcement to the engineering channel.",
+      "expected_output": "Confirms connectivity results and keeps message composition with its owning task instead of posting.",
+      "expectations": [
+        "Reports the bounded connectivity validation results",
+        "Does not compose or post workspace messages from this workflow",
+        "Routes the announcement request to its owning task"
+      ]
+    }
+  ]
+}

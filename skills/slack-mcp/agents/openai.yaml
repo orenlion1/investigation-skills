@@ -1,0 +1,4 @@
+interface:
+  display_name: "Slack MCP"
+  short_description: "Inspect Slack MCP setup and validate scoped reads"
+  default_prompt: "Use $slack-mcp to inspect my Slack connection and validate it with a bounded read."

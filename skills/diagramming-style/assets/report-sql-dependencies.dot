@@ -1,0 +1,30 @@
+// Fictional dependencies and adaptation guidance are in references/diagramming-style.md.
+// Palette is supplied by render_light / render_dark; keep this definition theme-independent.
+digraph ReportSQL {
+  graph [label="Record access\n", labelloc=t, fontname="Trebuchet MS",
+         fontsize=15, rankdir=TB, margin=0, pad=0.20, nodesep=0.75,
+         ranksep=0.65, splines=polyline];
+  node [shape=plain, fontname="Trebuchet MS", fontsize=15];
+  edge [fontname="Trebuchet MS", fontsize=13, style=dashed,
+        penwidth=1.2, arrowsize=0.75];
+
+  read_heading [label="Read path"];
+  write_heading [label="Write path"];
+  list_records [label="Procedure\nListRecords"];
+  read_function [label="Function\nVisibleRecords"];
+  read_table [label="Table\nRecord"];
+  save_record [label="Procedure\nSaveRecord"];
+  write_procedure [label="Procedure\nUpdateRecord"];
+  write_table [label="Table\nRecord"];
+
+  { rank=same; read_heading; write_heading; }
+  { rank=same; list_records; save_record; }
+  { rank=same; read_function; write_procedure; }
+  { rank=same; read_table; write_table; }
+  read_heading -> list_records [style=invis];
+  write_heading -> save_record [style=invis];
+  list_records -> read_function [label="   calls"];
+  read_function -> read_table [label="   reads"];
+  save_record -> write_procedure [label="   calls"];
+  write_procedure -> write_table [label="   writes"];
+}
