@@ -37,6 +37,20 @@
         "Moves the qualification to an adjacent caption or prose without changing the claim",
         "Verifies both light and dark rendered outputs"
       ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "Make this investigation workflow closely resemble my supplied task-flow dark SVG: oval steps in a shaded lifecycle group and boxed integrations below. Use Open and Edit → Save and close → Investigate → Report → Publish, and show Investigate invokes aws-mcp, gcx-cli, slack-mcp, rovo-dev-mcp. Keep both theme exports current.",
+      "expected_output": "Uses the explicitly requested reference style for a compact lifecycle and integration view, preserving exact labels and semantics while regenerating and verifying both themes.",
+      "expectations": [
+        "Inspects the supplied rendered reference and source and matches its requested shapes, grouping, placement, and palette rather than applying plain-label defaults over the request",
+        "Uses solid lifecycle handoffs and four dashed invokes branches from Investigate to peer integrations with the exact requested labels",
+        "Does not depict integration order or guaranteed parallel execution; layout-only edges stay invisible",
+        "Keeps artifact details, as-needed integration selection, and separate publication authorization in adjacent prose",
+        "Regenerates all delivered light, dark, and adaptive exports, updates captions and alt text, and verifies theme parity, visual output, and overlaps",
+        "Limits the reference-style exception to the requested workflow instead of restyling unrelated diagrams"
+      ]
     }
   ]
 }
