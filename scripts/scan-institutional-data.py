@@ -50,10 +50,16 @@ def load_policy(path):
             isinstance(address, str) and EMAIL.fullmatch(address)
             for address in policy['public_email_addresses']):
         raise ValueError('invalid public email list')
-    if not isinstance(policy['approved_binary_sha256'], dict) or not all(
-            isinstance(path, str) and isinstance(digest, str) and re.fullmatch('[a-f0-9]{64}', digest)
-            for path, digest in policy['approved_binary_sha256'].items()):
+    if not isinstance(policy['approved_binary_sha256'], dict):
         raise ValueError('invalid binary approvals')
+    for path, digests in policy['approved_binary_sha256'].items():
+        if isinstance(digests, str):
+            digests = [digests]
+        if (not isinstance(path, str) or not isinstance(digests, list) or not digests
+                or not all(isinstance(digest, str) and re.fullmatch('[a-f0-9]{64}', digest)
+                           for digest in digests)):
+            raise ValueError('invalid binary approvals')
+        policy['approved_binary_sha256'][path] = digests
     return policy
 
 
@@ -131,7 +137,7 @@ class Scanner:
             text = data.decode('utf-8')
         except UnicodeError:
             approvals = self.policy['approved_binary_sha256']
-            if path is None or approvals.get(path) != hashlib.sha256(data).hexdigest():
+            if path is None or hashlib.sha256(data).hexdigest() not in approvals.get(path, []):
                 self.report('unreviewed-binary', oid)
             # Binary approvals are bound to both path and bytes; never cache an approval.
             return

@@ -203,6 +203,38 @@ class InstitutionalScanTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn('email', result.stdout)
 
+    def test_reviewed_binary_versions_remain_path_and_hash_bound(self):
+        versions = [b'\x89PNG\x00reviewed first', b'\x89PNG\x00reviewed second']
+        for data in versions:
+            self.write('diagram.png', data)
+            self.commit()
+        policy = json.loads(POLICY.read_text())
+        policy['approved_binary_sha256']['diagram.png'] = [
+            hashlib.sha256(data).hexdigest() for data in versions]
+        policy_path = Path(self.temp.name) / 'policy.json'
+        policy_path.write_text(json.dumps(policy))
+        result = self.scan(policy=policy_path)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        for name, data in [('elsewhere.png', versions[0]),
+                           ('diagram.png', b'\x89PNG\x00unreviewed third')]:
+            with self.subTest(name=name):
+                self.write(name, data)
+                self.git('add', '.')
+                result = self.scan('--staged', policy=policy_path)
+                self.assertEqual(result.returncode, 1)
+                self.assertIn('unreviewed-binary', result.stdout)
+                self.git('reset', '--hard', '-q', 'HEAD')
+        # Existing single-digest approvals remain supported.
+        policy['approved_binary_sha256']['diagram.png'] = hashlib.sha256(versions[1]).hexdigest()
+        policy_path.write_text(json.dumps(policy))
+        self.assertEqual(self.scan('--staged', policy=policy_path).returncode, 0)
+        self.assertEqual(self.scan(policy=policy_path).returncode, 1)
+        for invalid in [[], ['bad'], [None], [hashlib.sha256(versions[0]).hexdigest(), 1]]:
+            with self.subTest(invalid=invalid):
+                policy['approved_binary_sha256']['diagram.png'] = invalid
+                policy_path.write_text(json.dumps(policy))
+                self.assertEqual(self.scan('--staged', policy=policy_path).returncode, 2)
+
     def test_binary_symlink_submodule_and_oversize_fail_closed(self):
         self.write('evidence.png', b'\x89PNG\x00private payload')
         self.git('add', '.')

@@ -229,6 +229,10 @@ account/ticket values without logging matched content. See [SECURITY.md](SECURIT
 coverage, policy review, required GitHub checks, and the local pre-push hook. Run
 `bash scripts/check-disclosure.sh` before uploading: CI cannot prevent the initial upload.
 
+Binary approvals in `security/disclosure-policy.json` bind each path to a SHA-256
+digest or a nonempty list of reviewed digests. Keep previously approved versions
+when updating a binary so the complete-history scan can verify both revisions.
+
 ## Versioning and releases
 
 [VERSION](VERSION) is the repository release version. Ask your coding agent to
