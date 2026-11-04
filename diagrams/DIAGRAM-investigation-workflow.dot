@@ -1,29 +1,35 @@
-// Canonical activity/artifact overview; palettes are supplied by the renderer.
+// Modeled on agent-tasks/docs/diagrams/HOW-A-TASK-FLOWS.dot.
+// One canonical layout; the renderer supplies the light and dark palettes.
 digraph InvestigationWorkflow {
-  graph [rankdir=LR, newrank=true, margin=0, pad=0.3, nodesep=1.0, ranksep=0.8,
-         fontname="Trebuchet MS", fontsize=15, splines=polyline];
-  node [shape=plaintext, fontname="Trebuchet MS", fontsize=15, margin="0.25,0.10"];
-  edge [fontname="Trebuchet MS", fontsize=12, arrowsize=0.7, penwidth=1.2];
+  rankdir=TB; newrank=true; compound=true;
+  graph [fontname="Trebuchet MS", fontsize=14, splines=true,
+         nodesep=0.65, ranksep=1.1];
+  node [fontname="Trebuchet MS", fontsize=12, style=filled, height=0.45];
+  edge [fontname="Trebuchet MS", fontsize=11];
 
-  initialize [label="Initialize"];
-  close_editor [label="Save and close"];
-  investigate [label="Investigate"];
-  report [label="Report"];
-  draft [label="TASK.md"];
-  saved [label="Saved TASK"];
-  evidence [label="Findings and evidence"];
-  outputs [label="Markdown + PDF"];
+  subgraph cluster_lifecycle {
+    label="Investigation lifecycle"; labeljust=l; style=filled;
+    initialize [shape=oval, label="Open and Edit"];
+    close_editor [shape=oval, label="Save and close"];
+    investigate [shape=oval, label="Investigate"];
+    report [shape=oval, label="Report"];
+    publish [shape=oval, label="Publish"];
+    { rank=same; initialize; close_editor; investigate; report; publish; }
+    initialize -> close_editor -> investigate -> report -> publish [weight=100];
+  }
 
-  { rank=same; initialize; draft; }
-  { rank=same; close_editor; saved; }
-  { rank=same; investigate; evidence; }
-  { rank=same; report; outputs; }
+  subgraph cluster_integrations {
+    label="Investigation integrations"; labeljust=l; labelloc=b; style=filled;
+    aws_mcp [shape=box, label="aws-mcp"];
+    gcx_cli [shape=box, label="gcx-cli"];
+    slack_mcp [shape=box, label="slack-mcp"];
+    rovo_dev_mcp [shape=box, label="rovo-dev-mcp"];
+    { rank=same; aws_mcp; gcx_cli; slack_mcp; rovo_dev_mcp; }
+    aws_mcp -> gcx_cli -> slack_mcp -> rovo_dev_mcp [style=invis, weight=100];
+  }
 
-  initialize -> close_editor [label="opens editor", weight=100];
-  close_editor -> investigate [label="starts execution", weight=100];
-  investigate -> report [label="passes findings", weight=100];
-  initialize -> draft [xlabel=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD>produces</TD><TD WIDTH="16"></TD></TR></TABLE>>, constraint=false];
-  close_editor -> saved [xlabel=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD>saves</TD><TD WIDTH="16"></TD></TR></TABLE>>, constraint=false];
-  investigate -> evidence [xlabel=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD>produces</TD><TD WIDTH="16"></TD></TR></TABLE>>, constraint=false];
-  report -> outputs [xlabel=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD>produces</TD><TD WIDTH="16"></TD></TR></TABLE>>, constraint=false];
+  investigate -> aws_mcp [label="  invokes", style=dashed];
+  investigate -> gcx_cli [label="  invokes", style=dashed];
+  investigate -> slack_mcp [label="  invokes", style=dashed];
+  investigate -> rovo_dev_mcp [label="  invokes", style=dashed];
 }

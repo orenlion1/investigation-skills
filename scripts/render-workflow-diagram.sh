@@ -33,12 +33,23 @@ for theme in light dark; do
     arrow='#94a3b8'
     action='#67e8f9'
   fi
+  theme_options=()
+  if [[ "$diagram_title" == 'Investigation Workflow' ]]; then
+    if [[ "$theme" == light ]]; then
+      theme_options=(-Gfillcolor='#fffde7' -Gcolor='#aaaa33' -Nfillcolor='#ECECFF'
+        -Ncolor='#9370DB' -Ecolor='#64748b' -Efontcolor='#075985')
+    else
+      theme_options=(-Gfillcolor='#374151' -Gcolor='#9ca3af' -Nfillcolor='#1e293b'
+        -Efontcolor='#a5f3fc')
+    fi
+  fi
   for format in svg png; do
     output_path="$(resolve_path --extension "$format" --suffix "$theme")"
     [[ ! -L "$output_path" ]] || { printf 'Refusing symlink output: %s\n' "$output_path" >&2; exit 1; }
     dot -Gbgcolor="$canvas" -Gfontcolor="$text_color" -Gdpi=144 \
       -Nfontcolor="$text_color" -Ncolor="$outline" \
       -Ecolor="$arrow" -Efontcolor="$action" \
+      ${theme_options[@]+"${theme_options[@]}"} \
       -T"$format" "$source_path" -o "$output_path"
     printf 'Rendered %s\n' "${output_path#"$repository_root/"}"
   done

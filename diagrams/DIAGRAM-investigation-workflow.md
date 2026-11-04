@@ -2,7 +2,7 @@
 
 Source notes for the README Workflow images. The authoritative Graphviz sources are:
 
-- [Activity and artifact overview](DIAGRAM-investigation-workflow.dot)
+- [Lifecycle and integrations](DIAGRAM-investigation-workflow.dot)
 - [Skill routing](DIAGRAM-investigation-skill-routing.dot)
 
 The README embeds each source's `-light.png` and `-dark.png` renditions through a
@@ -10,7 +10,14 @@ theme-aware `picture` element. Regenerate all PNG and SVG renditions, including
 adaptive SVGs, with [render-workflow-diagram.sh](../scripts/render-workflow-diagram.sh).
 The renderer derives both palettes from the same source and checks overlaps.
 
-The overview's solid arrows show activity handoffs and produced artifacts. Saving
+The overview follows the left-to-right lifecycle and dashed invocation layout of
+`agent-tasks/docs/diagrams/HOW-A-TASK-FLOWS-dark.svg`: oval lifecycle activities,
+boxed integrations, shaded groups, and matching theme palettes. Solid arrows
+show activity handoffs, including Report → Publish. Publication requires
+separate authorization. The investigation activity artifacts are `TASK.md`, the saved task,
+findings and evidence, and Markdown/PDF reports, respectively. Dashed arrows
+from Investigate show invocation of `aws-mcp`, `gcx-cli`, `slack-mcp`, and
+`rovo-dev-mcp` as needed for the task, without ordering the integrations. Saving
 and closing the editor starts the execution continuation after supplied checks
 succeed and the saved task is reread. New tasks receive their title-derived
 `TASK-{slug}.md` name; existing tasks keep their established names. At least one
