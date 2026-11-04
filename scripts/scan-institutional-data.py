@@ -46,6 +46,10 @@ def load_policy(path):
         if not isinstance(policy[key], list) or not all(
                 isinstance(host, str) and re.fullmatch('[a-z0-9.-]+', host) for host in policy[key]):
             raise ValueError('invalid public domain list')
+    if not isinstance(policy['public_email_addresses'], list) or not all(
+            isinstance(address, str) and EMAIL.fullmatch(address)
+            for address in policy['public_email_addresses']):
+        raise ValueError('invalid public email list')
     if not isinstance(policy['approved_binary_sha256'], dict) or not all(
             isinstance(path, str) and isinstance(digest, str) and re.fullmatch('[a-f0-9]{64}', digest)
             for path, digest in policy['approved_binary_sha256'].items()):
@@ -62,7 +66,8 @@ def content_rules(text, policy):
                for i in range(len(canonical) - width + 1)):
             rules.add('institution-fingerprint')
     if any(not reserved(m.group(1).lower()) and m.group(1).lower()
-           not in policy['public_email_domains'] for m in EMAIL.finditer(URL.sub('', text))):
+           not in policy['public_email_domains'] and m.group().lower()
+           not in policy['public_email_addresses'] for m in EMAIL.finditer(URL.sub('', text))):
         rules.add('email')
     for match in URL.finditer(text):
         try:

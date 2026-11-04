@@ -63,6 +63,15 @@ class InstitutionalScanTests(unittest.TestCase):
         self.assertEqual(self.scan('--staged', repo=unborn).returncode, 0)
         self.assertNotEqual(self.scan(repo=unborn).returncode, 0)
 
+    def test_github_merge_bot_is_allowed_without_allowing_other_github_addresses(self):
+        self.git('-c', 'user.email=noreply@github.com', 'commit', '--allow-empty', '-qm',
+                 'Public merge fixture')
+        result = self.scan()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.git('-c', 'user.email=person' + '@' + 'github.com', 'commit', '--allow-empty',
+                 '-qm', 'Unapproved identity fixture')
+        self.assertEqual(self.scan().returncode, 1)
+
     def test_deleted_data_and_side_branch_are_not_hidden(self):
         self.git('checkout', '-qb', 'fixture-side')
         self.write('incident.md', 'person' + '@' + 'institution.invalid-corp.com')

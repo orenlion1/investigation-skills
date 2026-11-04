@@ -57,6 +57,8 @@ Do not publish a release until both security checks pass on its exact tag SHA.
 URL hosts, public email domains, and institution fingerprints. Reserved example domains are
 allowed; add a real public host only after review. Corporate domains are not approved merely
 because their website is public. Keep integration endpoints generic and examples synthetic.
+The exact GitHub merge-bot email is approved for generated commit metadata; this does
+not approve other addresses at its domain.
 
 Institution fingerprints use SHA-256 of NFKC-normalized, case-folded ASCII letters/digits,
 plus the normalized length. The scanner hashes sliding windows, detecting names embedded in

@@ -28,5 +28,8 @@
   "public_email_domains": [
     "users.noreply.github.com"
   ],
+  "public_email_addresses": [
+    "noreply@github.com"
+  ],
   "approved_binary_sha256": {}
 }
