@@ -38,8 +38,8 @@ at that boundary. Existing task edits preserve their filenames.
 ## Workflow
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/DIAGRAM-investigation-workflow-dark.png">
-  <img alt="Initialize an investigation, save and close the task editor to start execution, investigate, and produce Markdown and PDF reports, with each activity's artifacts." src="docs/diagrams/DIAGRAM-investigation-workflow-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-workflow-dark.png">
+  <img alt="Initialize an investigation, save and close the task editor to start execution, investigate, and produce Markdown and PDF reports, with each activity's artifacts." src="diagrams/DIAGRAM-investigation-workflow-light.png">
 </picture>
 
 **Figure 1 — Activities and artifacts.** Initialize the task, save and close its
@@ -49,13 +49,13 @@ receive a title-derived filename; existing tasks keep their identity. Edit-only
 and initialization-only requests limit the continuation. Missing information or
 unresolved ownership blocks only dependent work.
 
-[Editable diagram](docs/diagrams/DIAGRAM-investigation-workflow.dot) ·
-[Light SVG](docs/diagrams/DIAGRAM-investigation-workflow-light.svg) ·
-[Dark SVG](docs/diagrams/DIAGRAM-investigation-workflow-dark.svg)
+[Editable diagram](diagrams/DIAGRAM-investigation-workflow.dot) ·
+[Light SVG](diagrams/DIAGRAM-investigation-workflow-light.svg) ·
+[Dark SVG](diagrams/DIAGRAM-investigation-workflow-dark.svg)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/DIAGRAM-investigation-skill-routing-dark.png">
-  <img alt="Investigation activities route to task initialization skills, selected resource skills, and report naming, token usage, and diagramming skills." src="docs/diagrams/DIAGRAM-investigation-skill-routing-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-skill-routing-dark.png">
+  <img alt="Investigation activities route to task initialization skills, selected resource skills, and report naming, token usage, and diagramming skills." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
 </picture>
 
 **Figure 2 — Skill routing.** Dashed arrows show which skills an activity invokes.
@@ -65,10 +65,10 @@ between skills. Both views use this repository's
 [task workflow](AGENTS.md#templated-tasks) and
 [editor contract](skills/open-edit-close-execute/references/open-edit-close-execute.md).
 
-[Editable routing diagram](docs/diagrams/DIAGRAM-investigation-skill-routing.dot) ·
-[Light SVG](docs/diagrams/DIAGRAM-investigation-skill-routing-light.svg) ·
-[Dark SVG](docs/diagrams/DIAGRAM-investigation-skill-routing-dark.svg) ·
-[Source notes and regeneration](docs/diagrams/DIAGRAM-investigation-workflow.md)
+[Editable routing diagram](diagrams/DIAGRAM-investigation-skill-routing.dot) ·
+[Light SVG](diagrams/DIAGRAM-investigation-skill-routing-light.svg) ·
+[Dark SVG](diagrams/DIAGRAM-investigation-skill-routing-dark.svg) ·
+[Source notes and regeneration](diagrams/DIAGRAM-investigation-workflow.md)
 
 The repository owns the template, draft creation, final naming, execution, and
 reporting. The shared Open/Edit/Close/Execute skill owns the waiting-editor barrier
@@ -146,7 +146,7 @@ instructions to the agent; publishing requires a resolved Confluence destination
 | `docs/reports/REPORT-{slug}.md` and `.pdf` | Local investigation deliverables; ignored by Git. |
 | `docs/reports/assets/{slug}/` | Local supporting report assets. |
 | `logs/` | Local investigation logs and supporting evidence; ignored by Git. |
-| [docs/diagrams/](docs/diagrams/) | Committed documentation diagrams and editable source. |
+| [diagrams/](diagrams/) | Committed documentation diagrams and editable source. |
 | [skills/](skills/) | Self-contained skill packages and their references or helpers. |
 
 [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) resolves output

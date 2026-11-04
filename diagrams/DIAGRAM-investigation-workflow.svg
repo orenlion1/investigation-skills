@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2061pt" height="518pt" viewBox="0.00 0.00 2061.00 518.00">
+<style>
+@media (prefers-color-scheme: dark) {
+  [fill="#0e7490"] { fill: #67e8f9; }
+  [fill="#0f172a"] { fill: #f1f5f9; }
+  [fill="#475569"] { fill: #94a3b8; }
+  [fill="#ffffff"] { fill: #0f172a; }
+  [stroke="#475569"] { stroke: #94a3b8; }
+}
+</style><g id="graph0" class="graph" transform="scale(2 2) rotate(0) translate(21.6 237.6)">
+<title>InvestigationWorkflow</title>
+<polygon fill="#ffffff" stroke="none" points="-21.6,21.6 -21.6,-237.6 1008.85,-237.6 1008.85,21.6 -21.6,21.6" />
+
+<g id="node1" class="node">
+<title>initialize</title>
+<text xml:space="preserve" text-anchor="middle" x="64.75" y="-192.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Initialize</text>
+</g>
+
+<g id="node2" class="node">
+<title>close_editor</title>
+<text xml:space="preserve" text-anchor="middle" x="306.88" y="-192.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Save and close</text>
+</g>
+
+<g id="edge1" class="edge">
+<title>initialize-&gt;close_editor</title>
+<path fill="none" stroke="#475569" stroke-width="1.2" d="M112.62,-198C146.12,-198 191.91,-198 230.51,-198" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="230.32,-200.45 237.32,-198 230.32,-195.55 230.32,-200.45" />
+<text xml:space="preserve" text-anchor="middle" x="175.88" y="-201.6" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">opens editor</text>
+</g>
+
+<g id="node5" class="node">
+<title>draft</title>
+<text xml:space="preserve" text-anchor="middle" x="64.75" y="-12.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">TASK.md</text>
+</g>
+
+<g id="edge4" class="edge">
+<title>initialize-&gt;draft</title>
+<path fill="none" stroke="#475569" stroke-width="1.2" d="M64.75,-180.32C64.75,-162.62 64.75,-138 64.75,-138 64.75,-138 64.75,-78 64.75,-78 64.75,-78 64.75,-60.47 64.75,-44.36" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="67.2,-44.49 64.75,-37.49 62.3,-44.49 67.2,-44.49" />
+<text xml:space="preserve" text-anchor="start" x="0" y="-100.34" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">produces</text>
+</g>
+
+<g id="node3" class="node">
+<title>investigate</title>
+<text xml:space="preserve" text-anchor="middle" x="611.62" y="-192.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Investigate</text>
+</g>
+
+<g id="edge2" class="edge">
+<title>close_editor-&gt;investigate</title>
+<path fill="none" stroke="#475569" stroke-width="1.2" d="M374.69,-198C426.38,-198 497.43,-198 548.03,-198" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="547.78,-200.45 554.78,-198 547.78,-195.55 547.78,-200.45" />
+<text xml:space="preserve" text-anchor="middle" x="446.88" y="-201.6" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">starts execution</text>
+</g>
+
+<g id="node6" class="node">
+<title>saved</title>
+<text xml:space="preserve" text-anchor="middle" x="306.88" y="-12.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Saved TASK</text>
+</g>
+
+<g id="edge5" class="edge">
+<title>close_editor-&gt;saved</title>
+<path fill="none" stroke="#475569" stroke-width="1.2" d="M306.88,-180.32C306.88,-162.62 306.88,-138 306.88,-138 306.88,-138 306.88,-78 306.88,-78 306.88,-78 306.88,-60.47 306.88,-44.36" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="309.33,-44.49 306.88,-37.49 304.43,-44.49 309.33,-44.49" />
+<text xml:space="preserve" text-anchor="start" x="263.12" y="-100.34" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">saves</text>
+</g>
+
+<g id="node4" class="node">
+<title>report</title>
+<text xml:space="preserve" text-anchor="middle" x="914.5" y="-192.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Report</text>
+</g>
+
+<g id="edge3" class="edge">
+<title>investigate-&gt;report</title>
+<path fill="none" stroke="#475569" stroke-width="1.2" d="M667.11,-198C723.74,-198 811.49,-198 865.56,-198" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="865.45,-200.45 872.45,-198 865.45,-195.55 865.45,-200.45" />
+<text xml:space="preserve" text-anchor="middle" x="773" y="-201.6" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">passes findings</text>
+</g>
+
+<g id="node7" class="node">
+<title>evidence</title>
+<text xml:space="preserve" text-anchor="middle" x="611.62" y="-12.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Findings and evidence</text>
+</g>
+
+<g id="edge6" class="edge">
+<title>investigate-&gt;evidence</title>
+<path fill="none" stroke="#475569" stroke-width="1.2" d="M611.62,-180.32C611.62,-162.62 611.62,-138 611.62,-138 611.62,-138 611.62,-78 611.62,-78 611.62,-78 611.62,-60.47 611.62,-44.36" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="614.08,-44.49 611.63,-37.49 609.18,-44.49 614.08,-44.49" />
+<text xml:space="preserve" text-anchor="start" x="546.88" y="-100.34" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">produces</text>
+</g>
+
+<g id="node8" class="node">
+<title>outputs</title>
+<text xml:space="preserve" text-anchor="middle" x="914.5" y="-12.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Markdown + PDF</text>
+</g>
+
+<g id="edge7" class="edge">
+<title>report-&gt;outputs</title>
+<path fill="none" stroke="#475569" stroke-width="1.2" d="M914.5,-180.32C914.5,-162.62 914.5,-138 914.5,-138 914.5,-138 914.5,-78 914.5,-78 914.5,-78 914.5,-60.47 914.5,-44.36" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="916.95,-44.49 914.5,-37.49 912.05,-44.49 916.95,-44.49" />
+<text xml:space="preserve" text-anchor="start" x="849.75" y="-100.34" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">produces</text>
+</g>
+</g>
+</svg>

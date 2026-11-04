@@ -10,7 +10,7 @@ command -v python3 >/dev/null || { printf 'Python 3.8+ is required.\n' >&2; exit
 
 resolve_path() {
   python3 "$resolver" --repository-root "$repository_root" \
-    --title "$diagram_title" --type DIAGRAM --destination docs/diagrams "$@" \
+    --title "$diagram_title" --type DIAGRAM --destination diagrams "$@" \
     | python3 -c 'import json, sys; print(json.load(sys.stdin)["absolute_path"])'
 }
 

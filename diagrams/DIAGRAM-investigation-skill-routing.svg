@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1526pt" height="493pt" viewBox="0.00 0.00 1526.00 493.00">
+<style>
+@media (prefers-color-scheme: dark) {
+  [fill="#0e7490"] { fill: #67e8f9; }
+  [fill="#0f172a"] { fill: #f1f5f9; }
+  [fill="#475569"] { fill: #94a3b8; }
+  [fill="#ffffff"] { fill: #0f172a; }
+  [stroke="#475569"] { stroke: #94a3b8; }
+}
+</style><g id="graph0" class="graph" transform="scale(2 2) rotate(0) translate(21.6 225)">
+<title>InvestigationSkillRouting</title>
+<polygon fill="#ffffff" stroke="none" points="-21.6,21.6 -21.6,-225 741.6,-225 741.6,21.6 -21.6,21.6" />
+
+<g id="node1" class="node">
+<title>initialize</title>
+<text xml:space="preserve" text-anchor="middle" x="135" y="-180.15" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Initialize</text>
+</g>
+
+<g id="node2" class="node">
+<title>investigate</title>
+<text xml:space="preserve" text-anchor="middle" x="360" y="-180.15" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Investigate</text>
+</g>
+
+
+<g id="node4" class="node">
+<title>setup_skills</title>
+<text xml:space="preserve" text-anchor="middle" x="105" y="-55.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Skills</text>
+<text xml:space="preserve" text-anchor="middle" x="105" y="-37.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Workflow Artifact Naming</text>
+<text xml:space="preserve" text-anchor="middle" x="105" y="-19.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Open/Edit/Close/Execute</text>
+</g>
+
+<g id="edge3" class="edge">
+<title>initialize-&gt;setup_skills</title>
+<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M131.38,-167.49C127.08,-147.38 119.74,-113.1 113.9,-85.79" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="116.3,-85.3 112.44,-78.97 111.51,-86.32 116.3,-85.3" />
+<text xml:space="preserve" text-anchor="start" x="139.57" y="-122.4" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">invokes</text>
+</g>
+
+<g id="node3" class="node">
+<title>report</title>
+<text xml:space="preserve" text-anchor="middle" x="578" y="-180.15" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Report</text>
+</g>
+
+
+<g id="node5" class="node">
+<title>resource_skills</title>
+<text xml:space="preserve" text-anchor="middle" x="360" y="-64.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Resource skills</text>
+<text xml:space="preserve" text-anchor="middle" x="360" y="-46.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Rovo Dev MCP</text>
+<text xml:space="preserve" text-anchor="middle" x="360" y="-28.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Grafana CLI</text>
+<text xml:space="preserve" text-anchor="middle" x="360" y="-10.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Slack MCP / AWS MCP</text>
+</g>
+
+<g id="edge4" class="edge">
+<title>investigate-&gt;resource_skills</title>
+<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M360,-167.49C360,-149.49 360,-120.16 360,-94.61" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="362.45,-94.94 360,-87.94 357.55,-94.94 362.45,-94.94" />
+<text xml:space="preserve" text-anchor="start" x="376" y="-122.4" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">routes</text>
+</g>
+
+<g id="node6" class="node">
+<title>report_skills</title>
+<text xml:space="preserve" text-anchor="middle" x="615" y="-64.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Report skills</text>
+<text xml:space="preserve" text-anchor="middle" x="615" y="-46.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Workflow Artifact Naming</text>
+<text xml:space="preserve" text-anchor="middle" x="615" y="-28.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Token Usage</text>
+<text xml:space="preserve" text-anchor="middle" x="615" y="-10.95" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Diagramming Style</text>
+</g>
+
+<g id="edge5" class="edge">
+<title>report-&gt;report_skills</title>
+<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M582.46,-167.49C587.21,-149.49 594.95,-120.16 601.7,-94.61" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="604.06,-95.27 603.47,-87.88 599.32,-94.02 604.06,-95.27" />
+<text xml:space="preserve" text-anchor="start" x="610.28" y="-122.4" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">invokes</text>
+</g>
+</g>
+</svg>
