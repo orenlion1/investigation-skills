@@ -20,3 +20,4 @@ the settings that do not apply. Placeholders and examples do not count as resour
 - AWS account: `<enter AWS profile>` (example: `team-readonly`)
 - Grafana context: `<enter gcx profile>` (example: `example`)
 - Alert: `<Alert name>`; UID `<Enter UID>`
+- Publish: `<Parent page>` (example: Confluence page "Investigations")
