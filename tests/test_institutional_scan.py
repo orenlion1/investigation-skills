@@ -97,6 +97,23 @@ class InstitutionalScanTests(unittest.TestCase):
         self.git('tag', 'blob-fixture', oid)
         self.assertNotEqual(self.scan().returncode, 0)
 
+    def test_nested_annotations_are_scanned_without_inner_refs(self):
+        self.git('tag', '-a', 'inner', '-m', 'contact' + '@' + 'private-hospital.org')
+        self.git('tag', '-a', 'middle', 'inner', '-m', 'Public middle annotation')
+        self.git('tag', '-a', 'outer', 'middle', '-m', 'Public outer annotation')
+        self.git('tag', '-d', 'inner', 'middle')
+        result = self.scan()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('email', result.stdout)
+        self.assertNotIn('private-hospital.org', result.stdout + result.stderr)
+
+    def test_clean_nested_annotations_pass(self):
+        self.git('tag', '-a', 'inner', '-m', 'Public inner annotation')
+        self.git('tag', '-a', 'outer', 'inner', '-m', 'Public outer annotation')
+        self.git('tag', '-d', 'inner')
+        result = self.scan()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_sensitive_paths_and_unknown_hosts_and_identifiers_fail(self):
         fixtures = [('docs/report.md', 'Public text.'), ('logs/evidence.txt', 'Public text.'),
                     ('.env', 'PLAIN=value'), ('note.md', 'https://' + 'tenant.atlassian.net'),

@@ -40,7 +40,7 @@ jobs:
           echo "$scanner_dir" >> "$GITHUB_PATH"
       - name: Run Gitleaks regression tests
         run: python3 scripts/test_secret_scan.py
-      - name: Scan all fetched history and detached HEAD
+      - name: Scan fetched history, commit metadata, and nested tag annotations
         run: bash scripts/scan-secrets.sh .
 
   institutional-data:
@@ -57,5 +57,5 @@ jobs:
           python-version: '3.14'
       - name: Run disclosure-gate regression tests
         run: python3 -m unittest discover -s tests -p test_institutional_scan.py -v
-      - name: Scan index, historical trees, refs, and commit and tag metadata
+      - name: Scan index, historical trees, refs, and all commit and tag metadata
         run: python3 scripts/scan-institutional-data.py

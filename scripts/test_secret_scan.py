@@ -2,6 +2,8 @@
 import os
 from pathlib import Path
 import random
+import shlex
+import shutil
 import string
 import subprocess
 import tempfile
@@ -75,6 +77,70 @@ class SecretScanTest(unittest.TestCase):
         result = self.scan()
         self.assertEqual(result.returncode, 1)
         self.assertNotIn(fake, result.stdout + result.stderr)
+
+    def test_credentials_in_historical_commit_messages_fail_without_disclosure(self):
+        fake = 'ghp_' + ''.join(random.Random(3821).choices(
+            string.ascii_letters + string.digits, k=36))
+        self.git('commit', '--allow-empty', '-qm', 'token = ' + fake + ' # gitleaks:allow')
+        (self.repo / 'README.md').write_text('Clean later revision.\n')
+        self.commit()
+        result = self.scan()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn(fake, result.stdout + result.stderr)
+
+    def test_credentials_in_annotated_tag_messages_fail_without_disclosure(self):
+        fake = 'ghp_' + ''.join(random.Random(3822).choices(
+            string.ascii_letters + string.digits, k=36))
+        self.git('tag', '-a', 'fixture', '-m', 'token = ' + fake)
+        result = self.scan()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn(fake, result.stdout + result.stderr)
+
+    def test_credentials_in_nested_tag_messages_fail_without_inner_ref(self):
+        fake = 'ghp_' + ''.join(random.Random(3823).choices(
+            string.ascii_letters + string.digits, k=36))
+        self.git('tag', '-a', 'inner', '-m', 'token = ' + fake + ' # gitleaks:allow')
+        self.git('tag', '-a', 'middle', 'inner', '-m', 'Public middle annotation')
+        self.git('tag', '-a', 'outer', 'middle', '-m', 'Public outer annotation')
+        self.git('tag', '-d', 'inner', 'middle')
+        (self.repo / '.gitleaks.toml').write_text('[allowlist]\npaths = [".*"]\n')
+        (self.repo / '.gitleaksignore').write_text('*\n')
+        self.commit()
+        result = self.scan()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn(fake, result.stdout + result.stderr)
+
+    def test_detached_commit_message_credentials_are_scanned(self):
+        self.git('checkout', '--detach')
+        fake = 'ghp_' + ''.join(random.Random(3824).choices(
+            string.ascii_letters + string.digits, k=36))
+        self.git('commit', '--allow-empty', '-qm', 'token = ' + fake)
+        result = self.scan()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn(fake, result.stdout + result.stderr)
+
+    def test_clean_nested_tags_pass(self):
+        self.git('tag', '-a', 'inner', '-m', 'Public inner annotation')
+        self.git('tag', '-a', 'outer', 'inner', '-m', 'Public outer annotation')
+        self.git('tag', '-d', 'inner')
+        result = self.scan()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_metadata_scanner_failure_blocks_without_logging_diagnostics(self):
+        real_scanner = shutil.which(os.environ.get('GITLEAKS_BIN', 'gitleaks'))
+        self.assertIsNotNone(real_scanner)
+        shim = Path(self.temp.name) / 'scanner'
+        diagnostic = 'synthetic-sensitive-diagnostic'
+        shim.write_text('#!/usr/bin/env bash\n'
+                        'if [ "$1" = dir ]; then\n'
+                        '  echo ' + diagnostic + ' >&2\n'
+                        '  exit 2\n'
+                        'fi\n'
+                        'exec ' + shlex.quote(real_scanner) + ' "$@"\n')
+        shim.chmod(0o700)
+        result = self.scan(env={**os.environ, 'GITLEAKS_BIN': str(shim)})
+        self.assertEqual(result.returncode, 2)
+        self.assertNotIn(diagnostic, result.stdout + result.stderr)
 
 
 if __name__ == '__main__':
