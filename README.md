@@ -302,7 +302,10 @@ bash scripts/check.sh
 
 That validates release metadata, compiles the scripts, skills, and tests, runs
 the repository and diagramming test suites, confirms the two policy files match,
-and rejects whitespace errors. Changes to any skill or eval case additionally
+and rejects whitespace errors. The repository suite includes an end-to-end pass
+over the [Profile Manager](skills/profile-manager/SKILL.md) chain — ignore
+coverage, store creation, adding a profile, loading it into a task, and removal
+— which CI also runs as its own named step. Changes to any skill or eval case additionally
 need `bash scripts/run-skill-quality-gate.sh`.
 
 Keep the CodeGraph index current and local:
