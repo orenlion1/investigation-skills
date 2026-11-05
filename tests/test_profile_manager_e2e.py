@@ -88,6 +88,8 @@ class EndToEndChainTests(unittest.TestCase):
             self.assertEqual(oct(self.store.stat().st_mode & 0o777), '0o600')
             self.store.write_text('# unrelated local settings\n' + UNMANAGED + '\n',
                                   encoding='utf-8')
+            # A store made by hand — cp .env.example .env — arrives world-readable.
+            self.store.chmod(0o644)
 
         with self.subTest('set adds the profile and preserves unmanaged lines'):
             added = self.ok('set', '--profile', 'payments',
@@ -100,6 +102,7 @@ class EndToEndChainTests(unittest.TestCase):
             contents = self.store.read_text(encoding='utf-8')
             self.assertIn("PROFILE__PAYMENTS__REPO='payments-service'", contents)
             self.assertIn(UNMANAGED, contents)
+            self.assertEqual(oct(self.store.stat().st_mode & 0o777), '0o600')
 
         with self.subTest('list and show report status without unmanaged values'):
             listed = self.ok('list')

@@ -72,7 +72,8 @@ python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . ini
 `ignore` appends the `.env` patterns only when the path is not already ignored, keeps an
 existing `.env.example` trackable, and verifies coverage afterward. An already-tracked store
 is a repository problem, not a profile problem: untrack it and confirm its history before
-storing anything. A new store is created owner-only.
+storing anything. Every write leaves the store owner-only, tightening one that was looser;
+`.gitignore` and the task are ordinary repository files and keep the mode they have.
 
 ## Add, update, inspect, and remove a profile
 
