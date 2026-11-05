@@ -257,11 +257,12 @@ def require_ignored(root, env_path):
     return relative
 
 
-def write_file(path, text, mode=0o600):
-    """Replace the file atomically, keeping an existing mode and owner-only defaults."""
+def write_file(path, text, mode=0o600, enforce=False):
+    """Replace the file atomically; keep an existing mode unless one is enforced."""
     if os.path.lexists(path):
         regular_file(path, 'destination', max(MAX_ENV_BYTES, MAX_TASK_BYTES))
-        mode = stat.S_IMODE(path.stat().st_mode)
+        if not enforce:
+            mode = stat.S_IMODE(path.stat().st_mode)
     handle, temporary = tempfile.mkstemp(dir=str(path.parent), prefix='.' + path.name + '.')
     try:
         with os.fdopen(handle, 'w', encoding='utf-8') as stream:
@@ -381,7 +382,8 @@ def command_set(arguments, context):
                                 if field in existing and existing[field] != values[field]),
               'cleared': sorted(set(existing) - set(values)), 'dry_run': arguments.dry_run}
     if not arguments.dry_run:
-        write_file(context['env_path'], '\n'.join(lines) + ('\n' if lines else ''))
+        result['mode'] = oct(write_file(context['env_path'],
+                                        '\n'.join(lines) + ('\n' if lines else ''), enforce=True))
         _, written = parse_store(read_text(context['env_path'], 'profile store', MAX_ENV_BYTES))
         if profiles(written).get(name, {}) != values:
             raise ProfileError('stored profile did not read back as written: ' + name)
@@ -398,7 +400,8 @@ def command_remove(arguments, context):
     result = {'profile': name, 'store': relative, 'removed': True,
               'remaining_profiles': remaining, 'dry_run': arguments.dry_run}
     if not arguments.dry_run:
-        write_file(context['env_path'], '\n'.join(lines) + ('\n' if lines else ''))
+        result['mode'] = oct(write_file(context['env_path'],
+                                        '\n'.join(lines) + ('\n' if lines else ''), enforce=True))
         _, written = parse_store(read_text(context['env_path'], 'profile store', MAX_ENV_BYTES))
         if name in profiles(written):
             raise ProfileError('profile remained in the store after removal: ' + name)
@@ -413,7 +416,7 @@ def command_init(arguments, context):
     result = {'store': relative, 'created': not arguments.dry_run, 'already_present': False,
               'dry_run': arguments.dry_run}
     if not arguments.dry_run:
-        result['mode'] = oct(write_file(context['env_path'], ''))
+        result['mode'] = oct(write_file(context['env_path'], '', enforce=True))
     return result
 
 

@@ -236,6 +236,26 @@ class ProfileStoreTests(unittest.TestCase):
         self.store.write_text("PROFILE__BROKEN='value'\n", encoding='utf-8')
         self.assertIn('not PROFILE__NAME__FIELD', self.fails('list'))
 
+    def test_store_is_tightened_while_other_files_keep_their_mode(self):
+        self.ok('ignore')
+        (self.root / '.gitignore').chmod(0o644)
+        self.store.write_text('UNRELATED_TOKEN="keep me"\n', encoding='utf-8')
+        self.store.chmod(0o644)
+        self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
+        self.assertEqual(oct(self.store.stat().st_mode & 0o777), '0o600')
+        self.assertIn('UNRELATED_TOKEN="keep me"', self.store.read_text(encoding='utf-8'))
+        self.store.chmod(0o644)
+        self.ok('remove', '--profile', 'example')
+        self.assertEqual(oct(self.store.stat().st_mode & 0o777), '0o600')
+        # The .gitignore and the task are ordinary repository files, not the store.
+        self.assertEqual(oct((self.root / '.gitignore').stat().st_mode & 0o777), '0o644')
+        self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
+        task = self.root / 'TASK.md'
+        task.write_text(self.template.read_text(encoding='utf-8'), encoding='utf-8')
+        task.chmod(0o644)
+        self.ok('load', '--profile', 'example', '--task', 'TASK.md')
+        self.assertEqual(oct(task.stat().st_mode & 0o777), '0o644')
+
     def test_profile_name_and_field_syntax_are_validated(self):
         self.ignore_and_init()
         self.assertIn('lowercase kebab-case',

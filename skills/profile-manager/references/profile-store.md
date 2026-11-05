@@ -30,8 +30,11 @@ entry someone expected to be in effect.
 - A managed value may be single-quoted, double-quoted, or a bare token without whitespace,
   `#`, quotes, or backslashes. Anything else is rejected rather than guessed at.
 - An optional `export ` prefix is accepted when reading and not written.
-- Writes are atomic: a temporary file in the same directory is replaced into place. A new
-  store is created `0600`; an existing store keeps its current mode.
+- Writes are atomic: a temporary file in the same directory is replaced into place. Every
+  store write leaves it `0600`, so a store that already existed with a looser mode is
+  tightened rather than preserved, and `set`, `remove` and `init` report the resulting mode.
+  The other files these commands touch — `.gitignore` and the task — are ordinary repository
+  files and keep the mode they already have.
 - A store that is a symlink, is not a regular file, or exceeds 256 KiB is refused.
 - A new profile block is appended after a `# profile: {name}` marker line. Rewriting a
   profile keeps its position; removing one removes its marker with it.
