@@ -100,10 +100,15 @@ resources in scope are:
 1. **Gather.** The saved task names what is in scope. Each resource is queried
    read-only through its own skill, with the account, context, Region, object
    identity, and time window resolved before the call rather than guessed.
-2. **Relate.** Signals are aligned on one explicit time window and timezone, so
-   an alert transition, a log burst, a throttled dependency, a deploy, and the
-   customer report that followed sit on a single timeline instead of in four
-   tools.
+2. **Relate.** The relationships between signals are drawn across the data
+   stores that hold them — an alert transition, a log burst, a throttled
+   dependency, a deploy, and the customer report that followed are connected
+   into one picture instead of read in four tools. Aligning on an explicit time
+   window and timezone is how those connections are made. Human reports carry
+   data points the telemetry does not: a Slack message that customers started
+   seeing checkout timeouts around 09:40 timestamps the first user-visible
+   symptom, scopes which customers and features were affected, and tells the
+   agent which metric excursions in the window mattered and which were noise.
 3. **Narrow.** Candidate causes are tested against that evidence rather than
    asserted. Code, a schema, or a class name proves what the source says, not
    what production did; the paths and consumers that matter are traced before a
@@ -163,10 +168,32 @@ timeout, never counts as closure. In VS Code the waiting command is
 [editor contract](skills/open-edit-close-execute/references/open-edit-close-execute.md)
 covers other editors and how closure is confirmed when it cannot be tracked.
 
-Grafana alert investigations pause before any live query: the agent first
-proposes a parallel Grafana Assistant and `investigate-alert` plan and waits for
-your explicit authorization. See the
+### Alert investigations
+
+Grafana alert investigations **pause before any live query**: the agent first
+proposes a parallel Grafana Assistant and `investigate-alert` plan and **waits
+for your explicit authorization** — the editor barrier alone does not start
+live discovery. See the
 [alert investigation entry point](AGENTS.md#grafana-investigation-entry-point).
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-parallel-alert-investigation-dark.png">
+  <img alt="An authorized plan launches Grafana Assistant and direct alert investigation in parallel, then reconciles their results, verifies claims, and produces a report." src="diagrams/DIAGRAM-parallel-alert-investigation-light.png">
+</picture>
+
+**Figure 3 — Parallel alert investigation.** Once the plan is authorized, both
+agents launch — before either result is awaited — with the same resolved
+Grafana context, alert identity, environment, exact time window and timezone,
+and read-only scope. Solid arrows are handoffs; dashed arrows are invocation;
+ovals are activities and boxes are the two agent calls. Assistant conclusions
+are investigation leads: material claims are verified against bounded direct
+evidence, and disagreements, gaps, and limitations go into the report. The
+figure illustrates the documented workflow, not an executed investigation.
+
+[Editable alert diagram](diagrams/DIAGRAM-parallel-alert-investigation.dot) ·
+[Light SVG](diagrams/DIAGRAM-parallel-alert-investigation-light.svg) ·
+[Dark SVG](diagrams/DIAGRAM-parallel-alert-investigation-dark.svg) ·
+[Source notes and regeneration](diagrams/DIAGRAM-parallel-alert-investigation.md)
 
 ## What a run looks like
 

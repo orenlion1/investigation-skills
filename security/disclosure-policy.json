@@ -51,6 +51,12 @@
       "b6cd02928bd70ba8ee5a9de3b5455fe3c798f99db1d1aaa137e764d36e75b068",
       "11302bd4fcd9777b6875f71dc353cf43e6ae08e6de2de4c5f665e3b75db5c4d2",
       "24a30bcd591b85b7b028d29d4ecc8f9ee88d87255af7602de7fb367457567f3e"
+    ],
+    "diagrams/DIAGRAM-parallel-alert-investigation-light.png": [
+      "fd47de2304d9faa718c95bd86a622cee8eb592ad5754b6deb3a5ec137504914d"
+    ],
+    "diagrams/DIAGRAM-parallel-alert-investigation-dark.png": [
+      "62beec522d2704c6eae74099b7ab446c8547cb834aca0513b7a721e19677d73c"
     ]
   }
 }
