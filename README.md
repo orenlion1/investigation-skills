@@ -54,6 +54,10 @@ sign-in live in its own skill. A missing required dependency is setup work
 rather than a blocker — see
 [Required Dependencies](AGENTS.md#required-dependencies).
 
+The workflow works best in an IDE with the coding agent running in terminal
+mode in the integrated terminal: the task draft opens in a waiting editor
+beside the agent session, and closing that editor is what starts execution.
+
 ## Quick start
 
 1. **Open a draft.** Ask the agent:
@@ -92,14 +96,18 @@ edit task docs/tasks/TASK-example-service-investigation.md
 Existing tasks keep their filenames. To stop before execution, ask for **edit
 only**; for a new draft, **initialization only** stops at the same boundary.
 
-## How an investigation runs
+## Fan out the queries. Fold in the analysis.
+
+*How an investigation runs.*
 
 Once the task is running, the agent works through the same arc whatever the
 resources in scope are:
 
-1. **Gather.** The saved task names what is in scope. Each resource is queried
-   read-only through its own skill, with the account, context, Region, object
-   identity, and time window resolved before the call rather than guessed.
+1. **Gather.** The saved task names what is in scope, and the queries fan out
+   across every store in it, each through its own scoped read-only skill, with
+   the account, context, Region, object identity, and time window resolved
+   before the call rather than guessed. The fan-out is not a single pass: it
+   repeats every iteration, as the analysis needs it.
 2. **Relate.** The relationships between signals are drawn across the data
    stores that hold them — an alert transition, a log burst, a throttled
    dependency, a deploy, and the customer report that followed are connected
@@ -110,9 +118,10 @@ resources in scope are:
    symptom, scopes which customers and features were affected, and tells the
    agent which metric excursions in the window mattered and which were noise.
 3. **Narrow.** Candidate causes are tested against that evidence rather than
-   asserted. Code, a schema, or a class name proves what the source says, not
-   what production did; the paths and consumers that matter are traced before a
-   behavioral conclusion is drawn.
+   asserted: a finding in one store becomes the next query in another, until a
+   cause survives the evidence. Code, a schema, or a class name proves what the
+   source says, not what production did; the paths and consumers that matter
+   are traced before a behavioral conclusion is drawn.
 4. **Write up.** The report captures the findings, the reasoning that connects
    them, diagrams of the flows and dependencies involved, and the resolution or
    proposed change — separating what the evidence verifies from what it only
