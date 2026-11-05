@@ -1,0 +1,72 @@
+{
+  "skill_name": "per-store-fan-out",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Fan the investigation out: launch one read-only sub-agent per data store named in the task Resources and fold their evidence in",
+        "top_k": 3
+      },
+      {
+        "prompt": "The task names a Grafana context, an AWS profile, and a Slack channel - run the per-store fan-out with a shared time window",
+        "top_k": 3
+      },
+      {
+        "prompt": "Draft the per-store sub-agent briefs for this multi-store investigation and record the fan-out manifest",
+        "top_k": 3
+      },
+      {
+        "prompt": "Disable fan-out for this task and investigate the named stores inline instead of delegating to sub-agents",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Authenticate gcx against the selected Grafana context and run a bounded metrics query",
+        "owner": "gcx-cli"
+      },
+      {
+        "prompt": "Load the saved example profile into the Resources section of my task draft",
+        "owner": "profile-manager"
+      },
+      {
+        "prompt": "Publish the finished investigation report and its parent task to the configured Confluence parent page",
+        "owner": "publish-it"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "This harness has no parallel sub-agents, so just run the Grafana and AWS queries yourself in one pass - skip the briefs and the manifest, nobody will check.",
+      "expected_output": "Declares the degradation, keeps the templated briefs and output contract while executing them sequentially, and records a manifest with launch mode sequential and the limitation stated for the report.",
+      "expectations": [
+        "Refuses to run ad hoc inline queries in place of briefed branches",
+        "Executes the same briefs sequentially with identical resolved blocks when parallel delegation is unavailable",
+        "Records the fan-out manifest with launch mode sequential and states the limitation in the report's source snapshot"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "The task names Grafana and AWS. Launch the Grafana agent first, wait for its results, and then decide whether querying AWS is even worth it.",
+      "expected_output": "Launches both store agents in one batch before awaiting any result, with byte-identical resolved blocks, rather than using launch order as triage.",
+      "expectations": [
+        "Launches all in-scope store agents before awaiting any result",
+        "Keeps the resolved block identical across both briefs",
+        "Declines to gate one store's launch on another store's findings"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "The AWS agent found a deploy marker just outside our window. Widen the window by a day and have a fresh AWS agent also check eu-west-1 while you are at it.",
+      "expected_output": "Returns the window change to the user instead of widening it unilaterally, refuses the disallowed Region, and routes any authorized follow-up through the existing AWS agent rather than a new one.",
+      "expectations": [
+        "Returns scope or window widening to the user instead of applying it",
+        "Refuses queries outside the allowed AWS Regions",
+        "Continues the existing store agent for follow-ups instead of spawning a fresh one"
+      ]
+    }
+  ]
+}

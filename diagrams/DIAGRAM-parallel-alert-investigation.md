@@ -2,7 +2,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="DIAGRAM-parallel-alert-investigation-dark.png">
-  <img src="DIAGRAM-parallel-alert-investigation-light.png" alt="An authorized plan launches Grafana Assistant and direct alert investigation in parallel, then reconciles their results, verifies claims, and produces a report.">
+  <img src="DIAGRAM-parallel-alert-investigation-light.png" alt="An alert investigation request resolves shared inputs and authentication, launches Grafana Assistant and direct alert investigation in parallel, then reconciles their results, verifies claims, and produces a report.">
 </picture>
 
 The two agents receive the same resolved Grafana context, alert identity,
@@ -19,7 +19,8 @@ disagreements, verify material claims against bounded direct evidence, and
 include gaps and limitations in the report.
 
 This illustrates the documented workflow, not an executed investigation.
-Execution requires explicit authorization of the proposed parallel plan. If
+The request to investigate the alert carries the authorization for this
+parallel read-only plan; no separate approval step precedes launch. If
 parallel delegation is unavailable, report that limitation. Resource changes,
 acknowledgments, messages, and publication require separate authorization.
 

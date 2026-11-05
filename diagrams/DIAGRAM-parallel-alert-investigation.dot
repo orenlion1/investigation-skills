@@ -9,12 +9,11 @@ digraph ParallelAlertInvestigation {
 
   subgraph cluster_setup {
     label="Alert investigation setup"; labeljust=l; style=filled;
-    propose [shape=oval, label="Propose parallel plan"];
-    authorize [shape=oval, label="User authorizes execution"];
+    request [shape=oval, label="Alert investigation\nrequest"];
     resolve [shape=oval, label="Resolve shared inputs\nand authentication"];
     launch [shape=oval, label="Launch both agents"];
-    { rank=same; propose; authorize; resolve; launch; }
-    propose -> authorize -> resolve -> launch [weight=100];
+    { rank=same; request; resolve; launch; }
+    request -> resolve -> launch [weight=100];
   }
 
   subgraph cluster_parallel {

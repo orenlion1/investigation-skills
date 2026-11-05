@@ -177,23 +177,57 @@ timeout, never counts as closure. In VS Code the waiting command is
 [editor contract](skills/open-edit-close-execute/references/open-edit-close-execute.md)
 covers other editors and how closure is confirmed when it cannot be tracked.
 
+### Per-store fan-out
+
+When a task's Resources name more than one data store, the gather step fans
+out by default: one read-only sub-agent per named store, launched in parallel
+with the same resolved identity, environment, time window, timezone, and
+questions. You can disable it — by asking, or with `Fan-out: disabled` in the
+task's Resources — and the agent investigates inline instead. The default and
+its disable switch live in
+[Per-Store Investigation Fan-Out](AGENTS.md#per-store-investigation-fan-out);
+the [Per-Store Fan-Out skill](skills/per-store-fan-out/SKILL.md) owns the
+mechanics — store resolution, brief templates, launch and degradation, and the
+auditable fan-out manifest each run records.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-per-store-fan-out-dark.png">
+  <img alt="The task's Resources name the stores in scope; shared inputs and authentication are resolved, one read-only agent per store is launched in parallel, their candidate evidence is related on the shared timeline, material claims are verified, and findings, gaps, and limitations are reported. Findings route back as the next query." src="diagrams/DIAGRAM-per-store-fan-out-light.png">
+</picture>
+
+**Figure 3 — Per-store fan-out.** The arc's gather and relate steps as
+delegation. All store agents launch before any result is awaited; each returns
+candidate evidence, limitations, and follow-up questions for other stores.
+Solid arrows are handoffs; dashed arrows are invocation, including the loop in
+which a finding in one store becomes the next query in another, continued
+through that store's existing agent. The orchestrating session alone relates,
+verifies, and reports — sub-agent output is leads, not verified findings, and
+sub-agents never mutate, acknowledge, message, or publish. The figure
+illustrates the documented workflow, not an executed investigation.
+
+[Editable fan-out diagram](diagrams/DIAGRAM-per-store-fan-out.dot) ·
+[Light SVG](diagrams/DIAGRAM-per-store-fan-out-light.svg) ·
+[Dark SVG](diagrams/DIAGRAM-per-store-fan-out-dark.svg) ·
+[Source notes and regeneration](diagrams/DIAGRAM-per-store-fan-out.md)
+
 ### Alert investigations
 
-Grafana alert investigations **pause before any live query**: the agent first
-proposes a parallel Grafana Assistant and `investigate-alert` plan and **waits
-for your explicit authorization** — the editor barrier alone does not start
-live discovery. See the
+Grafana alert investigations **inherit their authorization from the request
+itself**: asking to investigate the alert is what authorizes the parallel
+read-only plan, so the agent resolves the shared inputs and launches both
+agents without pausing for separate approval. Missing context — alert
+identity, environment, time window, timezone, scope — is asked for, never
+guessed through live discovery. See the
 [alert investigation entry point](AGENTS.md#grafana-investigation-entry-point).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-parallel-alert-investigation-dark.png">
-  <img alt="An authorized plan launches Grafana Assistant and direct alert investigation in parallel, then reconciles their results, verifies claims, and produces a report." src="diagrams/DIAGRAM-parallel-alert-investigation-light.png">
+  <img alt="An alert investigation request resolves shared inputs and authentication, launches Grafana Assistant and direct alert investigation in parallel, then reconciles their results, verifies claims, and produces a report." src="diagrams/DIAGRAM-parallel-alert-investigation-light.png">
 </picture>
 
-**Figure 3 — Parallel alert investigation.** Once the plan is authorized, both
-agents launch — before either result is awaited — with the same resolved
-Grafana context, alert identity, environment, exact time window and timezone,
-and read-only scope. Solid arrows are handoffs; dashed arrows are invocation;
+**Figure 4 — Parallel alert investigation.** Both agents launch — before
+either result is awaited — with the same resolved Grafana context, alert
+identity, environment, exact time window and timezone, and read-only scope. Solid arrows are handoffs; dashed arrows are invocation;
 ovals are activities and boxes are the two agent calls. Assistant conclusions
 are investigation leads: material claims are verified against bounded direct
 evidence, and disagreements, gaps, and limitations go into the report. The
@@ -285,6 +319,7 @@ Republish a revised report rather than editing the page away from its evidence.
 | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) | Wait for editor closure and supplied checks, then continue within scope. |
 | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) | Resolve artifact identity, format, filename, and destination. |
 | [Profile Manager](skills/profile-manager/SKILL.md) | Maintain local `.env` resource profiles and load one into a task's Resources. |
+| [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) | Fan a multi-store investigation out into per-store read-only sub-agents and fold their evidence in. |
 | [Release It](skills/release-it/SKILL.md) | Prepare and verify protected GitHub releases. |
 | [Publish It](skills/publish-it/SKILL.md) | Publish tasks and reports to Confluence with diagrams, evidence and verified downloads. |
 | [Token Usage](skills/token-usage/SKILL.md) | Derive scoped report duration and token totals from local conversation records. |
@@ -320,6 +355,7 @@ link rather than a summary:
 | Report duration and token accounting | [Token Usage](skills/token-usage/SKILL.md) |
 | Diagram style, theming, and consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
 | Atlassian connectivity probes | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
+| Per-store investigation fan-out | [AGENTS.md](AGENTS.md#per-store-investigation-fan-out) |
 | Grafana investigation entry point | [AGENTS.md](AGENTS.md#grafana-investigation-entry-point) |
 | Skill and eval quality gate | [Skill Quality Gate](AGENTS.md#skill-quality-gate) |
 | Publication security and disclosure | [SECURITY.md](SECURITY.md) |

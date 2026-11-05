@@ -1,0 +1,47 @@
+// Style reference: DIAGRAM-investigation-workflow.dot.
+// One canonical layout; render-workflow-diagram.sh supplies both palettes.
+digraph PerStoreFanOut {
+  rankdir=TB; newrank=true; compound=true;
+  graph [fontname="Trebuchet MS", fontsize=12, splines=true,
+         nodesep=0.7, ranksep=0.9];
+  node [fontname="Trebuchet MS", fontsize=12, style=filled, height=0.5];
+  edge [fontname="Trebuchet MS", fontsize=11];
+
+  subgraph cluster_setup {
+    label="Fan-out setup"; labeljust=l; style=filled;
+    scope [shape=oval, label="Task Resources name\nthe stores in scope"];
+    resolve [shape=oval, label="Resolve shared inputs\nand authentication"];
+    launch [shape=oval, label="Launch one agent\nper store"];
+    { rank=same; scope; resolve; launch; }
+    scope -> resolve -> launch [weight=100];
+  }
+
+  subgraph cluster_parallel {
+    label="Parallel read-only store agents"; labeljust=l; labelloc=b; style=filled;
+    gcx [shape=box, label="Grafana agent\ngcx queries"];
+    aws [shape=box, label="AWS agent\nAWS MCP queries"];
+    rovo [shape=box, label="Atlassian agent\nRovo Dev MCP queries"];
+    slack [shape=box, label="Slack agent\nSlack MCP reads"];
+    { rank=same; gcx; aws; rovo; slack; }
+    gcx -> aws -> rovo -> slack [style=invis, weight=100];
+  }
+
+  subgraph cluster_fold {
+    label="Fold in"; labeljust=l; labelloc=b; style=filled;
+    relate [shape=oval, label="Relate signals on\nthe shared timeline"];
+    verify [shape=oval, label="Verify material claims\nagainst evidence"];
+    report [shape=oval, label="Report findings,\ngaps, and limitations"];
+    { rank=same; relate; verify; report; }
+    relate -> verify -> report [weight=100];
+  }
+
+  launch -> gcx [label="  invokes", style=dashed];
+  launch -> aws [label="  invokes", style=dashed];
+  launch -> rovo [label="  invokes", style=dashed];
+  launch -> slack [label="  invokes", style=dashed];
+  gcx -> relate [label="  candidate evidence", headport=w];
+  aws -> relate [label="  candidate evidence", headport=n];
+  rovo -> relate [label="  candidate evidence", headport=n];
+  slack -> relate [label="  candidate evidence", headport=ne];
+  relate -> launch [label="  next query per finding", style=dashed, constraint=false];
+}

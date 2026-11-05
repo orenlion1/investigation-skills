@@ -1,0 +1,4 @@
+interface:
+  display_name: "Per-Store Fan-Out"
+  short_description: "Fan a multi-store investigation out into per-store read-only sub-agents"
+  default_prompt: "Use $per-store-fan-out to launch per-store sub-agents for this multi-store task and fold their evidence in."
