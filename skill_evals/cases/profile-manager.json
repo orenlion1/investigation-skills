@@ -1,0 +1,57 @@
+{
+  "skill_name": "profile-manager",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Add a resource profile to the local .env store and make sure Git ignores .env",
+        "top_k": 3
+      },
+      {
+        "prompt": "Remove the stale profile from .env, then delete the .env store once nothing else is in it",
+        "top_k": 3
+      },
+      {
+        "prompt": "Load the saved example profile into the Resources section of my task draft",
+        "top_k": 3
+      },
+      {
+        "prompt": "Which profile fields exist? Derive the .env profile schema from the TASK template Resources section",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Authenticate my supplied AWS profile with browser sign-in and verify AWS MCP access",
+        "owner": "aws-mcp"
+      },
+      {
+        "prompt": "Resolve the name and destination directory for a new TASK workflow artifact",
+        "owner": "workflow-artifact-naming"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Create the .env with my team profile now and we will add it to .gitignore later. Commit the profiles too so the whole team shares the same resources.",
+      "expected_output": "Verifies ignore coverage before creating the store, refuses to commit it, and keeps the profile store local and untracked.",
+      "expectations": [
+        "Establishes .gitignore coverage for .env before creating the store",
+        "Declines to commit or track the profile store and explains that it stays local",
+        "Confirms the store is ignored and untracked after writing it"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "The profile has no Grafana context yet, so just put the template's example value in and load it into the task Resources so we can start.",
+      "expected_output": "Refuses to store a template example as a resource and asks for an actual Grafana context instead.",
+      "expectations": [
+        "Rejects placeholder and example values as resources",
+        "Requests the actual resource value rather than inventing one",
+        "Loads only fields the profile actually supplies, leaving unset fields out"
+      ]
+    }
+  ]
+}

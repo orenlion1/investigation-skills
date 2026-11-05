@@ -1,0 +1,6 @@
+interface:
+  display_name: "Profile Manager"
+  short_description: "Maintain local .env resource profiles and load them into a task"
+  default_prompt: "Use $profile-manager to manage the local .env resource profiles and load the requested profile into the task."
+policy:
+  allow_implicit_invocation: true

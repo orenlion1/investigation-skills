@@ -11,7 +11,7 @@ digraph InvestigationSkillRouting {
   investigate [label="Investigate\nClose and Execute"];
   report [label="Report"];
   publish [label="Publish"];
-  setup_skills [label="Skills\nWorkflow Artifact Naming\nOpen/Edit/Close/Execute"];
+  setup_skills [label="Skills\nWorkflow Artifact Naming\nOpen/Edit/Close/Execute\nProfile Manager"];
   resource_skills [label="Resource skills\nRovo Dev MCP\nGrafana CLI\nSlack MCP / AWS MCP"];
   report_skills [label="Report skills\nWorkflow Artifact Naming\nToken Usage\nDiagramming Style"];
   publish_skills [label="Publish skills\nPublish It\nRovo Dev MCP"];
