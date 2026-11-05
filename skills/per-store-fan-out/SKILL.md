@@ -38,8 +38,8 @@ one sub-agent per integration:
 
 Two or more resolved stores trigger fan-out; exactly one runs inline through its own
 skill. A repository plus its Jira ticket is one Atlassian store, not two. A Grafana alert
-investigation nests the policy's parallel Assistant/`investigate-alert` pattern inside
-the Grafana branch; the request itself carries that authorization.
+investigation nests the [Parallel Alert Investigation](../parallel-alert-investigation/SKILL.md)
+workflow inside the Grafana branch; the request itself carries that authorization.
 
 ## Workflow
 

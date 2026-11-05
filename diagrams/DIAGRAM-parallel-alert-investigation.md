@@ -24,7 +24,8 @@ parallel read-only plan; no separate approval step precedes launch. If
 parallel delegation is unavailable, report that limitation. Resource changes,
 acknowledgments, messages, and publication require separate authorization.
 
-Source: [Grafana Investigation Entry Point](../AGENTS.md#grafana-investigation-entry-point).
+Source: [Parallel Alert Investigation](../skills/parallel-alert-investigation/SKILL.md),
+routed from the [Grafana Investigation Entry Point](../AGENTS.md#grafana-investigation-entry-point).
 Visual reference: [Investigation workflow](DIAGRAM-investigation-workflow.dot).
 
 Editable [Graphviz source](DIAGRAM-parallel-alert-investigation.dot),

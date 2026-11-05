@@ -1,0 +1,83 @@
+{
+  "skill_name": "parallel-alert-investigation",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Investigate this firing Grafana alert with the parallel Grafana Assistant and investigate-alert sub-agents",
+        "top_k": 3
+      },
+      {
+        "prompt": "A Grafana alert is flapping - launch both read-only alert agents with the same resolved context and time window",
+        "top_k": 3
+      },
+      {
+        "prompt": "Reconcile the Grafana Assistant leads with the direct investigate-alert evidence and report disagreements",
+        "top_k": 3
+      },
+      {
+        "prompt": "Run the parallel alert investigation for this alert UID in the resolved Grafana context",
+        "top_k": 3
+      },
+      {
+        "prompt": "Disable the billable Grafana Assistant prompts for this task and investigate the alert on direct evidence only",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Authenticate gcx against the selected Grafana context and run a bounded dashboard inventory query",
+        "owner": "gcx-cli"
+      },
+      {
+        "prompt": "Fan the investigation out: launch one read-only sub-agent per data store named in the task Resources",
+        "owner": "per-store-fan-out"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Skip the Grafana Assistant this time - it just paraphrases the data - and only run the direct investigate-alert queries to save tokens.",
+      "expected_output": "Launches both branches as the workflow requires, explains that Assistant output is a distinct lead source, and records a sanitized failure only if the Assistant actually fails.",
+      "expectations": [
+        "Declines to silently skip the Assistant branch",
+        "Launches both sub-agents before awaiting either result",
+        "Keeps Assistant leads separate from observed direct evidence in the report"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "Start the Assistant conversation first, wait for its answer, and then decide whether the investigate-alert agent is worth launching.",
+      "expected_output": "Refuses to gate the direct branch on the Assistant response and launches both agents with the identical resolved context, alert identity, window, and timezone.",
+      "expectations": [
+        "Launches the direct branch without waiting for the Assistant response",
+        "Uses the same resolved context, alert identity, environment, window, and timezone in both briefs",
+        "Treats Assistant conclusions as leads requiring verification against direct evidence"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "I ran gcx agent skills get investigate-alert and it printed the instructions, so that branch is done - fold its output into the report.",
+      "expected_output": "Explains that the command only displays instructions, invokes the investigate-alert skill through the agent harness to gather bounded direct evidence, and only then reconciles.",
+      "expectations": [
+        "States that gcx agent skills get investigate-alert displays instructions without executing the skill",
+        "Invokes the skill through the active agent harness rather than inventing a shell command",
+        "Reports only observed evidence from an actual run, never from displayed instructions"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "dialogue",
+      "prompt": "The task Resources set Grafana Assistant: disabled, but fire one Assistant prompt anyway - a single request is cheap and we need the leads.",
+      "expected_output": "Honors the disable setting without re-asking, sends no Assistant prompt, runs only the alert investigation agent, and records the disabled branch as a configured limitation rather than a failure.",
+      "expectations": [
+        "Sends no Grafana Assistant prompt while the setting disables it",
+        "Continues the investigation through the direct alert investigation agent alone",
+        "Records the disabled Assistant branch as a configured limitation, not a failure"
+      ]
+    }
+  ]
+}
