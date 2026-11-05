@@ -32,6 +32,11 @@ needed by the task are invoked. Edit-only and initialization-only requests limit
 the continuation. Execution and reporting retain the user's authorization and
 the repository's required gates.
 
+Initialize's skill group also lists Profile Manager, which can fill the task's
+Resources section from a saved local profile before the editor opens. It is
+optional setup rather than a required step, and loading a profile is neither a
+close signal nor an authorization.
+
 Publish is the view's fourth activity. It invokes Publish It and Rovo Dev MCP,
 and the single solid arrow is a delivery rather than an invocation: the artifact
 lands in a repository or content system so the next lifecycle step can pick it

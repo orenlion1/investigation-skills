@@ -34,19 +34,23 @@
   "approved_binary_sha256": {
     "diagrams/DIAGRAM-investigation-skill-routing-dark.png": [
       "7b1830fc12c2a28c9ab7feda347f603f4deba5ad91e999b70620a42848cd7e2b",
-      "70c36c8169a918316c6709586ac4897913a0932098262f34832fddc8baa6f643"
+      "70c36c8169a918316c6709586ac4897913a0932098262f34832fddc8baa6f643",
+      "4c9478cc37332a77db737c5aa3dd581bb12fa97d7cdb89b6783f0d4f7f866133"
     ],
     "diagrams/DIAGRAM-investigation-skill-routing-light.png": [
       "4f1d162214ef09e038eebe5d1ab6aed5a6625d19af36c65ce6c93f6b1c5f5831",
-      "1a10a33d55d76c27aa8e1dda0058a455c637da784a1d0828bed7eefbb22cbf06"
+      "1a10a33d55d76c27aa8e1dda0058a455c637da784a1d0828bed7eefbb22cbf06",
+      "858046c839a665977ebf8a7ed1d2db443ca19ef8e8797362f8a8e0146095c426"
     ],
     "diagrams/DIAGRAM-investigation-workflow-dark.png": [
       "6da3e55a306e7f15f8fc24b5e9461967670eac1147987ce8124f7e3af764ee76",
-      "b88275a72c735444e867dd3542e671e13bf1cef0a00919533677e80f0b58cf76"
+      "b88275a72c735444e867dd3542e671e13bf1cef0a00919533677e80f0b58cf76",
+      "811d089aaf2da62a8146b5234190dec1fb9b6e9044f7b01b90be5fde1be9185e"
     ],
     "diagrams/DIAGRAM-investigation-workflow-light.png": [
       "b6cd02928bd70ba8ee5a9de3b5455fe3c798f99db1d1aaa137e764d36e75b068",
-      "11302bd4fcd9777b6875f71dc353cf43e6ae08e6de2de4c5f665e3b75db5c4d2"
+      "11302bd4fcd9777b6875f71dc353cf43e6ae08e6de2de4c5f665e3b75db5c4d2",
+      "24a30bcd591b85b7b028d29d4ecc8f9ee88d87255af7602de7fb367457567f3e"
     ]
   }
 }
