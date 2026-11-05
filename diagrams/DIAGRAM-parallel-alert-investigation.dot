@@ -1,0 +1,41 @@
+// Style reference: DIAGRAM-investigation-workflow.dot.
+// One canonical layout; render-workflow-diagram.sh supplies both palettes.
+digraph ParallelAlertInvestigation {
+  rankdir=TB; newrank=true; compound=true;
+  graph [fontname="Trebuchet MS", fontsize=12, splines=true,
+         nodesep=0.7, ranksep=0.85];
+  node [fontname="Trebuchet MS", fontsize=12, style=filled, height=0.5];
+  edge [fontname="Trebuchet MS", fontsize=11];
+
+  subgraph cluster_setup {
+    label="Alert investigation setup"; labeljust=l; style=filled;
+    propose [shape=oval, label="Propose parallel plan"];
+    authorize [shape=oval, label="User authorizes execution"];
+    resolve [shape=oval, label="Resolve shared inputs\nand authentication"];
+    launch [shape=oval, label="Launch both agents"];
+    { rank=same; propose; authorize; resolve; launch; }
+    propose -> authorize -> resolve -> launch [weight=100];
+  }
+
+  subgraph cluster_parallel {
+    label="Parallel read-only investigations"; labeljust=l; labelloc=b; style=filled;
+    assistant [shape=box, label="Grafana Assistant agent\ngcx assistant prompt\nFresh conversation, explicit context"];
+    direct [shape=box, label="Alert investigation agent\nRefreshed investigate-alert skill\nBounded direct evidence"];
+    { rank=same; assistant; direct; }
+    assistant -> direct [style=invis, weight=100];
+  }
+
+  subgraph cluster_results {
+    label="Evidence and reporting"; labeljust=l; labelloc=b; style=filled;
+    reconcile [shape=oval, label="Reconcile both results"];
+    verify [shape=oval, label="Verify material claims\nagainst direct evidence"];
+    report [shape=oval, label="Report findings\nand evidence"];
+    { rank=same; reconcile; verify; report; }
+    reconcile -> verify -> report [weight=100];
+  }
+
+  launch -> assistant [label="  invokes", style=dashed];
+  launch -> direct [label="  invokes", style=dashed];
+  assistant -> reconcile [label="  leads and references"];
+  direct -> reconcile [label="  observed evidence"];
+}
