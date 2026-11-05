@@ -51,7 +51,7 @@ class ProfileStoreTests(unittest.TestCase):
         schema = self.ok('schema')
         fields = {field['field']: field for field in schema['fields']}
         self.assertEqual(schema['template'], 'templates/TASK.md')
-        self.assertEqual(set(fields), {'REPO', 'SLACK_CHANNEL', 'AWS_ACCOUNT',
+        self.assertEqual(set(fields), {'REPO', 'SLACK_CHANNEL', 'AWS_ACCOUNT', 'AWS_REGION',
                                        'GRAFANA_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH'})
         self.assertEqual(fields['REPO']['label'], 'Repo (Bitbucket/Github)')
         self.assertEqual(fields['ALERT_UID']['requires'], 'ALERT')
