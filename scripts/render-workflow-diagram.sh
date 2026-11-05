@@ -14,7 +14,7 @@ resolve_path() {
     | python3 -c 'import json, sys; print(json.load(sys.stdin)["absolute_path"])'
 }
 
-for diagram_title in 'Investigation Workflow' 'Investigation Skill Routing' 'Parallel Alert Investigation'; do
+for diagram_title in 'Investigation Workflow' 'Investigation Skill Routing' 'Parallel Alert Investigation' 'Per-Store Fan-Out'; do
 source_path="$(resolve_path --extension dot)"
 [[ ! -L "$source_path" ]] || { printf 'Refusing symlink source: %s\n' "$source_path" >&2; exit 1; }
 test -f "$source_path" || { printf 'Missing canonical diagram: %s\n' "$source_path" >&2; exit 1; }
@@ -34,7 +34,8 @@ for theme in light dark; do
     action='#67e8f9'
   fi
   theme_options=()
-  if [[ "$diagram_title" == 'Investigation Workflow' || "$diagram_title" == 'Parallel Alert Investigation' ]]; then
+  if [[ "$diagram_title" == 'Investigation Workflow' || "$diagram_title" == 'Parallel Alert Investigation' \
+        || "$diagram_title" == 'Per-Store Fan-Out' ]]; then
     if [[ "$theme" == light ]]; then
       theme_options=(-Gfillcolor='#fffde7' -Gcolor='#aaaa33' -Nfillcolor='#ECECFF'
         -Ncolor='#9370DB' -Ecolor='#64748b' -Efontcolor='#075985')

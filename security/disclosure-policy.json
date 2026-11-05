@@ -29,18 +29,21 @@
     "users.noreply.github.com"
   ],
   "public_email_addresses": [
-    "noreply@github.com"
+    "noreply@github.com",
+    "noreply@anthropic.com"
   ],
   "approved_binary_sha256": {
     "diagrams/DIAGRAM-investigation-skill-routing-dark.png": [
       "7b1830fc12c2a28c9ab7feda347f603f4deba5ad91e999b70620a42848cd7e2b",
       "70c36c8169a918316c6709586ac4897913a0932098262f34832fddc8baa6f643",
-      "4c9478cc37332a77db737c5aa3dd581bb12fa97d7cdb89b6783f0d4f7f866133"
+      "4c9478cc37332a77db737c5aa3dd581bb12fa97d7cdb89b6783f0d4f7f866133",
+      "5d8a92439716087528cfadb6c624dc9c785c409e2fd517c99b88f7f3a3501c75"
     ],
     "diagrams/DIAGRAM-investigation-skill-routing-light.png": [
       "4f1d162214ef09e038eebe5d1ab6aed5a6625d19af36c65ce6c93f6b1c5f5831",
       "1a10a33d55d76c27aa8e1dda0058a455c637da784a1d0828bed7eefbb22cbf06",
-      "858046c839a665977ebf8a7ed1d2db443ca19ef8e8797362f8a8e0146095c426"
+      "858046c839a665977ebf8a7ed1d2db443ca19ef8e8797362f8a8e0146095c426",
+      "4bd5258829c5c14160c953c3e9a3ef31627312f346487e5b566520f494175b83"
     ],
     "diagrams/DIAGRAM-investigation-workflow-dark.png": [
       "6da3e55a306e7f15f8fc24b5e9461967670eac1147987ce8124f7e3af764ee76",
@@ -53,10 +56,18 @@
       "24a30bcd591b85b7b028d29d4ecc8f9ee88d87255af7602de7fb367457567f3e"
     ],
     "diagrams/DIAGRAM-parallel-alert-investigation-light.png": [
-      "fd47de2304d9faa718c95bd86a622cee8eb592ad5754b6deb3a5ec137504914d"
+      "fd47de2304d9faa718c95bd86a622cee8eb592ad5754b6deb3a5ec137504914d",
+      "08d793c43ed81702e74ed858affab1cd20ef5db018326c16683e38823d723a74"
     ],
     "diagrams/DIAGRAM-parallel-alert-investigation-dark.png": [
-      "62beec522d2704c6eae74099b7ab446c8547cb834aca0513b7a721e19677d73c"
+      "62beec522d2704c6eae74099b7ab446c8547cb834aca0513b7a721e19677d73c",
+      "a4fd088e977d819c1db142601aa7a47ed622a36e7a272e48a1413e06693b0c33"
+    ],
+    "diagrams/DIAGRAM-per-store-fan-out-dark.png": [
+      "65bcead7a034f0ef129b2bcbe761f8f41281f552da9092358661ba20b6f8cf8f"
+    ],
+    "diagrams/DIAGRAM-per-store-fan-out-light.png": [
+      "a149f6838e44f1ef32f538ac3abb39425816720e3d27d412919cbfa2788d087c"
     ]
   }
 }

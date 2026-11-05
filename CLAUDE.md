@@ -32,6 +32,7 @@ blocker rather than substituting direct reads.
 | Creating, styling, or verifying report diagrams — themes, caveat placement, ER and SQL dependency views, format consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
 | `publish it`, `publish-it`, authorized Confluence task/report publication | [Publish It](skills/publish-it/SKILL.md) |
 | Atlassian authentication, connectivity, and resource probes | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
+| Multi-store fan-out: per-store sub-agent briefs, launch, manifest, disabling fan-out | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) |
 | `run release-it`, repository releases | [Release It](skills/release-it/SKILL.md) with [VERSIONING.md](VERSIONING.md) |
 
 Routing notes:
@@ -119,16 +120,33 @@ Apply to investigation reports and their supporting diagrams; no skill owns this
   ranges match the pinned revision, and citations support their adjacent claims, consistently
   in Markdown and PDF.
 
+## Per-Store Investigation Fan-Out
+
+When a running task's Resources name more than one data store, fan the investigation out:
+one read-only sub-agent per in-scope store, launched in parallel through the active agent
+harness. Fan-out is the default for multi-store tasks; a single-store task runs inline.
+The user may disable it, by instruction or with a `Fan-out: disabled` line in the task's
+Resources; honor that for the stated scope and investigate inline without re-asking.
+
+The [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) skill owns the workflow: store
+resolution, shared-input and authentication sequencing, the brief and output-contract
+templates, harness-specific launch and declared degradation, iteration bounds, fold-in,
+and the auditable fan-out manifest. Fan-out creates no scope or authority: only stores the
+task's Resources actually name get a sub-agent, AWS branches stay within the allowed
+Regions, Grafana alert investigations keep the entry point below (whose nested parallel
+Assistant/`investigate-alert` pattern applies inside the gcx branch), and sub-agents never
+mutate, acknowledge, message, or publish — those remain separately authorized.
+
 ## Grafana Investigation Entry Point
 
-For an alert investigation request, first propose instructions for two parallel sub-agents.
-Do not launch them or run investigation commands until the user explicitly authorizes execution
-of the proposed plan. An editor/check barrier or task continuation does not bypass this rule.
-Use supplied or already verified context in the proposal; identify missing context, alert identity,
-environment, time window, timezone, and scope without starting live discovery to fill the gaps.
+An alert investigation request authorizes its own parallel read-only investigation: the
+authorization is inherited from the request, so do not pause to propose a plan or await
+separate approval. Build on supplied or already verified context; ask for missing alert
+identity, environment, time window, timezone, or scope rather than starting live discovery
+to guess it.
 
-After execution is authorized, resolve the shared inputs and authentication, then launch both
-sub-agents before awaiting either result:
+Resolve the shared inputs and authentication, then launch both sub-agents before awaiting
+either result:
 
 - **Grafana Assistant agent:** pass the problem to `gcx assistant prompt` with an explicit
   `--context`, a fresh conversation, and the shared read-only scope. Retain the prompt,
