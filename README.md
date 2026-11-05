@@ -73,6 +73,11 @@ rather than a blocker — see
    a Publish parent page, which records the intended destination with the
    investigation; publication itself stays a separate, authorized step.
 
+   Resources you use repeatedly can be saved once and reused. Ask the agent to
+   `add profile example` and then `load profile example into the task`, and
+   [Profile Manager](skills/profile-manager/SKILL.md) fills the Resources
+   section from a local `.env` store that stays out of Git.
+
 3. **Save and close the editor.** That alone starts execution. Once any
    supplied checks pass, the agent names the task from its title, runs its
    saved requirements, and produces the reports. **No separate `run`
@@ -197,6 +202,7 @@ who sees the alert flap starts from that instead of from scratch.
 | `docs/reports/REPORT-{slug}.md` and `.pdf` | Local investigation deliverables; ignored by Git. |
 | `docs/reports/assets/{slug}/` | Local supporting report assets. |
 | `logs/` | Local investigation logs and supporting evidence; ignored by Git. |
+| `.env` | Local resource-profile store for task Resources; ignored by Git. |
 | [diagrams/](diagrams/) | Committed documentation diagrams and editable source. |
 | [skills/](skills/) | Self-contained skill packages and their references or helpers. |
 
@@ -242,6 +248,7 @@ Republish a revised report rather than editing the page away from its evidence.
 | --- | --- |
 | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) | Wait for editor closure and supplied checks, then continue within scope. |
 | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) | Resolve artifact identity, format, filename, and destination. |
+| [Profile Manager](skills/profile-manager/SKILL.md) | Maintain local `.env` resource profiles and load one into a task's Resources. |
 | [Release It](skills/release-it/SKILL.md) | Prepare and verify protected GitHub releases. |
 | [Publish It](skills/publish-it/SKILL.md) | Publish tasks and reports to Confluence with diagrams, evidence and verified downloads. |
 | [Token Usage](skills/token-usage/SKILL.md) | Derive scoped report duration and token totals from local conversation records. |
@@ -271,6 +278,7 @@ link rather than a summary:
 | Topic | Owner |
 | --- | --- |
 | Task lifecycle, resources, naming, continuation | [Templated Tasks](AGENTS.md#templated-tasks) |
+| Resource profiles, the local `.env` store, and its ignore rules | [Profile Manager](skills/profile-manager/SKILL.md) |
 | Evidence, citations, and stated limitations | [Report Evidence](AGENTS.md#report-evidence) |
 | Artifact paths and destinations | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) |
 | Report duration and token accounting | [Token Usage](skills/token-usage/SKILL.md) |

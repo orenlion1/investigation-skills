@@ -1,0 +1,562 @@
+#!/usr/bin/env python3
+"""Local .env resource-profile store whose schema comes from the TASK template (Python 3.8+)."""
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import stat
+import subprocess
+import sys
+import tempfile
+
+SCHEMA = 'profile-manager/v1'
+PREFIX = 'PROFILE__'
+SEPARATOR = '__'
+HEADING = '## Resources'
+MARKER = '# profile: '
+MAX_ENV_BYTES = 262_144
+MAX_TEMPLATE_BYTES = 262_144
+MAX_TASK_BYTES = 1_048_576
+MAX_VALUE_LENGTH = 512
+IGNORE_BLOCK = ('# Local resource-profile store; never commit.', '.env', '.env.*', '!.env.example')
+
+NAME = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*\Z')
+FIELD = re.compile(r'[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*\Z')
+KEY = re.compile(r'[A-Za-z_][A-Za-z0-9_]*\Z')
+BULLET = re.compile(r'- (?P<label>[^:`]+): (?P<rest>.+)\Z')
+PLACEHOLDER = re.compile(r'`<[^`>]*>`\Z')
+SUBFIELD = re.compile(r'(?P<sublabel>[A-Za-z][A-Za-z0-9 /]*) (?P<placeholder>`<[^`>]*>`)\Z')
+EXAMPLES = re.compile(r'\s*\(examples?:.*\)\s*\Z')
+ASSIGNMENT = re.compile(r'(?:export\s+)?(?P<key>[A-Za-z_][A-Za-z0-9_]*)=(?P<value>.*)\Z')
+QUOTED = re.compile(r'`([^`]*)`')
+# Resource profiles hold resource identifiers; credentials belong in their own stores.
+CREDENTIAL = re.compile(
+    r'(?:AKIA|ASIA)[0-9A-Z]{16}|xox[abprs]-|-----BEGIN [A-Z ]*PRIVATE KEY'
+    r'|gh[pousr]_[A-Za-z0-9]{16,}|glsa_[A-Za-z0-9]{16,}|eyJ[A-Za-z0-9_-]{20,}')
+
+
+class ProfileError(ValueError):
+    """Invalid schema, profile, store or destination; never repaired implicitly."""
+
+
+def regular_file(path, description, limit):
+    """Reject symlinks, non-regular files and oversized inputs before reading."""
+    if path.is_symlink() or not stat.S_ISREG(path.stat().st_mode):
+        raise ProfileError(description + ' must be a regular non-symlink file: ' + str(path))
+    if path.stat().st_size > limit:
+        raise ProfileError(description + ' exceeds ' + str(limit) + ' bytes: ' + str(path))
+    return path
+
+
+def read_text(path, description, limit):
+    regular_file(path, description, limit)
+    try:
+        return path.read_text(encoding='utf-8')
+    except (OSError, UnicodeError) as error:
+        raise ProfileError('cannot read ' + description + ': ' + str(path)) from error
+
+
+def repository_root(value):
+    root = Path(value).resolve()
+    if not root.is_dir():
+        raise ProfileError('repository root must be an existing directory')
+    return root
+
+
+def profile_name(value):
+    if not NAME.fullmatch(value):
+        raise ProfileError('profile name must be lowercase kebab-case: ' + value)
+    return value
+
+
+def namespace(name):
+    return PREFIX + profile_name(name).replace('-', '_').upper() + SEPARATOR
+
+
+def profile_from_key(key):
+    """Recover a profile name from a managed key; the double separator is structural."""
+    parts = key[len(PREFIX):].split(SEPARATOR)
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        raise ProfileError('managed key is not PROFILE__NAME__FIELD: ' + key)
+    return parts[0].lower().replace('_', '-'), parts[1]
+
+
+def normalize_label(label):
+    key = re.sub(r'[^A-Za-z0-9]+', '_', re.sub(r'\([^)]*\)', ' ', label)).strip('_').upper()
+    if not FIELD.fullmatch(key) or SEPARATOR in key:
+        raise ProfileError('resource label does not normalize to a field key: ' + label.strip())
+    return key
+
+
+def section_bounds(lines, description):
+    """Locate the single Resources section; its body ends at the next level-2 heading."""
+    starts = [index for index, line in enumerate(lines) if line.strip() == HEADING]
+    if len(starts) != 1:
+        raise ProfileError(description + ' needs exactly one "' + HEADING + '" section')
+    start = starts[0]
+    for index in range(start + 1, len(lines)):
+        if lines[index].startswith('## '):
+            return start, index
+    return start, len(lines)
+
+
+def parse_template(text):
+    """Derive the profile schema from the template's Resources bullets."""
+    lines = text.splitlines()
+    start, end = section_bounds(lines, 'template')
+    bullets, fields = [], {}
+    for line in lines[start + 1:end]:
+        if not line.startswith('- '):
+            continue
+        match = BULLET.fullmatch(EXAMPLES.sub('', line.rstrip()))
+        if not match:
+            raise ProfileError('resource bullet is not "- Label: `<placeholder>`": ' + line.strip())
+        label = match.group('label').strip()
+        primary = normalize_label(label)
+        parts = match.group('rest').split('; ')
+        if not PLACEHOLDER.fullmatch(parts[0]):
+            raise ProfileError('resource bullet needs one backticked placeholder: ' + line.strip())
+        entries = [(primary, None)]
+        for part in parts[1:]:
+            extra = SUBFIELD.fullmatch(part)
+            if not extra:
+                raise ProfileError('extra resource segment is not "Label `<placeholder>`": ' + part)
+            sublabel = extra.group('sublabel').strip()
+            entries.append((primary + '_' + normalize_label(sublabel), sublabel))
+        bullet = {'label': label, 'keys': [key for key, _ in entries],
+                  'sublabels': {key: sub for key, sub in entries if sub is not None}}
+        for key, sublabel in entries:
+            if key in fields:
+                raise ProfileError('duplicate derived field key: ' + key)
+            fields[key] = {'field': key, 'label': label, 'sublabel': sublabel,
+                           'requires': None if sublabel is None else primary}
+        bullets.append(bullet)
+    if not fields:
+        raise ProfileError('template Resources section declares no resource bullets')
+    return {'schema': SCHEMA, 'fields': fields, 'bullets': bullets}
+
+
+def supplied_values(section_lines):
+    """Report backticked values already present in a Resources section body."""
+    supplied = []
+    for line in section_lines:
+        if not line.startswith('- '):
+            continue
+        for value in QUOTED.findall(EXAMPLES.sub('', line.rstrip())):
+            if value and not (value.startswith('<') and value.endswith('>')):
+                supplied.append(value)
+    return supplied
+
+
+def check_value(value):
+    if not isinstance(value, str) or value != value.strip() or not value:
+        raise ProfileError('value must be non-empty without surrounding whitespace')
+    if len(value) > MAX_VALUE_LENGTH:
+        raise ProfileError('value exceeds ' + str(MAX_VALUE_LENGTH) + ' characters')
+    if any(ord(character) < 32 or ord(character) == 127 for character in value):
+        raise ProfileError('value must not contain control characters')
+    if "'" in value:
+        raise ProfileError("value must not contain a single quote; the store quotes with '")
+    if value.startswith('<') and value.endswith('>'):
+        raise ProfileError('placeholders and examples are not resources: ' + value)
+    if CREDENTIAL.search(value):
+        raise ProfileError('value looks like a credential; profiles store resource identifiers only')
+    return value
+
+
+def assigned_keys(lines):
+    """Return every assigned key, without interpreting any value."""
+    keys = set()
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith('#'):
+            continue
+        match = ASSIGNMENT.fullmatch(stripped)
+        if match:
+            keys.add(match.group('key'))
+    return keys
+
+
+def parse_store(text):
+    """Return (lines, managed) where managed maps line index to (key, value).
+
+    Only keys inside the managed namespace are interpreted; every other line is
+    preserved verbatim so unrelated environment entries and secrets stay untouched.
+    """
+    lines = text.splitlines()
+    managed = {}
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped or stripped.startswith('#'):
+            continue
+        match = ASSIGNMENT.fullmatch(stripped)
+        if not match or not match.group('key').startswith(PREFIX):
+            continue
+        key, raw = match.group('key'), match.group('value').strip()
+        if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in {'"', "'"}:
+            value = raw[1:-1]
+        elif raw and not any(character in raw for character in ' \t#"\'\\'):
+            value = raw
+        else:
+            raise ProfileError('managed entry is not a plain or quoted value: ' + key)
+        managed[index] = (key, value)
+    return lines, managed
+
+
+def load_store(path):
+    if not os.path.lexists(path):
+        return [], {}, False
+    return (*parse_store(read_text(path, 'profile store', MAX_ENV_BYTES)), True)
+
+
+def profiles(managed):
+    found = {}
+    for key, value in managed.values():
+        name, field = profile_from_key(key)
+        found.setdefault(name, {})[field] = value
+    return found
+
+
+def tracked(root, relative):
+    try:
+        result = subprocess.run(['git', '-C', str(root), 'ls-files', '--error-unmatch', '--',
+                                 relative], capture_output=True, check=False)
+    except OSError:
+        return None
+    return result.returncode == 0
+
+
+def ignored(root, relative):
+    """True when Git ignores the path, False when it does not, None when unknown."""
+    try:
+        result = subprocess.run(['git', '-C', str(root), 'check-ignore', '-q', '--', relative],
+                                capture_output=True, check=False)
+    except OSError:
+        return None
+    if result.returncode in {0, 1}:
+        return result.returncode == 0
+    gitignore = root / '.gitignore'
+    if os.path.lexists(gitignore):
+        patterns = read_text(gitignore, 'gitignore', MAX_ENV_BYTES).splitlines()
+        return relative in [line.strip() for line in patterns]
+    return None
+
+
+def require_untracked(root, env_path):
+    relative = Path(os.path.relpath(env_path, root)).as_posix()
+    if tracked(root, relative):
+        raise ProfileError('store is tracked by Git; untrack it before storing profiles: ' + relative)
+    return relative
+
+
+def require_ignored(root, env_path):
+    relative = require_untracked(root, env_path)
+    if ignored(root, relative) is not True:
+        raise ProfileError('store is not ignored by Git; run the ignore command first: ' + relative)
+    return relative
+
+
+def write_file(path, text, mode=0o600):
+    """Replace the file atomically, keeping an existing mode and owner-only defaults."""
+    if os.path.lexists(path):
+        regular_file(path, 'destination', max(MAX_ENV_BYTES, MAX_TASK_BYTES))
+        mode = stat.S_IMODE(path.stat().st_mode)
+    handle, temporary = tempfile.mkstemp(dir=str(path.parent), prefix='.' + path.name + '.')
+    try:
+        with os.fdopen(handle, 'w', encoding='utf-8') as stream:
+            stream.write(text)
+        os.chmod(temporary, mode)
+        os.replace(temporary, path)
+    except OSError as error:
+        os.unlink(temporary)
+        raise ProfileError('cannot write ' + str(path)) from error
+    return mode
+
+
+def render_store(lines, managed, name, values):
+    """Rewrite managed lines for one profile, preserving every other line and its order."""
+    space = namespace(name)
+    owned = sorted(index for index, (key, _) in managed.items() if key.startswith(space))
+    block = [space + field + "='" + values[field] + "'" for field in sorted(values)]
+    kept = [line for index, line in enumerate(lines) if index not in set(owned)]
+    if owned:
+        anchor = owned[0]
+        marker = anchor - 1
+        if 0 <= marker < len(kept) and kept[marker].strip() == (MARKER + name).strip():
+            if block:
+                return kept[:anchor] + block + kept[anchor:]
+            return kept[:marker] + kept[anchor:]
+        return kept[:anchor] + block + kept[anchor:]
+    if not block:
+        return kept
+    prefix = [] if not kept or not kept[-1].strip() else ['']
+    return kept + prefix + [MARKER + name] + block
+
+
+def render_section(schema, values):
+    """Render the Resources section body from resolved values, omitting unset bullets."""
+    for field, definition in schema['fields'].items():
+        required = definition['requires']
+        if field in values and required is not None and required not in values:
+            raise ProfileError('field ' + field + ' requires ' + required)
+    bullets = []
+    for bullet in schema['bullets']:
+        primary = bullet['keys'][0]
+        if primary not in values:
+            continue
+        text = '- ' + bullet['label'] + ': `' + values[primary] + '`'
+        for key in bullet['keys'][1:]:
+            if key in values:
+                text += '; ' + bullet['sublabels'][key] + ' `' + values[key] + '`'
+        bullets.append(text)
+    if not bullets:
+        raise ProfileError('profile supplies no actual resource for the Resources section')
+    return bullets
+
+
+def resolve_profile(store_values, schema, name):
+    values = store_values.get(name)
+    if values is None:
+        raise ProfileError('profile is not in the store: ' + name)
+    known = {field: value for field, value in values.items() if field in schema['fields']}
+    unknown = sorted(field for field in values if field not in schema['fields'])
+    return known, unknown
+
+
+def command_schema(arguments, context):
+    return {'schema': SCHEMA, 'template': context['template_relative'],
+            'fields': [context['schema']['fields'][key]
+                       for key in sorted(context['schema']['fields'])]}
+
+
+def command_list(arguments, context):
+    store = profiles(context['managed'])
+    return {'store': context['env_relative'], 'exists': context['exists'],
+            'ignored': ignored(context['root'], context['env_relative']),
+            'tracked': tracked(context['root'], context['env_relative']),
+            'profiles': sorted(store), 'profile_count': len(store)}
+
+
+def command_show(arguments, context):
+    known, unknown = resolve_profile(profiles(context['managed']), context['schema'],
+                                     arguments.profile)
+    return {'profile': arguments.profile, 'store': context['env_relative'], 'fields': known,
+            'unknown_fields': unknown,
+            'missing_fields': sorted(set(context['schema']['fields']) - set(known))}
+
+
+def command_set(arguments, context):
+    name = profile_name(arguments.profile)
+    schema, updates, cleared = context['schema'], {}, []
+    for assignment in arguments.field:
+        if '=' not in assignment:
+            raise ProfileError('field must be FIELD=value: ' + assignment)
+        field, value = assignment.split('=', 1)
+        field = field.strip().upper()
+        if field not in schema['fields']:
+            raise ProfileError('unknown field ' + field + '; the schema comes from the template')
+        if value == '':
+            cleared.append(field)
+        else:
+            updates[field] = check_value(value)
+    if not updates and not cleared:
+        raise ProfileError('supply at least one FIELD=value')
+    existing = profiles(context['managed']).get(name, {})
+    values = {} if arguments.replace else dict(existing)
+    values.update(updates)
+    for field in cleared:
+        values.pop(field, None)
+    for field in list(values):
+        if field not in schema['fields']:
+            raise ProfileError('store holds unknown field ' + field + ' for profile ' + name)
+        check_value(values[field])
+    if values:
+        render_section(schema, values)
+    relative = require_ignored(context['root'], context['env_path'])
+    lines = render_store(context['lines'], context['managed'], name, values)
+    result = {'profile': name, 'store': relative, 'fields': values,
+              'added': sorted(set(values) - set(existing)),
+              'updated': sorted(field for field in values
+                                if field in existing and existing[field] != values[field]),
+              'cleared': sorted(set(existing) - set(values)), 'dry_run': arguments.dry_run}
+    if not arguments.dry_run:
+        write_file(context['env_path'], '\n'.join(lines) + ('\n' if lines else ''))
+        _, written = parse_store(read_text(context['env_path'], 'profile store', MAX_ENV_BYTES))
+        if profiles(written).get(name, {}) != values:
+            raise ProfileError('stored profile did not read back as written: ' + name)
+    return result
+
+
+def command_remove(arguments, context):
+    name = profile_name(arguments.profile)
+    if name not in profiles(context['managed']):
+        raise ProfileError('profile is not in the store: ' + name)
+    relative = require_untracked(context['root'], context['env_path'])
+    lines = render_store(context['lines'], context['managed'], name, {})
+    remaining = sorted(profiles(parse_store('\n'.join(lines))[1]))
+    result = {'profile': name, 'store': relative, 'removed': True,
+              'remaining_profiles': remaining, 'dry_run': arguments.dry_run}
+    if not arguments.dry_run:
+        write_file(context['env_path'], '\n'.join(lines) + ('\n' if lines else ''))
+        _, written = parse_store(read_text(context['env_path'], 'profile store', MAX_ENV_BYTES))
+        if name in profiles(written):
+            raise ProfileError('profile remained in the store after removal: ' + name)
+    return result
+
+
+def command_init(arguments, context):
+    relative = require_ignored(context['root'], context['env_path'])
+    if context['exists']:
+        return {'store': relative, 'created': False, 'already_present': True,
+                'dry_run': arguments.dry_run}
+    result = {'store': relative, 'created': not arguments.dry_run, 'already_present': False,
+              'dry_run': arguments.dry_run}
+    if not arguments.dry_run:
+        result['mode'] = oct(write_file(context['env_path'], ''))
+    return result
+
+
+def command_remove_env(arguments, context):
+    relative = require_untracked(context['root'], context['env_path'])
+    if not context['exists']:
+        raise ProfileError('store does not exist: ' + relative)
+    unmanaged = sorted(key for key in assigned_keys(context['lines'])
+                       if not key.startswith(PREFIX))
+    if unmanaged and not arguments.force:
+        raise ProfileError('store holds unmanaged keys (' + ', '.join(unmanaged) +
+                           '); re-run with --force to delete the whole file')
+    result = {'store': relative, 'deleted': not arguments.dry_run,
+              'profiles': sorted(profiles(context['managed'])), 'unmanaged_keys': unmanaged,
+              'dry_run': arguments.dry_run}
+    if not arguments.dry_run:
+        regular_file(context['env_path'], 'profile store', MAX_ENV_BYTES)
+        context['env_path'].unlink()
+        if os.path.lexists(context['env_path']):
+            raise ProfileError('store still exists after deletion: ' + relative)
+    return result
+
+
+def command_ignore(arguments, context):
+    root, relative = context['root'], require_untracked(context['root'], context['env_path'])
+    gitignore = root / '.gitignore'
+    if ignored(root, relative) is True:
+        return {'store': relative, 'gitignore': '.gitignore', 'already_ignored': True,
+                'appended': [], 'dry_run': arguments.dry_run}
+    existing = read_text(gitignore, 'gitignore', MAX_ENV_BYTES) if os.path.lexists(gitignore) else ''
+    present = {line.strip() for line in existing.splitlines()}
+    appended = [line for line in IGNORE_BLOCK if line not in present]
+    result = {'store': relative, 'gitignore': '.gitignore', 'already_ignored': False,
+              'appended': appended, 'dry_run': arguments.dry_run}
+    if not arguments.dry_run:
+        separator = '' if not existing or existing.endswith('\n') else '\n'
+        gap = '\n' if existing.strip() else ''
+        write_file(gitignore, existing + separator + gap + '\n'.join(appended) + '\n', 0o644)
+        if ignored(root, relative) is not True:
+            raise ProfileError('store is still not ignored after updating .gitignore: ' + relative)
+        result['verified'] = True
+    return result
+
+
+def command_render(arguments, context):
+    known, unknown = resolve_profile(profiles(context['managed']), context['schema'],
+                                     arguments.profile)
+    bullets = render_section(context['schema'], known)
+    print('\n'.join([HEADING, ''] + bullets))
+    return None
+
+
+def command_load(arguments, context):
+    known, unknown = resolve_profile(profiles(context['managed']), context['schema'],
+                                     arguments.profile)
+    bullets = render_section(context['schema'], known)
+    task_path = Path(arguments.task)
+    if not task_path.is_absolute():
+        task_path = context['root'] / task_path
+    if not os.path.lexists(task_path):
+        raise ProfileError('task does not exist: ' + str(task_path))
+    text = read_text(task_path, 'task', MAX_TASK_BYTES)
+    lines = text.splitlines()
+    start, end = section_bounds(lines, 'task')
+    supplied = supplied_values(lines[start + 1:end])
+    if supplied and not arguments.replace:
+        raise ProfileError('task Resources already supplies ' + ', '.join(supplied) +
+                           '; re-run with --replace to overwrite it')
+    updated = lines[:start + 1] + [''] + bullets + ([''] if end < len(lines) else []) + lines[end:]
+    body = '\n'.join(updated) + ('\n' if text.endswith('\n') or not text else '')
+    result = {'profile': arguments.profile, 'task': str(task_path), 'fields': known,
+              'unknown_fields': unknown, 'resources': bullets, 'replaced': bool(supplied),
+              'dry_run': arguments.dry_run}
+    if not arguments.dry_run:
+        write_file(task_path, body)
+        verified = read_text(task_path, 'task', MAX_TASK_BYTES).splitlines()
+        start, end = section_bounds(verified, 'task')
+        if [line for line in verified[start + 1:end] if line.startswith('- ')] != bullets:
+            raise ProfileError('task Resources did not read back as written: ' + str(task_path))
+        result['verified'] = True
+    return result
+
+
+COMMANDS = {'schema': command_schema, 'list': command_list, 'show': command_show,
+            'set': command_set, 'remove': command_remove, 'init': command_init,
+            'remove-env': command_remove_env, 'ignore': command_ignore,
+            'render': command_render, 'load': command_load}
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--repository-root', required=True)
+    parser.add_argument('--env', help='profile store path; default <repository-root>/.env')
+    parser.add_argument('--template', help='TASK template; default <repository-root>/templates/TASK.md')
+    subparsers = parser.add_subparsers(dest='command', required=True)
+    for command in COMMANDS:
+        sub = subparsers.add_parser(command)
+        if command in {'show', 'set', 'remove', 'render', 'load'}:
+            sub.add_argument('--profile', required=True)
+        if command == 'set':
+            sub.add_argument('--field', action='append', default=[], metavar='FIELD=value')
+        if command in {'set', 'load'}:
+            sub.add_argument('--replace', action='store_true',
+                             help='discard values this command would otherwise preserve')
+        if command == 'load':
+            sub.add_argument('--task', required=True)
+        if command == 'remove-env':
+            sub.add_argument('--force', action='store_true',
+                             help='delete the store even though it holds unmanaged keys')
+        if command not in {'schema', 'list', 'show', 'render'}:
+            sub.add_argument('--dry-run', action='store_true')
+    return parser
+
+
+def build_context(arguments):
+    root = repository_root(arguments.repository_root)
+    env_path = Path(arguments.env) if arguments.env else root / '.env'
+    if not env_path.is_absolute():
+        env_path = root / env_path
+    template = Path(arguments.template) if arguments.template else root / 'templates' / 'TASK.md'
+    if not template.is_absolute():
+        template = root / template
+    if not os.path.lexists(template):
+        raise ProfileError('TASK template does not exist: ' + str(template))
+    lines, managed, exists = load_store(env_path)
+    return {'root': root, 'env_path': env_path, 'exists': exists, 'lines': lines,
+            'managed': managed, 'template_path': template,
+            'template_relative': Path(os.path.relpath(template, root)).as_posix(),
+            'env_relative': Path(os.path.relpath(env_path, root)).as_posix(),
+            'schema': parse_template(read_text(template, 'TASK template', MAX_TEMPLATE_BYTES))}
+
+
+def main():
+    arguments = build_parser().parse_args()
+    try:
+        result = COMMANDS[arguments.command](arguments, build_context(arguments))
+        if result is not None:
+            print(json.dumps(result, sort_keys=True))
+    except (ProfileError, OSError, RuntimeError) as error:
+        print('profile_env.py: ' + str(error), file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

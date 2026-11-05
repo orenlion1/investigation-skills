@@ -27,6 +27,7 @@ blocker rather than substituting direct reads.
 | --- | --- |
 | Generating workflow artifacts or supporting outputs (TASK, REPORT, LOG, diagram assets) | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) |
 | `open task`, `open TASK`, `open TASK.md`, `edit task`, task editing | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md), with Templated Tasks below |
+| `add profile`, `remove profile`, `.env` resource profiles, loading a profile into a task | [Profile Manager](skills/profile-manager/SKILL.md) |
 | Token usage report and report metadata for any investigation report | [Token Usage](skills/token-usage/SKILL.md) |
 | Creating, styling, or verifying report diagrams — themes, caveat placement, ER and SQL dependency views, format consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
 | `publish it`, `publish-it`, authorized Confluence task/report publication | [Publish It](skills/publish-it/SKILL.md) |
@@ -38,6 +39,11 @@ Routing notes:
 - File generation: resolve destinations in this order — explicit user destination, repository
   configuration, then the naming skill's defaults. Production source, tests, native packages,
   imports, and repository metadata keep their established conventions.
+- Resource profiles: the local `.env` profile store, its Git ignore coverage, and its
+  schema — derived from the TASK template's Resources section — belong to the profile skill.
+  The store stays untracked and is never committed. Loading a profile supplies Resources
+  values only: it does not satisfy the actual-resource requirement with a placeholder,
+  authenticate an integration, close an editor barrier, or authorize a gated operation.
 - Token usage: read the skill before opening a templated-task editor and retain its native
   task-resolution evidence past the editor/check barrier, so shorthand editor requests can be
   attributed without another user command.
@@ -69,9 +75,12 @@ request limits the continuation. Task contents never bypass separate authorizati
 - Resources follows Acceptance Tests as the final template section, with optional labeled
   fields (Bitbucket/GitHub repository, Slack channel, AWS profile, Grafana context, alert
   name or UID). At least one actual supplied or verified resource is required before
-  execution; placeholders and examples do not count. If none exists, ask for one and preserve
-  the task. Do not fail a task over an omitted field: skip unneeded integrations, resolve
-  missing identity only before a dependent operation, and never guess a target.
+  execution; placeholders and examples do not count. Resources may be filled from a named
+  local profile through [Profile Manager](skills/profile-manager/SKILL.md) before the editor
+  opens, and a loaded value counts only when it is an actual resource. If none exists, ask
+  for one and preserve the task. Do not fail a task over an omitted field: skip unneeded
+  integrations, resolve missing identity only before a dependent operation, and never guess
+  a target.
 - After the barrier, resolve `TASK-{slug}.md` from the saved draft's `# Task Title: ...`
   through the naming skill, in the same directory. Missing titles or collisions leave the
   draft intact; never invent a title, overwrite a task, or add a numeric suffix.
