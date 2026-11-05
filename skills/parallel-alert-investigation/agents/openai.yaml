@@ -1,0 +1,4 @@
+interface:
+  display_name: "Parallel Alert Investigation"
+  short_description: "Launch parallel Grafana Assistant and investigate-alert sub-agents for an alert"
+  default_prompt: "Use $parallel-alert-investigation to investigate this Grafana alert with the two parallel read-only sub-agents."

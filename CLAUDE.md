@@ -33,6 +33,7 @@ blocker rather than substituting direct reads.
 | `publish it`, `publish-it`, authorized Confluence task/report publication | [Publish It](skills/publish-it/SKILL.md) |
 | Atlassian authentication, connectivity, and resource probes | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
 | Multi-store fan-out: per-store sub-agent briefs, launch, manifest, disabling fan-out | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) |
+| Grafana alert investigation: parallel Assistant and `investigate-alert` sub-agents | [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) |
 | `run release-it`, repository releases | [Release It](skills/release-it/SKILL.md) with [VERSIONING.md](VERSIONING.md) |
 
 Routing notes:
@@ -133,36 +134,30 @@ resolution, shared-input and authentication sequencing, the brief and output-con
 templates, harness-specific launch and declared degradation, iteration bounds, fold-in,
 and the auditable fan-out manifest. Fan-out creates no scope or authority: only stores the
 task's Resources actually name get a sub-agent, AWS branches stay within the allowed
-Regions, Grafana alert investigations keep the entry point below (whose nested parallel
-Assistant/`investigate-alert` pattern applies inside the gcx branch), and sub-agents never
-mutate, acknowledge, message, or publish — those remain separately authorized.
+Regions, Grafana alert investigations route to
+[Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) nested inside
+the gcx branch, and sub-agents never mutate, acknowledge, message, or publish — those
+remain separately authorized.
 
 ## Grafana Investigation Entry Point
 
 An alert investigation request authorizes its own parallel read-only investigation: the
 authorization is inherited from the request, so do not pause to propose a plan or await
-separate approval. Build on supplied or already verified context; ask for missing alert
-identity, environment, time window, timezone, or scope rather than starting live discovery
-to guess it.
+separate approval. Alert investigations route to
+[Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md), which owns
+the two-agent workflow — the Grafana Assistant and `investigate-alert` sub-agents, their
+shared resolved inputs, reconciliation, verification, and degradation. Within a
+multi-store [fan-out](#per-store-investigation-fan-out) it nests inside the Grafana
+branch. Resource changes, acknowledgments, messages, and publication require separate
+authorization.
 
-Resolve the shared inputs and authentication, then launch both sub-agents before awaiting
-either result:
-
-- **Grafana Assistant agent:** pass the problem to `gcx assistant prompt` with an explicit
-  `--context`, a fresh conversation, and the shared read-only scope. Retain the prompt,
-  response/conversation identifiers, source references, and limitations as investigation leads.
-- **Alert investigation agent:** load and invoke the refreshed gcx `investigate-alert` skill
-  through the active agent harness and gather bounded direct evidence. The command
-  `gcx agent skills get investigate-alert` displays instructions; it does not execute the skill.
-  Do not invent a shell command for skill invocation or duplicate the other agent's Assistant
-  prompt. This parallel alert workflow replaces the sequential entry point below; direct reads
-  in this branch need not wait for the Assistant response.
-
-Both agents must use the same resolved Grafana context, alert identity, environment, exact time
-window and timezone, and read-only scope. Reconcile their findings, verify material claims
-against direct evidence, and report disagreements, gaps, and limitations. If parallel delegation
-is unavailable, report that limitation without silently substituting sequential execution.
-Resource changes, acknowledgments, messages, and publication require separate authorization.
+Grafana Assistant prompts are enabled by default and may incur additional fees beyond
+ordinary Grafana usage. The user may disable them, by instruction or with a
+`Grafana Assistant: disabled` line in the task's Resources; honor that for the stated
+scope without re-asking and send no Assistant prompt. When disabled, run only the direct
+branches — the alert investigation agent, or an ordinary investigation's bounded direct
+reads — and record the disabled Assistant as a configured limitation, not a failure.
+Disabling the Assistant never disables the investigation.
 
 For other authorized `gcx` problem investigations, start by passing that problem to
 `gcx assistant prompt` in the task's explicitly resolved Grafana context. Do this before

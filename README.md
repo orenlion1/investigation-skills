@@ -154,15 +154,19 @@ page configured in the task.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-skill-routing-dark.png">
-  <img alt="Initialize in Open and Edit mode invokes the naming, editor, and profile skills; Investigate in Close and Execute mode routes to the resource skills; Report invokes the naming, token usage, and diagramming skills; Publish invokes Publish It and Rovo Dev MCP, which deliver the artifact to a repository or content system where the next lifecycle step picks it up." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
+  <img alt="Initialize in Open and Edit mode invokes the naming, editor, and profile skills; Investigate in Close and Execute mode routes to the orchestration skills, Per-Store Fan-Out and Parallel Alert Investigation, which invoke the resource skills; Report invokes the naming, token usage, and diagramming skills; Publish invokes Publish It and Rovo Dev MCP, which deliver the artifact to a repository or content system where the next lifecycle step picks it up." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
 </picture>
 
 **Figure 2 — Skill routing.** The same lifecycle expanded into the skill that
 owns each step, with each activity labelled by the editor mode it runs in, so
-both views share one vocabulary. Dashed arrows mean invocation or routing; the
-solid arrow is delivery — Publish hands the artifact to a repository or content
-system, where the next lifecycle step picks it up. Peer placement implies no
-ordering, and listing a skill does not make its resource field mandatory.
+both views share one vocabulary. Investigate routes through the orchestration
+skills — Per-Store Fan-Out for multi-store tasks, Parallel Alert Investigation
+for Grafana alerts — which invoke the resource skills; a single-store task
+without an alert invokes its resource skill directly. Dashed arrows mean
+invocation or routing; the solid arrow is delivery — Publish hands the artifact
+to a repository or content system, where the next lifecycle step picks it up.
+Peer placement implies no ordering, and listing a skill does not make its
+resource field mandatory.
 
 [Editable routing diagram](diagrams/DIAGRAM-investigation-skill-routing.dot) ·
 [Light SVG](diagrams/DIAGRAM-investigation-skill-routing-light.svg) ·
@@ -217,8 +221,16 @@ itself**: asking to investigate the alert is what authorizes the parallel
 read-only plan, so the agent resolves the shared inputs and launches both
 agents without pausing for separate approval. Missing context — alert
 identity, environment, time window, timezone, scope — is asked for, never
-guessed through live discovery. See the
-[alert investigation entry point](AGENTS.md#grafana-investigation-entry-point).
+guessed through live discovery. The policy's
+[entry point](AGENTS.md#grafana-investigation-entry-point) owns the route and
+the inherited authorization; the
+[Parallel Alert Investigation skill](skills/parallel-alert-investigation/SKILL.md)
+owns the two-agent workflow.
+
+Grafana Assistant prompts are enabled by default and may incur additional
+fees. Disable them — by asking, or with `Grafana Assistant: disabled` in the
+task's Resources — and the investigation continues on direct evidence alone,
+recording the disabled branch as a configured limitation.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-parallel-alert-investigation-dark.png">
@@ -320,6 +332,7 @@ Republish a revised report rather than editing the page away from its evidence.
 | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) | Resolve artifact identity, format, filename, and destination. |
 | [Profile Manager](skills/profile-manager/SKILL.md) | Maintain local `.env` resource profiles and load one into a task's Resources. |
 | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) | Fan a multi-store investigation out into per-store read-only sub-agents and fold their evidence in. |
+| [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) | Investigate a Grafana alert with parallel Assistant and `investigate-alert` sub-agents, then reconcile and verify. |
 | [Release It](skills/release-it/SKILL.md) | Prepare and verify protected GitHub releases. |
 | [Publish It](skills/publish-it/SKILL.md) | Publish tasks and reports to Confluence with diagrams, evidence and verified downloads. |
 | [Token Usage](skills/token-usage/SKILL.md) | Derive scoped report duration and token totals from local conversation records. |
@@ -357,6 +370,7 @@ link rather than a summary:
 | Atlassian connectivity probes | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
 | Per-store investigation fan-out | [AGENTS.md](AGENTS.md#per-store-investigation-fan-out) |
 | Grafana investigation entry point | [AGENTS.md](AGENTS.md#grafana-investigation-entry-point) |
+| Parallel alert sub-agent workflow | [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) |
 | Skill and eval quality gate | [Skill Quality Gate](AGENTS.md#skill-quality-gate) |
 | Publication security and disclosure | [SECURITY.md](SECURITY.md) |
 | Release contract | [VERSIONING.md](VERSIONING.md) |

@@ -12,16 +12,18 @@ digraph InvestigationSkillRouting {
   report [label="Report"];
   publish [label="Publish"];
   setup_skills [label="Skills\nWorkflow Artifact Naming\nOpen/Edit/Close/Execute\nProfile Manager"];
+  orchestration_skills [label="Orchestration skills\nPer-Store Fan-Out\nParallel Alert Investigation"];
   resource_skills [label="Resource skills\nRovo Dev MCP\nGrafana CLI\nSlack MCP / AWS MCP"];
   report_skills [label="Report skills\nWorkflow Artifact Naming\nToken Usage\nDiagramming Style"];
   publish_skills [label="Publish skills\nPublish It\nRovo Dev MCP"];
   destination [label="Repository or content system\nNext lifecycle step picks it up"];
 
   { rank=same; initialize; investigate; report; publish; }
-  { rank=same; setup_skills; resource_skills; report_skills; publish_skills; destination; }
+  { rank=same; setup_skills; orchestration_skills; report_skills; publish_skills; destination; }
   initialize -> investigate -> report -> publish [style=invis, weight=100];
   initialize -> setup_skills [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>invokes</TD></TR></TABLE>>, style=dashed];
-  investigate -> resource_skills [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>routes</TD></TR></TABLE>>, style=dashed];
+  investigate -> orchestration_skills [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>routes</TD></TR></TABLE>>, style=dashed];
+  orchestration_skills -> resource_skills [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>invokes</TD></TR></TABLE>>, style=dashed];
   report -> report_skills [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>invokes</TD></TR></TABLE>>, style=dashed];
   publish -> publish_skills [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>invokes</TD></TR></TABLE>>, style=dashed];
   publish_skills -> destination [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD WIDTH="16"></TD><TD>delivers to</TD></TR></TABLE>>];

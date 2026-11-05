@@ -28,7 +28,14 @@ activity also carries the editor mode it runs in — Initialize is Open and Edit
 Investigate is Close and Execute — so the routing and lifecycle views describe
 the same modes in the same words. Dashed arrows mean invocation or routing; peer
 placement does not establish ordering between skills. Only the integrations
-needed by the task are invoked. Edit-only and initialization-only requests limit
+needed by the task are invoked. Investigate routes through the orchestration
+skills: Per-Store Fan-Out delegates a multi-store task to one read-only
+sub-agent per store (the default, user-disableable), and Parallel Alert
+Investigation runs a Grafana alert's Assistant and `investigate-alert`
+sub-agents — nested inside the fan-out's Grafana branch when both apply. Those
+orchestration skills invoke the resource skills; a single-store task without an
+alert invokes its resource skill directly, a path the drawing folds into the
+same column. Edit-only and initialization-only requests limit
 the continuation. Execution and reporting retain the user's authorization and
 the repository's required gates.
 
