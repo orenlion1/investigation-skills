@@ -66,7 +66,7 @@ class EndToEndChainTests(unittest.TestCase):
 
         with self.subTest('schema comes from the task template'):
             fields = {field['field'] for field in self.ok('schema')['fields']}
-            self.assertEqual(fields, {'REPO', 'SLACK_CHANNEL', 'AWS_ACCOUNT',
+            self.assertEqual(fields, {'REPO', 'SLACK_CHANNEL', 'AWS_ACCOUNT', 'AWS_REGION',
                                       'GRAFANA_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH'})
 
         with self.subTest('no store is written while Git does not ignore it'):
@@ -173,11 +173,17 @@ class EndToEndChainTests(unittest.TestCase):
 
         self.ok('init')
         self.ok('set', '--profile', 'investigation-skills',
-                '--field', 'REPO=investigation-skills')
+                '--field', 'REPO=investigation-skills',
+                '--field', 'AWS_ACCOUNT=team-readonly',
+                '--field', 'AWS_REGION=us-east-1')
+        shown = self.ok('show', '--profile', 'investigation-skills')
+        self.assertEqual(shown['fields']['AWS_REGION'], 'us-east-1')
         self.task.write_text(TEMPLATE.read_text(encoding='utf-8'), encoding='utf-8')
         self.assertTrue(self.ok('load', '--profile', 'investigation-skills',
                                 '--task', 'docs/tasks/TASK.md')['verified'])
         self.assertIn('- Repo (Bitbucket/Github): `investigation-skills`',
+                      self.task.read_text(encoding='utf-8'))
+        self.assertIn('- AWS account: `team-readonly`\n- AWS region: `us-east-1`',
                       self.task.read_text(encoding='utf-8'))
         self.ok('remove', '--profile', 'investigation-skills')
         self.assertEqual(self.ok('list')['profiles'], [])
