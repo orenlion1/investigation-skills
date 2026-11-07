@@ -1,0 +1,6 @@
+interface:
+  display_name: "Rhyming Incident Search"
+  short_description: "Find related incidents with one read-only agent per configured endpoint"
+  default_prompt: "Use $rhyming-incident-search with the selected resource profile to search similar past incidents and investigations through one read-only sub-agent per configured endpoint in parallel."
+policy:
+  allow_implicit_invocation: true
