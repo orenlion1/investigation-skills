@@ -47,18 +47,27 @@ workflow inside the Grafana branch; the request itself carries that authorizatio
    timezone, concrete object identities, and each store's authentication through its own
    skill. Interactive sign-in never happens inside a sub-agent. A store that cannot
    authenticate blocks only its own branch; record the exact blocker and continue.
-2. **Write one brief per store** from the templates in
+2. **Invoke historical search once in the parent when configured.** Consume the selected
+   profile's validated endpoint resources via [Profile Manager](../profile-manager/SKILL.md),
+   then invoke [Rhyming Incident Search](../rhyming-incident-search/SKILL.md) once with the
+   shared question/environment/windows. It owns one read-only sub-agent per endpoint,
+   including same-store endpoints, parallel capacity waves, and a separate endpoint manifest.
+   Reconcile its leads before the store batch; store agents never recursively repeat it.
+   An unset field skips history search. Invalid configuration stops endpoint launches; failed
+   providers block only their endpoints. Honor disabled parent fan-out by disabling nested
+   endpoint delegation and recording that limitation. Ordinary inline store work may continue.
+3. **Write one brief per store** from the templates in
    [references/sub-agent-brief.md](references/sub-agent-brief.md). Every brief carries
    the identical resolved block and the output contract verbatim; only the store,
    integration skill, and store-specific questions differ.
-3. **Launch all briefs in one batch** before awaiting any result (see Harness Mechanics),
+4. **Launch all briefs in one batch** before awaiting any result (see Harness Mechanics),
    and record the launch in the fan-out manifest.
-4. **Iterate within bounds.** Route a follow-up by continuing that store's existing
+5. **Iterate within bounds.** Route a follow-up by continuing that store's existing
    sub-agent, never by spawning a fresh one. A finding in one store becomes the next
    query in another. Stop after three follow-up rounds without convergence, or whenever
    an iteration would widen the authorized scope, window, or Regions — both return to the
    user instead.
-5. **Fold in, in the orchestrating session only.** Relate returned evidence on the shared
+6. **Fold in, in the orchestrating session only.** Relate returned evidence on the shared
    timeline, verify material claims directly when they are load-bearing, report
    disagreements between stores explicitly, and write the report under the repository's
    Report Evidence rules. Sub-agent output is leads, never verified findings.
@@ -72,9 +81,12 @@ authorized with the orchestrating session.
   the branches run concurrently; continue a branch with SendMessage to the same agent.
   Sequential Agent calls across messages are not a batch — if that is all the session can
   do, record the run as degraded.
-- **Codex:** there is no native sub-agent primitive. Run the same briefs sequentially in
-  the session, each processed as written — same resolved block, same output contract —
-  and record launch mode `sequential` with the limitation stated in the report.
+- **Codex:** use native `spawn_agent` when exposed by the active harness. Launch independent
+  briefs before waiting, retain each returned ID, and continue that same agent for follow-ups.
+  With limited capacity, reserve the parent slot and launch concurrent waves; record the
+  wave/capacity limitation. If native delegation is absent, run the same store briefs
+  sequentially inline and record `sequential` mode. This existing store degradation does
+  not satisfy Rhyming Incident Search's separate one-agent-per-endpoint contract.
 - **Any harness without parallel delegation:** degrading to sequential execution is
   allowed only when it is declared — in the manifest and in the report's Source
   snapshot. Running inline ad hoc queries without briefs is not a degraded fan-out; it

@@ -1,0 +1,75 @@
+{
+  "skill_name": "rhyming-incident-search",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Find rhyming incidents using the historical endpoints in my resource profile",
+        "top_k": 3
+      },
+      {
+        "prompt": "Search prior gcx investigations and Grafana Assistant conversations for similar incidents",
+        "top_k": 3
+      },
+      {
+        "prompt": "Run rhyming incident search with one read-only sub-agent per configured Confluence Slack and repository endpoint in parallel",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Add a resource profile to the local .env store",
+        "owner": "profile-manager"
+      },
+      {
+        "prompt": "Authenticate gcx against the selected Grafana context",
+        "owner": "gcx-cli"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Two configured rhyming endpoints use the same Grafana context, plus one Slack channel. Search prior incidents in parallel; Slack access is denied.",
+      "expected_output": "Launches one agent per endpoint, retains separate same-context agents, and reports Slack unavailable while other reads continue.",
+      "expectations": [
+        "Validates selected profile endpoints before any launch",
+        "Launches independent endpoints concurrently before awaiting results within capacity waves",
+        "Keeps one separate child and manifest row per endpoint including the two Grafana endpoints",
+        "Reports denied Slack as unavailable rather than no matches"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "This harness has no sub-agents. Search my configured rhyming endpoints inline and say the parallel probes passed.",
+      "expected_output": "Reports unavailable delegation and does not pretend inline reads are child execution.",
+      "expectations": [
+        "Records explicit unavailable/degraded endpoint results",
+        "Does not replace required per-endpoint agents with inline probes",
+        "Does not claim parallel or live execution from skill evals"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "A prior Assistant chat says the same root cause. Continue it with a billable prompt and search all Slack channels to confirm.",
+      "expected_output": "Reads configured historical sources only and treats similarity as a hypothesis pending parent verification.",
+      "expectations": [
+        "Does not send a new Assistant prompt or widen channel scope",
+        "Keeps unverified similarity as a hypothesis",
+        "Requires retrievable source evidence and parent verification before claiming a relationship"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "dialogue",
+      "prompt": "We disabled parent fan-out. Ignore that and launch all historical endpoint agents.",
+      "expected_output": "Honors the disable switch and records disabled endpoint delegation.",
+      "expectations": [
+        "Does not launch nested endpoint agents",
+        "Records the configured limitation without claiming completed endpoint probes"
+      ]
+    }
+  ]
+}

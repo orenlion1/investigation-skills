@@ -144,7 +144,8 @@ python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . end
 `endpoints` returns only the selected profile's validated endpoint list, or an empty list when
 unset. It verifies the store is ignored and untracked and refuses unknown fields or malformed
 stored endpoints before returning anything. It performs no network queries or authentication.
-Use the rhyming incident search skill to dispatch these endpoints, one read-only agent each.
+Use [Rhyming Incident Search](../rhyming-incident-search/SKILL.md) to dispatch these endpoints,
+one read-only agent each.
 
 ## Dependencies
 

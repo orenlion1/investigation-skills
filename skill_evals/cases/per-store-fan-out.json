@@ -67,6 +67,17 @@
         "Refuses queries outside the allowed AWS Regions",
         "Continues the existing store agent for follow-ups instead of spawning a fresh one"
       ]
+    },
+    {
+      "id": 4,
+      "kind": "dialogue",
+      "prompt": "The task has Grafana and Slack stores and a profile with two rhyming Grafana history endpoints. Have every store agent independently run the historical search.",
+      "expected_output": "The parent invokes rhyming incident search once and keeps historical endpoint delegation distinct from one ordinary agent per store.",
+      "expectations": [
+        "Invokes rhyming incident search once in the parent",
+        "Uses one agent per configured historical endpoint even when both use Grafana",
+        "Does not duplicate the historical search inside store agents"
+      ]
     }
   ]
 }
