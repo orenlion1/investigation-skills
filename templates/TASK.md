@@ -22,3 +22,4 @@ the settings that do not apply. Placeholders and examples do not count as resour
 - Grafana context: `<enter gcx profile>` (example: `example`)
 - Alert: `<Alert name>`; UID `<Enter UID>`
 - Publish: `<Parent page>` (example: Confluence page "Investigations")
+- Rhyming endpoints: `<JSON endpoint array>`

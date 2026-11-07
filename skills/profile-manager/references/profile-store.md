@@ -90,6 +90,7 @@ line to standard error and exit `2`.
 | `list` | no | Print profile names and the store's existence, ignore, and tracking status. |
 | `show --profile NAME` | no | Print one profile's schema fields, unknown keys, and missing fields. |
 | `render --profile NAME` | no | Print the rendered `## Resources` section. |
+| `endpoints --profile NAME` | no | Return validated historical-search endpoint objects only. |
 | `ignore` | `.gitignore` | Ensure Git ignores the store, then verify it. |
 | `init` | `.env` | Create an empty owner-only store. |
 | `set --profile NAME --field FIELD=value` | `.env` | Merge fields; `--replace` discards unmentioned fields; an empty value clears one. |
@@ -115,3 +116,50 @@ line to standard error and exit `2`.
 The helper manages the store and the task's Resources section. It does not authenticate to
 any resource, resolve artifact names or destinations, create or rename a task, read or write
 any environment variable of the running process, or export anything into a child process.
+
+## Rhyming endpoints
+
+The template now declares the optional **Rhyming endpoints** resource bullet. This is an additive,
+optional `RHYMING_ENDPOINTS` field; existing profiles and the v1 store format remain valid.
+A template change is required because undeclared fields are rejected by the derived schema.
+`schema` exposes its type, kinds, maximum bytes/items, required and conditional keys.
+
+The field is one JSON array, from 1 to 16 objects, at most 8192 UTF-8 bytes, kept on one line.
+An unset field means no historical-search endpoints; `[]` is rejected to avoid an ambiguous
+configured-empty run. Scalar fields and every object value retain the 512-character limit.
+JSON keys and endpoint IDs must be unique. Each object has exactly `id`, `kind`, `target`,
+and the conditional key below. IDs are lowercase kebab-case. Unknown keys/kinds are errors.
+
+| kind | target | Conditional key |
+| --- | --- | --- |
+| grafana-investigations | Explicit prior-investigation scope or search phrase | context: configured gcx context |
+| grafana-assistant-conversations | Explicit historical conversation scope or phrase | context: configured gcx context |
+| confluence | HTTPS Atlassian Cloud page URL under /wiki/ | None |
+| slack | Channel ID beginning C or G, or explicit #channel name | None |
+| repository | HTTPS GitHub or Bitbucket owner/repository URL | provider: github or bitbucket, matching the host |
+
+Example structure (documentation only; supply actual resources):
+
+```json
+[{"id":"history","kind":"grafana-investigations","target":"service-a","context":"ops"},{"id":"code","kind":"repository","target":"https://github.com/example/service-a","provider":"github"}]
+```
+
+Use `set --profile NAME --field RHYMING_ENDPOINTS=VALUE` with a properly shell-quoted JSON
+value. Prefer a structured process argument when automating; never interpolate profile values
+into executable shell text. The helper writes the same single-quoted dotenv representation.
+Object values cannot contain credential patterns, placeholders, control characters, backticks,
+single quotes, dollar signs, angle brackets, or backslashes. Contexts use alphanumerics, dot,
+underscore and hyphen; Grafana target phrases additionally allow spaces, colon and slash.
+URLs reject userinfo, ports, IP literals, query strings, fragments, encoded controls and path
+traversal. Only the two declared repository hosts and Atlassian Cloud wiki URLs are supported;
+unsupported hosts require an explicit future schema extension, never a silent provider change.
+
+`set`, `show`, `render`, `load`, and `endpoints` validate known stored values, including manual
+edits, before returning resources or changing a task. `endpoints` also requires ignored,
+untracked storage and rejects unknown fields. Errors do not echo endpoint values. The command
+returns `{ "profile": "NAME", "endpoints": [...] }`; no auth, query or delegation occurs there.
+
+Search dependencies are conditional: gcx-cli for the two Grafana kinds, rovo-dev-mcp for
+Confluence and Bitbucket, slack-mcp for Slack, and GitHub access tooling for GitHub. Native
+agent delegation is required by the rhyming search contract. Profile management itself stays
+Python/Git only and does not require credentials or any connected endpoint.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Local .env resource-profile store whose schema comes from the TASK template (Python 3.8+)."""
 import argparse
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -9,6 +10,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+from urllib.parse import unquote, urlsplit
 
 SCHEMA = 'profile-manager/v1'
 PREFIX = 'PROFILE__'
@@ -19,6 +21,10 @@ MAX_ENV_BYTES = 262_144
 MAX_TEMPLATE_BYTES = 262_144
 MAX_TASK_BYTES = 1_048_576
 MAX_VALUE_LENGTH = 512
+MAX_ENDPOINT_BYTES = 8192
+MAX_ENDPOINTS = 16
+ENDPOINT_KINDS = ('grafana-investigations', 'grafana-assistant-conversations',
+                  'confluence', 'slack', 'repository')
 IGNORE_BLOCK = ('# Local resource-profile store; never commit.', '.env', '.env.*', '!.env.example')
 
 NAME = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)*\Z')
@@ -134,6 +140,12 @@ def parse_template(text):
         bullets.append(bullet)
     if not fields:
         raise ProfileError('template Resources section declares no resource bullets')
+    if 'RHYMING_ENDPOINTS' in fields:
+        fields['RHYMING_ENDPOINTS'].update(
+            type='endpoint-array', kinds=list(ENDPOINT_KINDS),
+            max_bytes=MAX_ENDPOINT_BYTES, max_items=MAX_ENDPOINTS,
+            required=['id', 'kind', 'target'],
+            conditional={'grafana': ['context'], 'repository': ['provider']})
     return {'schema': SCHEMA, 'fields': fields, 'bullets': bullets}
 
 
@@ -163,6 +175,93 @@ def check_value(value):
     if CREDENTIAL.search(value):
         raise ProfileError('value looks like a credential; profiles store resource identifiers only')
     return value
+
+
+def validate_rhyming_endpoints(value):
+    """Validate the entire optional JSON field before dispatch; never echo its values."""
+    def reject():
+        raise ProfileError('invalid RHYMING_ENDPOINTS; see the endpoint schema contract')
+
+    def unique(pairs):
+        result = {}
+        for key, item in pairs:
+            if key in result:
+                reject()
+            result[key] = item
+        return result
+
+    try:
+        if not isinstance(value, str) or len(value.encode('utf-8')) > MAX_ENDPOINT_BYTES:
+            reject()
+        if any(ord(c) < 32 or ord(c) == 127 or c in "'`" for c in value):
+            reject()
+        endpoints = json.loads(value, object_pairs_hook=unique)
+        if not isinstance(endpoints, list) or not 1 <= len(endpoints) <= MAX_ENDPOINTS:
+            reject()
+        ids = set()
+        for endpoint in endpoints:
+            if not isinstance(endpoint, dict):
+                reject()
+            kind = endpoint.get('kind')
+            if kind not in ENDPOINT_KINDS:
+                reject()
+            keys = {'id', 'kind', 'target'}
+            if kind.startswith('grafana-'):
+                keys.add('context')
+            if kind == 'repository':
+                keys.add('provider')
+            if set(endpoint) != keys:
+                reject()
+            for item in endpoint.values():
+                check_value(item)
+                if any(c in item for c in '`$<>\\'):
+                    reject()
+            identity, target = endpoint['id'], endpoint['target']
+            if not NAME.fullmatch(identity) or identity in ids:
+                reject()
+            ids.add(identity)
+            if kind.startswith('grafana-'):
+                if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*', endpoint['context']):
+                    reject()
+                if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9 _.:/-]*', target):
+                    reject()
+            elif kind == 'slack':
+                if not re.fullmatch(r'(?:[CG][A-Z0-9]{8,}|#[a-z0-9][a-z0-9_-]*)', target):
+                    reject()
+            else:
+                url = urlsplit(target)
+                decoded = unquote(target)
+                if (url.scheme != 'https' or not url.hostname or url.username is not None
+                        or url.password is not None or url.query or url.fragment or url.port
+                        or any(ord(c) <= 32 or ord(c) == 127 or c in "`$<>\\'" for c in decoded)
+                        or any(part in {'.', '..'} for part in unquote(url.path).split('/'))):
+                    reject()
+                try:
+                    ipaddress.ip_address(url.hostname)
+                except ValueError:
+                    if not re.fullmatch(r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+', url.hostname):
+                        reject()
+                else:
+                    reject()
+                if kind == 'confluence':
+                    if not url.hostname.endswith('.atlassian.net') or not url.path.startswith('/wiki/'):
+                        reject()
+                else:
+                    hosts = {'github': 'github.com', 'bitbucket': 'bitbucket.org'}
+                    if (endpoint['provider'] not in hosts
+                            or url.hostname != hosts[endpoint['provider']]
+                            or not re.fullmatch(r'/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/?', url.path)):
+                        reject()
+        return endpoints
+    except (ValueError, TypeError, UnicodeError, RecursionError):
+        reject()
+
+
+def check_field(field, value):
+    if field == 'RHYMING_ENDPOINTS':
+        validate_rhyming_endpoints(value)
+        return value
+    return check_value(value)
 
 
 def assigned_keys(lines):
@@ -321,6 +420,8 @@ def resolve_profile(store_values, schema, name):
     if values is None:
         raise ProfileError('profile is not in the store: ' + name)
     known = {field: value for field, value in values.items() if field in schema['fields']}
+    for field, value in known.items():
+        check_field(field, value)
     unknown = sorted(field for field in values if field not in schema['fields'])
     return known, unknown
 
@@ -360,7 +461,7 @@ def command_set(arguments, context):
         if value == '':
             cleared.append(field)
         else:
-            updates[field] = check_value(value)
+            updates[field] = check_field(field, value)
     if not updates and not cleared:
         raise ProfileError('supply at least one FIELD=value')
     existing = profiles(context['managed']).get(name, {})
@@ -371,7 +472,7 @@ def command_set(arguments, context):
     for field in list(values):
         if field not in schema['fields']:
             raise ProfileError('store holds unknown field ' + field + ' for profile ' + name)
-        check_value(values[field])
+        check_field(field, values[field])
     if values:
         render_section(schema, values)
     relative = require_ignored(context['root'], context['env_path'])
@@ -469,6 +570,18 @@ def command_render(arguments, context):
     return None
 
 
+def command_endpoints(arguments, context):
+    """Read only selected, validated endpoint resources; do not authenticate or query."""
+    require_ignored(context['root'], context['env_path'])
+    known, unknown = resolve_profile(profiles(context['managed']), context['schema'],
+                                     arguments.profile)
+    if unknown:
+        raise ProfileError('profile has unknown fields; verify the intended template')
+    value = known.get('RHYMING_ENDPOINTS')
+    return {'profile': arguments.profile,
+            'endpoints': validate_rhyming_endpoints(value) if value else []}
+
+
 def command_load(arguments, context):
     known, unknown = resolve_profile(profiles(context['managed']), context['schema'],
                                      arguments.profile)
@@ -503,7 +616,7 @@ def command_load(arguments, context):
 COMMANDS = {'schema': command_schema, 'list': command_list, 'show': command_show,
             'set': command_set, 'remove': command_remove, 'init': command_init,
             'remove-env': command_remove_env, 'ignore': command_ignore,
-            'render': command_render, 'load': command_load}
+            'render': command_render, 'load': command_load, 'endpoints': command_endpoints}
 
 
 def build_parser():
@@ -514,7 +627,7 @@ def build_parser():
     subparsers = parser.add_subparsers(dest='command', required=True)
     for command in COMMANDS:
         sub = subparsers.add_parser(command)
-        if command in {'show', 'set', 'remove', 'render', 'load'}:
+        if command in {'show', 'set', 'remove', 'render', 'load', 'endpoints'}:
             sub.add_argument('--profile', required=True)
         if command == 'set':
             sub.add_argument('--field', action='append', default=[], metavar='FIELD=value')
@@ -526,7 +639,7 @@ def build_parser():
         if command == 'remove-env':
             sub.add_argument('--force', action='store_true',
                              help='delete the store even though it holds unmanaged keys')
-        if command not in {'schema', 'list', 'show', 'render'}:
+        if command not in {'schema', 'list', 'show', 'render', 'endpoints'}:
             sub.add_argument('--dry-run', action='store_true')
     return parser
 

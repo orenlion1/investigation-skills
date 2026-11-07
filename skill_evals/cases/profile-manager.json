@@ -52,6 +52,18 @@
         "Requests the actual resource value rather than inventing one",
         "Loads only fields the profile actually supplies, leaving unset fields out"
       ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "Store a RHYMING_ENDPOINTS JSON array in my local profile with two Grafana history scopes and a Confluence page. Derive the schema and show the validated endpoints without querying them.",
+      "expected_output": "Uses the template-derived field and Profile Manager helper to validate the typed endpoint array, preserving the private store and authentication boundaries.",
+      "expectations": [
+        "Reads the endpoint schema derived from the task template",
+        "Validates unique endpoint ids, supported kinds and per-endpoint context before storage",
+        "Uses endpoints --profile to return validated resources without authenticating or querying",
+        "Keeps the store ignored and untracked and preserves unmanaged entries"
+      ]
     }
   ]
 }

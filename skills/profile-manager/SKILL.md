@@ -9,7 +9,7 @@ description: Maintain the repository's local untracked .env resource-profile sto
 
 A resource profile is a named set of the values a task's Resources section takes: a
 repository, a Slack channel, an AWS profile, a Grafana context, an alert identity, a
-publication parent page. This skill owns that store, its schema, and the ignore rules that
+publication parent page, or typed historical-search endpoints. This skill owns that store, its schema, and the ignore rules that
 keep it out of Git. Reach for it when a profile is created, changed, inspected, deleted, or
 loaded into a task; read the [store and schema contract](references/profile-store.md) for
 the file format, parsing rules, and command reference.
@@ -129,6 +129,31 @@ A task whose Resources section already carries real values is preserved unless `
 is passed, and those values are reported so the user can decide. A profile that resolves to
 no actual resource is refused rather than written, because an executable task needs at least
 one.
+
+## Rhyming endpoint resources
+
+`RHYMING_ENDPOINTS` is the optional JSON array declared by the template's
+`Rhyming endpoints` bullet. Validate it through the helper; never source `.env` as shell.
+Read the [endpoint contract](references/profile-store.md#rhyming-endpoints) before storing it.
+Each object names an endpoint, not a credential or authorization. Old profiles need no change.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . endpoints --profile example
+```
+
+`endpoints` returns only the selected profile's validated endpoint list, or an empty list when
+unset. It verifies the store is ignored and untracked and refuses unknown fields or malformed
+stored endpoints before returning anything. It performs no network queries or authentication.
+Use the rhyming incident search skill to dispatch these endpoints, one read-only agent each.
+
+## Dependencies
+
+Profile management and endpoint validation require Python 3.8+ standard library and Git;
+no integration connection is required to configure them. Historical endpoint execution
+additionally requires the rhyming incident search skill, native agent delegation, and only
+the integrations selected by endpoint kind: gcx-cli for Grafana, rovo-dev-mcp for Confluence
+and Bitbucket, slack-mcp for Slack, and GitHub tooling for GitHub repositories. Authentication
+belongs to those integrations. Dependency absence during execution is reported per endpoint.
 
 ## Common Rationalizations
 
