@@ -1,0 +1,49 @@
+// Visual reference: DIAGRAM-per-store-fan-out.dot.
+// Shared renderer derives both palettes from this canonical source.
+digraph RhymingIncidentSearch {
+  rankdir=TB; newrank=true; compound=true;
+  graph [fontname="Trebuchet MS", fontsize=12, splines=true,
+         nodesep=0.8, ranksep=1.0];
+  node [fontname="Trebuchet MS", fontsize=12, style=filled, height=0.5];
+  edge [fontname="Trebuchet MS", fontsize=11];
+
+  subgraph cluster_setup {
+    label="Historical search setup"; labeljust=l; style=filled;
+    profile [shape=oval, label="Select local\nresource profile"];
+    validate [shape=oval, label="Validate endpoints\nand resolve shared scope"];
+    launch [shape=oval, label="Launch one agent\nper endpoint"];
+    { rank=same; profile; validate; launch; }
+    profile -> validate -> launch [weight=100];
+  }
+
+  subgraph cluster_endpoints {
+    label="Parallel read-only endpoint agents"; labeljust=l; labelloc=b; style=filled;
+    investigations [shape=box, label="Prior investigations\ngcx history reads"];
+    conversations [shape=box, label="Prior Assistant chats\ngcx conversation reads"];
+    confluence [shape=box, label="Confluence page\nRovo Dev MCP reads"];
+    slack [shape=box, label="Slack channel\nScoped message reads"];
+    repository [shape=box, label="Code repository\nRevision-pinned reads"];
+    { rank=same; investigations; conversations; confluence; slack; repository; }
+    investigations -> conversations -> confluence -> slack -> repository [style=invis, weight=100];
+  }
+
+  subgraph cluster_fold {
+    label="Parent reconciliation"; labeljust=l; labelloc=b; style=filled;
+    relate [shape=oval, label="Compare matches\nand contradictions"];
+    verify [shape=oval, label="Verify relationships\nagainst source evidence"];
+    report [shape=oval, label="Report relationships,\nhypotheses, and gaps"];
+    { rank=same; relate; verify; report; }
+    relate -> verify -> report [weight=100];
+  }
+
+  launch -> investigations [label="  invokes", style=dashed];
+  launch -> conversations [label="  invokes", style=dashed];
+  launch -> confluence [label="  invokes", style=dashed];
+  launch -> slack [label="  invokes", style=dashed];
+  launch -> repository [label="  invokes", style=dashed];
+  investigations -> relate [label="  candidate evidence", headport=w];
+  conversations -> relate [label="  candidate evidence", headport=nw];
+  confluence -> relate [label="  candidate evidence", headport=n];
+  slack -> relate [label="  candidate evidence", headport=ne];
+  repository -> relate [label="  candidate evidence", headport=e];
+}

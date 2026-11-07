@@ -196,11 +196,12 @@ auditable fan-out manifest each run records.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-per-store-fan-out-dark.png">
-  <img alt="The task's Resources name the stores in scope; shared inputs and authentication are resolved, one read-only agent per store is launched in parallel, their candidate evidence is related on the shared timeline, material claims are verified, and findings, gaps, and limitations are reported. Findings route back as the next query." src="diagrams/DIAGRAM-per-store-fan-out-light.png">
+  <img alt="The task's Resources name the stores in scope; the parent resolves shared inputs, invokes rhyming incident search for configured historical endpoints, and launches one read-only agent per store in parallel; their candidate evidence is related on the shared timeline, material claims are verified, and findings, gaps, and limitations are reported. Findings route back as the next query." src="diagrams/DIAGRAM-per-store-fan-out-light.png">
 </picture>
 
-**Figure 3 — Per-store fan-out.** The arc's gather and relate steps as
-delegation. All store agents launch before any result is awaited; each returns
+**Figure 3 — Per-store fan-out.** The parent invokes rhyming incident search once when
+profile endpoints are configured, then gathers and relates evidence through store delegation.
+All store agents launch before any result is awaited; each returns
 candidate evidence, limitations, and follow-up questions for other stores.
 Solid arrows are handoffs; dashed arrows are invocation, including the loop in
 which a finding in one store becomes the next query in another, continued
@@ -213,6 +214,34 @@ illustrates the documented workflow, not an executed investigation.
 [Light SVG](diagrams/DIAGRAM-per-store-fan-out-light.svg) ·
 [Dark SVG](diagrams/DIAGRAM-per-store-fan-out-dark.svg) ·
 [Source notes and regeneration](diagrams/DIAGRAM-per-store-fan-out.md)
+
+### Rhyming incident search
+
+[Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) looks for relevant prior
+incidents and investigations using the selected local profile's optional `RHYMING_ENDPOINTS`
+JSON array. [Profile Manager](skills/profile-manager/SKILL.md) validates that field against
+the task template. Existing profiles remain valid without it; `.env` stays local and untracked.
+
+Each configured endpoint gets its own read-only sub-agent. Independent queries use parallel
+capacity waves across prior gcx investigations, prior Grafana Assistant conversations,
+configured Confluence pages, Slack channels, and code repositories. The per-store parent
+invokes this skill once before its store batch. Reports separate verified relationships,
+hypotheses, no matches in the searched scope, and unavailable endpoints. Existing conversation
+reads do not send new Assistant prompts; disabled parent fan-out disables nested endpoint agents.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-rhyming-incident-search-dark.png">
+  <img alt="Validated profile endpoints each receive a separate read-only agent for historical search. The parent compares leads, verifies source evidence and reports relationships, hypotheses and gaps." src="diagrams/DIAGRAM-rhyming-incident-search-light.png">
+</picture>
+
+**Rhyming incident search.** The boxes illustrate supported endpoint kinds; only configured
+endpoints are probed, with one agent per endpoint even when kinds repeat. Solid arrows show
+handoffs and dashed arrows show invocation. This depicts the skill contract, not a live run.
+
+[Editable source](diagrams/DIAGRAM-rhyming-incident-search.dot) ·
+[Light SVG](diagrams/DIAGRAM-rhyming-incident-search-light.svg) ·
+[Dark SVG](diagrams/DIAGRAM-rhyming-incident-search-dark.svg) ·
+[Source notes and regeneration](diagrams/DIAGRAM-rhyming-incident-search.md)
 
 ### Alert investigations
 
@@ -331,6 +360,7 @@ Republish a revised report rather than editing the page away from its evidence.
 | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) | Wait for editor closure and supplied checks, then continue within scope. |
 | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) | Resolve artifact identity, format, filename, and destination. |
 | [Profile Manager](skills/profile-manager/SKILL.md) | Maintain local `.env` resource profiles and load one into a task's Resources. |
+| [Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) | Find related prior incidents through one read-only agent per configured historical endpoint. |
 | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) | Fan a multi-store investigation out into per-store read-only sub-agents and fold their evidence in. |
 | [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) | Investigate a Grafana alert with parallel Assistant and `investigate-alert` sub-agents, then reconcile and verify. |
 | [Release It](skills/release-it/SKILL.md) | Prepare and verify protected GitHub releases. |

@@ -2,8 +2,15 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="DIAGRAM-per-store-fan-out-dark.png">
-  <img src="DIAGRAM-per-store-fan-out-light.png" alt="The task's Resources name the stores in scope; shared inputs and authentication are resolved, one read-only agent per store is launched in parallel, their candidate evidence is related on the shared timeline, material claims are verified, and findings, gaps, and limitations are reported. Findings route back as the next query.">
+  <img src="DIAGRAM-per-store-fan-out-light.png" alt="The task's Resources name the stores in scope; the parent resolves shared inputs, invokes rhyming incident search for configured historical endpoints, and launches one read-only agent per store in parallel; their candidate evidence is related on the shared timeline, material claims are verified, and findings, gaps, and limitations are reported. Findings route back as the next query.">
 </picture>
+
+After resolving shared inputs, the parent invokes
+[Rhyming Incident Search](../skills/rhyming-incident-search/SKILL.md) once when the selected
+profile supplies validated historical endpoints. That skill runs one read-only agent per
+endpoint, even when several endpoints use the same store, and returns historical leads before
+the ordinary store batch. Its separate manifest records capacity waves and failures. Unset
+configuration skips historical search; disabled parent fan-out disables nested endpoint agents.
 
 Each store agent receives the same resolved block — identity, environment,
 exact time window and timezone, the task's questions, and the read-only
@@ -12,7 +19,7 @@ queries, and follow-up questions for other stores. All agents launch before
 any result is awaited. Solid arrows show handoffs; dashed arrows show
 invocation, including the feedback loop in which a finding in one store
 becomes the next query in another, continued through that store's existing
-agent. Ovals identify activities and boxes identify the per-store agent calls.
+agent. Ovals identify activities; boxes identify the invoked historical-search skill and store agents.
 
 Fan-out is the default for tasks whose Resources name more than one store and
 may be disabled by the user. Only named stores get an agent; the orchestrating
