@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "contract": "skills/per-store-fan-out/references/delegation-contract.md",
+  "callers": [
+    "skills/per-store-fan-out",
+    "skills/rhyming-incident-search",
+    "skills/parallel-alert-investigation"
+  ],
+  "owned_concepts": [
+    {
+      "id": "launch-mode-vocabulary",
+      "pattern": "\\blaunch_mode\\b|\\bsequential agents\\b"
+    },
+    {
+      "id": "manifest-schema",
+      "pattern": "[\"`]branches[\"`]|\\b(?:degradation_reason|iteration_rounds|launched_at)\\b"
+    },
+    {
+      "id": "harness-mechanics",
+      "pattern": "\\b(?:spawn_agent|wait_agent|followup_task|send_message|SendMessage)\\b"
+    }
+  ],
+  "caller_owned_tokens": [
+    "Grafana",
+    "AWS",
+    "Atlassian",
+    "Slack",
+    "gcx-cli",
+    "aws-mcp",
+    "rovo-dev-mcp",
+    "slack-mcp"
+  ],
+  "contract_forbidden_numeric": "\\b(?:\\d+|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:follow-up|round|rounds|read|reads|candidate|candidates|second|seconds|minute|minutes|hour|hours)\\b",
+  "caller_bounds": {
+    "skills/per-store-fan-out": "three follow-up rounds|three-round bound",
+    "skills/rhyming-incident-search": "2 follow-up\\s+rounds"
+  },
+  "delegation_signature": "\\bspawn_agent\\b|\\bsub-agent\\b|\\bone agent per\\b",
+  "required_caller_sentinel": "Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.",
+  "exemptions": [
+    {
+      "path": "skills/gcx-cli",
+      "reason": "Proposes two parallel sub-agents and routes the work to parallel-alert-investigation; it neither launches nor briefs them, so it owns no delegation machinery."
+    }
+  ]
+}
