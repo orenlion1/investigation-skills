@@ -42,5 +42,11 @@
       "path": "skills/gcx-cli",
       "reason": "Proposes two parallel sub-agents and routes the work to parallel-alert-investigation; it neither launches nor briefs them, so it owns no delegation machinery."
     }
+  ],
+  "caller_no_bound": [
+    {
+      "path": "skills/parallel-alert-investigation",
+      "reason": "Two fixed investigation branches; no caller-owned follow-up rounds or budget."
+    }
   ]
 }

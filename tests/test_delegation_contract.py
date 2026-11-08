@@ -81,6 +81,8 @@ class DelegationFixture(unittest.TestCase):
             'contract_forbidden_numeric':
                 r'\b(?:\d+|one|two|three|four|five)\s+(?:follow-up|round|rounds|read|reads)\b',
             'caller_bounds': {'skills/owner-skill': 'three follow-up rounds'},
+            'caller_no_bound': [{'path': 'skills/caller-one',
+                                 'reason': 'Fixed branches; no follow-up budget.'}],
             'delegation_signature': r'\bspawn_agent\b|\bsub-agents?\b|\bone agent per\b',
             'required_caller_sentinel': SENTINEL,
             'exemptions': [],
@@ -176,6 +178,31 @@ class TestR3SingleDefinition(DelegationFixture):
 
 
 class TestR4CallerOwnedScope(DelegationFixture):
+    def test_missing_bound_declaration_names_caller_and_fails_accounting(self):
+        self.write_policy(caller_no_bound=[])
+        failures = self.assertFailsRule('R4')
+        self.assertTrue(any('skills/caller-one' in f.message for f in failures if f.rule == 'R4'))
+        report = self.checker.audit(self.root, self.policy_path)
+        self.assertEqual(report.callers_checked, 1)
+        self.assertIn('R7', {f.rule for f in report.failures})
+
+    def test_explicit_no_bound_reason_passes(self):
+        self.write_caller('caller-one', bound=False)
+        self.assertPasses()
+
+    def test_missing_declaration_for_owner_also_fails(self):
+        self.write_policy(caller_bounds={})
+        self.assertFailsRule('R4')
+
+    def test_invalid_no_bound_declarations_fail_closed(self):
+        for declarations in (None, {}, [{'path': 'skills/caller-one', 'reason': ' '}],
+                             [{'path': 'skills/stranger', 'reason': 'No budget.'}],
+                             [{'path': 'skills/owner-skill', 'reason': 'Conflicts.'}],
+                             [{'path': 'skills/caller-one', 'reason': 'No budget.'}] * 2):
+            with self.subTest(declarations=declarations):
+                self.write_policy(caller_no_bound=declarations)
+                self.assertFailsRule('R7')
+
     def test_contract_naming_a_store_fails(self):
         self.contract.write_text(self.contract.read_text() + '\nResolve the Grafana branch.\n')
         self.assertFailsRule('R4')

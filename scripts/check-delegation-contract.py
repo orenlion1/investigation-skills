@@ -18,7 +18,8 @@ import sys
 DEFAULT_POLICY = Path(__file__).resolve().parents[1] / 'policy/delegation-contract.json'
 MAX_BYTES = 2 * 1024 * 1024
 REQUIRED_KEYS = ('version', 'contract', 'callers', 'owned_concepts', 'caller_owned_tokens',
-                 'contract_forbidden_numeric', 'caller_bounds', 'delegation_signature',
+                 'contract_forbidden_numeric', 'caller_bounds', 'caller_no_bound',
+                 'delegation_signature',
                  'required_caller_sentinel', 'exemptions')
 LINK = re.compile(r'\]\(([^)\s]+)\)')
 
@@ -76,6 +77,20 @@ def load_policy(path):
         if caller not in callers:
             raise PolicyError('caller_bounds names an unregistered caller: %s' % caller)
         compile_pattern(pattern, 'caller bound for %s' % caller)
+    declarations = policy['caller_no_bound']
+    if not isinstance(declarations, list):
+        raise PolicyError('caller_no_bound must be a list of path/reason declarations')
+    seen = set()
+    for declaration in declarations:
+        if (not isinstance(declaration, dict) or set(declaration) != {'path', 'reason'}
+                or not all(isinstance(value, str) and value.strip()
+                           for value in declaration.values())):
+            raise PolicyError('each caller_no_bound declaration needs a path and stated reason')
+        caller = declaration['path']
+        if caller not in callers or caller in seen or caller in policy['caller_bounds']:
+            raise PolicyError('caller_no_bound names an unknown, duplicate or bounded caller: %s'
+                              % caller)
+        seen.add(caller)
     compile_pattern(policy['contract_forbidden_numeric'], 'contract_forbidden_numeric')
     compile_pattern(policy['delegation_signature'], 'delegation_signature')
     if not isinstance(policy['required_caller_sentinel'], str) \
@@ -204,7 +219,12 @@ def check_caller(root, policy, caller, contract_absolute, compiled, failures):
         failures.append(Failure('R5', '%s — missing the verbatim co-copy sentinel' % caller))
 
     bound = policy['caller_bounds'].get(caller)
-    if bound:
+    if bound is None and caller not in {item['path'] for item in policy['caller_no_bound']}:
+        failures.append(Failure('R4', '%s — needs a caller_bounds entry or an explicit '
+                                      'caller_no_bound reason' % caller))
+        # An undeclared classification cannot count as an applied caller check under R7.
+        return None
+    if bound is not None:
         pattern = re.compile(bound)
         if not any(pattern.search(text) for _, text in files):
             failures.append(Failure('R4', '%s — stopped stating its own bound (expected a match '
