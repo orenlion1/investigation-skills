@@ -23,7 +23,7 @@
         "top_k": 3
       },
       {
-        "prompt": "Record the fan-out manifest for this alert investigation's two sub-agent branches",
+        "prompt": "The Grafana Assistant and investigate-alert agents both finished - record the manifest for this alert investigation run",
         "top_k": 3
       }
     ],
