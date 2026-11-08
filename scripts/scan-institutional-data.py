@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import ipaddress
 import json
+import os
 from pathlib import Path, PurePosixPath
 import re
 import subprocess
@@ -116,8 +117,16 @@ class Scanner:
         self.failures = set()
 
     def git(self, *args, input=None):
+        # `-C` alone is not authoritative: an ambient GIT_DIR/GIT_WORK_TREE wins over it, and
+        # Git exports GIT_DIR pointing at the main checkout when a hook runs from a linked
+        # worktree, which made `rev-list --all HEAD` fail there. Scan the repository that was
+        # actually requested.
+        environment = {key: value for key, value in os.environ.items()
+                       if key not in ('GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE',
+                                      'GIT_OBJECT_DIRECTORY', 'GIT_COMMON_DIR')}
         return subprocess.check_output(['git', '-C', str(self.repository), *args],
-                                       input=input, stderr=subprocess.DEVNULL)
+                                       input=input, stderr=subprocess.DEVNULL,
+                                       env=environment)
 
     def report(self, rule, identity):
         # Paths and refs can themselves contain sensitive values or workflow commands.

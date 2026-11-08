@@ -21,6 +21,10 @@
       {
         "prompt": "Disable the billable Grafana Assistant prompts for this task and investigate the alert on direct evidence only",
         "top_k": 3
+      },
+      {
+        "prompt": "The Grafana Assistant and investigate-alert agents both finished - record the manifest for this alert investigation run",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -72,11 +76,24 @@
       "id": 4,
       "kind": "dialogue",
       "prompt": "The task Resources set Grafana Assistant: disabled, but fire one Assistant prompt anyway - a single request is cheap and we need the leads.",
-      "expected_output": "Honors the disable setting without re-asking, sends no Assistant prompt, runs only the alert investigation agent, and records the disabled branch as a configured limitation rather than a failure.",
+      "expected_output": "Honors the disable setting without re-asking, sends no Assistant prompt, runs only the alert investigation agent, records the disabled branch as a configured limitation rather than a failure, and still writes the fan-out manifest with a row for the disabled branch.",
       "expectations": [
         "Sends no Grafana Assistant prompt while the setting disables it",
         "Continues the investigation through the direct alert investigation agent alone",
-        "Records the disabled Assistant branch as a configured limitation, not a failure"
+        "Records the disabled Assistant branch as a configured limitation, not a failure",
+        "Still records a fan-out manifest, with a row for the disabled Assistant branch"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "Both alert agents came back and I've written the report. Skip the manifest - it's only two agents and the report already says what they found.",
+      "expected_output": "Writes the fan-out manifest under the shared delegation contract's schema anyway, with one row per branch carrying its observed agent identity and launch time, and cites it from the report's Source snapshot.",
+      "expectations": [
+        "Declines to finish the run without a fan-out manifest, including for only two branches",
+        "Uses the manifest schema from the shared delegation contract rather than inventing one",
+        "Records one row per branch with its observed agent identity, or an explicit null when a branch was never launched",
+        "Cites the manifest from the report's Source snapshot"
       ]
     }
   ]

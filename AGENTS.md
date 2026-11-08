@@ -131,13 +131,48 @@ Resources; honor that for the stated scope and investigate inline without re-ask
 
 The [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) skill owns the workflow: store
 resolution, shared-input and authentication sequencing, the brief and output-contract
-templates, harness-specific launch and declared degradation, iteration bounds, fold-in,
-and the auditable fan-out manifest. Fan-out creates no scope or authority: only stores the
+templates, its own iteration bound, and fold-in. The launch-mode vocabulary, the manifest
+schema, the harness launch mechanics and the degradation rules come from the
+[Shared Delegation Contract](#shared-delegation-contract) below, which that package also
+hosts. Fan-out creates no scope or authority: only stores the
 task's Resources actually name get a sub-agent, AWS branches stay within the allowed
 Regions, Grafana alert investigations route to
 [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) nested inside
 the gcx branch, and sub-agents never mutate, acknowledge, message, or publish — those
 remain separately authorized.
+
+## Shared Delegation Contract
+
+Every skill in this catalog that delegates to sub-agents shares one definition of the
+delegation machinery:
+[skills/per-store-fan-out/references/delegation-contract.md](skills/per-store-fan-out/references/delegation-contract.md).
+It owns the `launch_mode` vocabulary, the fan-out manifest schema, the harness launch and
+continuation mechanics, the degradation rules, and the rule that delegated output is leads
+until the orchestrating session verifies it. A delegating skill links that contract and carries
+its co-copy sentinel; it never restates those rules.
+
+What stays with each caller is its own units, its own questions, and its own numeric bounds.
+`per-store-fan-out` stating three follow-up rounds and `rhyming-incident-search` stating two is
+an intentional difference, not drift.
+
+[policy/delegation-contract.json](policy/delegation-contract.json) is the registry, and it lives
+outside `skills/` deliberately: the skill quality gate treats every entry under `skills/` as a
+skill needing its own eval case, and keeping the registry outside `skills/` means editing a
+skill can never exempt that skill. It declares the contract, the registered callers, the owned
+concepts, the caller-owned tokens, the delegation signature, the required sentinel, and the
+exemptions with their reasons.
+
+`scripts/check-delegation-contract.py` enforces it and runs inside `bash scripts/check.sh`, so
+the already-required `Tests` job fails when a registered caller loses its link or its sentinel,
+when an owned token reappears in a caller, when the contract takes over a caller-owned token or
+a numeric budget, when a skill matching the delegation signature is registered neither as a
+caller nor as an exemption, or when the run checked fewer concepts or callers than the policy
+declares. Adding a delegating skill means registering it; the check will not let that be
+forgotten.
+
+The check is a literal-token lint. It cannot distinguish a paraphrase of the contract from a
+legitimate cross-reference to it, because no regular expression can. That half stays with
+review.
 
 ## Grafana Investigation Entry Point
 
@@ -146,7 +181,10 @@ authorization is inherited from the request, so do not pause to propose a plan o
 separate approval. Alert investigations route to
 [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md), which owns
 the two-agent workflow — the Grafana Assistant and `investigate-alert` sub-agents, their
-shared resolved inputs, reconciliation, verification, and degradation. Within a
+shared resolved inputs, reconciliation, and verification. Both branches are delegated agents,
+so every run records a fan-out manifest under the
+[Shared Delegation Contract](#shared-delegation-contract), including a degraded run and one
+whose Assistant branch is disabled. Within a
 multi-store [fan-out](#per-store-investigation-fan-out) it nests inside the Grafana
 branch. Resource changes, acknowledgments, messages, and publication require separate
 authorization.

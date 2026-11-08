@@ -1,6 +1,8 @@
 # Endpoint probes and output contract
 
-The authoritative schema is [Profile Manager's endpoint contract](../../profile-manager/references/profile-store.md#rhyming-endpoints).
+The authoritative endpoint schema is [Profile Manager's endpoint contract](../../profile-manager/references/profile-store.md#rhyming-endpoints),
+and the delegation machinery is the [shared delegation contract](../../per-store-fan-out/references/delegation-contract.md).
+This file owns the provider probes, the endpoint brief and the endpoint result contract.
 Consume `profile_env.py endpoints --profile NAME` output; no second store parser.
 An endpoint contains id, kind and target, plus context for Grafana or provider for repositories.
 Do not override an endpoint context using the task's ordinary Grafana context.
@@ -67,13 +69,15 @@ relationship only after direct verification, recording the verification referenc
 }
 ```
 
-Manifest fields: task/profile identity (no full profile dump), shared block, run start/cutoff,
-launch_mode (`parallel`, `sequential agents`, `disabled`, or `unavailable`), capacity, and one
-endpoint row with endpoint_id/kind/target, wave, agent_id, launched_at/finished_at,
-query/candidate budget and actual counts, follow-up rounds, result status, verification
-reference/time and blocker. Null agent/timestamps mean not launched, not zero-duration work.
-Count all reads, including verification, toward the endpoint budget. Profile/endpoint identities
-and query excerpts may be sensitive: retain only necessary scope evidence, local and untracked.
+Manifest fields beyond the [shared delegation contract](../../per-store-fan-out/references/delegation-contract.md)'s
+own schema: task and profile identity (never a full profile dump), the shared block, run
+start/cutoff, observed capacity, and per endpoint row the endpoint id, kind and target, the
+capacity wave, the finish time, the query and candidate budgets with their actual counts, the
+follow-up rounds, the result status, and the parent's verification reference and time. The
+contract fixes the launch-mode vocabulary and what an unlaunched row looks like; do not restate
+either here. Count all reads, including verification, toward the endpoint budget. Profile and
+endpoint identities and query excerpts may be sensitive: retain only necessary scope evidence,
+local and untracked.
 
 Validate result endpoint and agent IDs against the launch manifest, budget/cap compliance,
 required sections and retrievability. Never invent omitted times, versions or counters.

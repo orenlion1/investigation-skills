@@ -399,6 +399,7 @@ link rather than a summary:
 | Diagram style, theming, and consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
 | Atlassian connectivity probes | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
 | Per-store investigation fan-out | [AGENTS.md](AGENTS.md#per-store-investigation-fan-out) |
+| Shared sub-agent delegation machinery | [Shared Delegation Contract](skills/per-store-fan-out/references/delegation-contract.md) |
 | Grafana investigation entry point | [AGENTS.md](AGENTS.md#grafana-investigation-entry-point) |
 | Parallel alert sub-agent workflow | [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) |
 | Skill and eval quality gate | [Skill Quality Gate](AGENTS.md#skill-quality-gate) |
@@ -418,7 +419,11 @@ bash scripts/check.sh
 
 That validates release metadata, compiles the scripts, skills, and tests, runs
 the repository and diagramming test suites, confirms the two policy files match,
-and rejects whitespace errors. The repository suite includes an end-to-end pass
+and rejects whitespace errors. It also runs the delegation-contract check, which fails when a
+delegating skill restates a rule the
+[Shared Delegation Contract](skills/per-store-fan-out/references/delegation-contract.md) owns or
+when a skill that delegates is missing from
+[policy/delegation-contract.json](policy/delegation-contract.json). The repository suite includes an end-to-end pass
 over the [Profile Manager](skills/profile-manager/SKILL.md) chain — ignore
 coverage, store creation, adding a profile, loading it into a task, and removal
 — which CI also runs as its own named step. Changes to any skill or eval case additionally
