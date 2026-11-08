@@ -18,7 +18,8 @@ import sys
 DEFAULT_POLICY = Path(__file__).resolve().parents[1] / 'policy/delegation-contract.json'
 MAX_BYTES = 2 * 1024 * 1024
 REQUIRED_KEYS = ('version', 'contract', 'callers', 'owned_concepts', 'caller_owned_tokens',
-                 'contract_forbidden_numeric', 'caller_bounds', 'caller_no_bound', 'delegation_signature',
+                 'contract_forbidden_numeric', 'caller_bounds', 'caller_no_bound',
+                 'delegation_signature',
                  'required_caller_sentinel', 'exemptions')
 LINK = re.compile(r'\]\(([^)\s]+)\)')
 

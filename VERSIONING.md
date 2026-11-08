@@ -5,6 +5,21 @@ The package is private: releases publish this GitHub repository, not an npm pack
 Individual imported skill versions identify their upstream contracts and are not changed
 by a repository release. There is no generated plugin distribution or native host installer.
 
+`policy/vendored-imports.json` records each imported skill's upstream repository,
+immutable commit, and declared contract version. `scripts/check-vendored-imports.py`
+runs in `scripts/check.sh` without network access or sibling checkouts. Every catalog
+skill with `metadata.version` must have exactly one pin; every pin must match a
+present skill and its declared version. Missing, unreadable or malformed pins fail
+closed. Imported skills use block `metadata` with one scalar `version`; ambiguous
+metadata is rejected. Native skills omit that metadata.
+
+When importing or refreshing a skill, inspect its upstream `SKILL.md` at the pinned
+commit and update the pin and local version together. Keep local adaptations; the pin
+asserts upstream contract identity, not byte equality. Both current imports are adapted
+from `orenlion1/agent-tasks` at `ceda802460c60a619d78960f4df23a63b12ebddd`,
+which declares `0.2.36` for both. The artifact-naming copy's earlier `0.2.32` label was
+stale; correcting it retains its local investigation workflow additions.
+
 ## Dependencies and licensing
 
 This model is adapted from `../agent-tasks` at commit

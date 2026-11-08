@@ -1,0 +1,15 @@
+{
+  "schema": "vendored-imports/v1",
+  "skills": {
+    "skills/open-edit-close-execute": {
+      "upstream_repository": "https://github.com/orenlion1/agent-tasks",
+      "commit": "ceda802460c60a619d78960f4df23a63b12ebddd",
+      "version": "0.2.36"
+    },
+    "skills/workflow-artifact-naming": {
+      "upstream_repository": "https://github.com/orenlion1/agent-tasks",
+      "commit": "ceda802460c60a619d78960f4df23a63b12ebddd",
+      "version": "0.2.36"
+    }
+  }
+}
