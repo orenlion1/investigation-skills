@@ -20,6 +20,7 @@ The machinery every delegating skill in this catalog shares — the launch-mode 
 manifest schema, the harness launch and continuation mechanics, the degradation rules, and the
 rule that delegated output is leads until verified — lives in this package's
 [shared delegation contract](references/delegation-contract.md). This skill does not restate it.
+
 Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.
 
 ## When to Use

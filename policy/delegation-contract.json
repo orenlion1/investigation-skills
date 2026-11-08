@@ -35,7 +35,7 @@
     "skills/per-store-fan-out": "three follow-up rounds|three-round bound",
     "skills/rhyming-incident-search": "2 follow-up\\s+rounds"
   },
-  "delegation_signature": "\\bspawn_agent\\b|\\bsub-agent\\b|\\bone agent per\\b",
+  "delegation_signature": "\\bspawn_agent\\b|\\bsub-agents?\\b|\\bone agent per\\b",
   "required_caller_sentinel": "Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.",
   "exemptions": [
     {

@@ -109,9 +109,9 @@ def read_text(path):
         return None
 
 
-def text_files(directory, exclude):
+def text_files(directory, exclude=None):
     for path in sorted(p for p in directory.rglob('*') if p.is_file()):
-        if path.resolve() == exclude:
+        if exclude is not None and path.resolve() == exclude:
             continue
         text = read_text(path)
         if text is not None:
@@ -143,14 +143,14 @@ def check_contract(root, policy, failures):
 
 def check_contract_scope(root, policy, contract_text, failures):
     """R4, contract half: the contract may not take over what a caller owns."""
-    for token in policy['caller_owned_tokens']:
-        pattern = re.compile(r'\b%s\b' % re.escape(token))
-        for number, line in enumerate(contract_text.splitlines(), 1):
-            if pattern.search(line):
-                failures.append(Failure('R4', '%s:%d — the contract names caller-owned token %r'
-                                        % (policy['contract'], number, token)))
+    owned = re.compile('|'.join(r'\b%s\b' % re.escape(token)
+                                for token in policy['caller_owned_tokens']))
     numeric = re.compile(policy['contract_forbidden_numeric'], re.IGNORECASE)
     for number, line in enumerate(contract_text.splitlines(), 1):
+        match = owned.search(line)
+        if match:
+            failures.append(Failure('R4', '%s:%d — the contract names caller-owned token %r'
+                                    % (policy['contract'], number, match.group())))
         match = numeric.search(line)
         if match:
             failures.append(Failure('R4', '%s:%d — the contract states numeric budget %r, which '
@@ -159,16 +159,17 @@ def check_contract_scope(root, policy, contract_text, failures):
 
 
 def check_caller(root, policy, caller, contract_absolute, compiled, failures):
+    """Check one caller. Returns the concept ids actually applied, or None when not checked."""
     directory = root / caller
     if not directory.is_dir():
         failures.append(Failure('R7', '%s — registered caller directory is missing, so its rules '
                                       'were not checked' % caller))
-        return False
+        return None
     files = list(text_files(directory, contract_absolute))
     if not files:
         failures.append(Failure('R7', '%s — registered caller has no readable text file, so its '
                                       'rules were not checked' % caller))
-        return False
+        return None
 
     linked = False
     for path, text in files:
@@ -187,9 +188,12 @@ def check_caller(root, policy, caller, contract_absolute, compiled, failures):
         failures.append(Failure('R2', '%s — no relative link to %s resolves on disk from this '
                                       'caller' % (caller, policy['contract'])))
 
+    applied = set()
     for path, text in files:
+        lines = text.splitlines()
         for concept, pattern in compiled:
-            for number, line in enumerate(text.splitlines(), 1):
+            applied.add(concept)
+            for number, line in enumerate(lines, 1):
                 if pattern.search(line):
                     failures.append(Failure('R3', '%s:%d — concept %s is owned by %s'
                                             % (relative(root, path), number, concept,
@@ -205,30 +209,36 @@ def check_caller(root, policy, caller, contract_absolute, compiled, failures):
         if not any(pattern.search(text) for _, text in files):
             failures.append(Failure('R4', '%s — stopped stating its own bound (expected a match '
                                           'for %r in its own files)' % (caller, bound)))
-    return True
+    return frozenset(applied)
 
 
 def check_registry(root, policy, failures):
     """R6: a skill that delegates must be registered as the owner, a caller, or an exemption."""
     registered = set(policy['callers'])
     registered.update(exemption['path'] for exemption in policy['exemptions'])
-    contract_owner = str(Path(policy['contract']).parent)
-    while contract_owner and not contract_owner.startswith('skills/') or \
-            contract_owner.count('/') > 1:
-        parent = str(Path(contract_owner).parent)
-        if parent == contract_owner:
-            break
-        contract_owner = parent
-    registered.add(contract_owner)
+    owner_parts = Path(policy['contract']).parts[:2]
+    if len(owner_parts) == 2:
+        registered.add('/'.join(owner_parts))
     signature = re.compile(policy['delegation_signature'])
     skills = root / 'skills'
     if not skills.is_dir():
         return
+
+    # Registry soundness: a signature that cannot detect a caller already registered would not
+    # have detected that caller in the first place, so it is too narrow to enforce R6 at all.
+    for caller in policy['callers']:
+        directory = root / caller
+        if not directory.is_dir():
+            continue
+        if not any(signature.search(text) for _, text in text_files(directory)):
+            failures.append(Failure('R6', '%s — the delegation signature %r does not match this '
+                                          'registered caller, so it could not have detected it'
+                                    % (caller, policy['delegation_signature'])))
     for directory in sorted(p for p in skills.iterdir() if p.is_dir()):
         name = 'skills/' + directory.name
         if name in registered:
             continue
-        for path, text in text_files(directory, None):
+        for path, text in text_files(directory):
             match = signature.search(text)
             if match:
                 failures.append(Failure('R6', '%s — matches the delegation signature at %s (%r) '
@@ -255,12 +265,19 @@ def audit(root, policy_path=DEFAULT_POLICY):
     compiled = [(concept['id'], re.compile(concept['pattern']))
                 for concept in policy['owned_concepts']]
     callers_checked = 0
+    applied_everywhere = None
     for caller in policy['callers']:
-        if check_caller(root, policy, caller, contract_absolute, compiled, failures):
-            callers_checked += 1
+        applied = check_caller(root, policy, caller, contract_absolute, compiled, failures)
+        if applied is None:
+            continue
+        callers_checked += 1
+        applied_everywhere = (applied if applied_everywhere is None
+                              else applied_everywhere & applied)
     check_registry(root, policy, failures)
 
-    concepts_checked = len(compiled) if callers_checked else 0
+    # Observed, not declared: a concept counts only when it was applied to every checked
+    # caller, so a concept that silently stops being scanned fails R7 instead of passing.
+    concepts_checked = len(applied_everywhere or frozenset())
     if concepts_checked != len(policy['owned_concepts']):
         failures.append(Failure('R7', 'checked %d of %d owned concepts'
                                 % (concepts_checked, len(policy['owned_concepts']))))

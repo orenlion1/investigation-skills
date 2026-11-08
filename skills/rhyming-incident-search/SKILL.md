@@ -19,6 +19,7 @@ launch-mode vocabulary, the manifest schema, the harness launch and continuation
 degradation rules, and the rule that child output is leads until verified — lives in the
 [shared delegation contract](../per-store-fan-out/references/delegation-contract.md). This skill
 does not restate it; it owns the endpoint kinds, the endpoint questions, and its own budgets.
+
 Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.
 
 ## When to Use
@@ -61,7 +62,7 @@ those workflows or authorize new resource mutations.
 
 ## Delegate one child per endpoint
 
-Use the [brief, result and manifest templates](references/endpoint-probes.md#brief-and-output).
+Use the [endpoint brief and result contract](references/endpoint-probes.md#brief-and-output).
 Embed the same resolved block in every brief, with only that endpoint's validated object,
 provider instructions and questions. Do not send unrelated endpoints, profile values or secrets
 to a child. Children are read-only: no writes, prompts, acknowledgments, messages or publication.

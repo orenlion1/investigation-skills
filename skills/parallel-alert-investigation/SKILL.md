@@ -21,6 +21,7 @@ harness launch and continuation mechanics, the degradation rules, and the rule t
 is leads until verified come from the
 [shared delegation contract](../per-store-fan-out/references/delegation-contract.md). This skill
 owns the two alert branches, their shared resolved inputs, and their reconciliation.
+
 Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.
 
 ## When to Use

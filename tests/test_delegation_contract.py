@@ -81,7 +81,7 @@ class DelegationFixture(unittest.TestCase):
             'contract_forbidden_numeric':
                 r'\b(?:\d+|one|two|three|four|five)\s+(?:follow-up|round|rounds|read|reads)\b',
             'caller_bounds': {'skills/owner-skill': 'three follow-up rounds'},
-            'delegation_signature': r'\bspawn_agent\b|\bsub-agent\b|\bone agent per\b',
+            'delegation_signature': r'\bspawn_agent\b|\bsub-agents?\b|\bone agent per\b',
             'required_caller_sentinel': SENTINEL,
             'exemptions': [],
         }
@@ -128,7 +128,9 @@ class TestR1ContractIntegrity(DelegationFixture):
         real.write_text('# Shared Delegation Contract\n' + SENTINEL + '\n')
         self.contract.unlink()
         os.symlink(real, self.contract)
-        self.assertFailsRule('R1')
+        failures = self.assertFailsRule('R1')
+        self.assertIn('symlink', next(f.message for f in failures if f.rule == 'R1'),
+                      'R1 must fail for being a symlink, not incidentally for reading empty')
 
 
 class TestR2MandatoryInboundLink(DelegationFixture):
@@ -220,9 +222,35 @@ class TestR6RegistryCompleteness(DelegationFixture):
         stranger.mkdir(parents=True)
         (stranger / 'SKILL.md').write_text(
             '# Stranger\n\nPropose two parallel sub-agents and route the work elsewhere.\n')
+        # Guard against a vacuous assertion: without the exemption this must actually fail.
+        self.assertFailsRule('R6')
         self.write_policy(exemptions=[{'path': 'skills/stranger-skill',
                                        'reason': 'Proposes without launching or briefing.'}])
         self.assertPasses()
+
+    def test_plural_sub_agents_matches_the_signature(self):
+        stranger = self.root / 'skills/stranger-skill'
+        stranger.mkdir(parents=True)
+        (stranger / 'SKILL.md').write_text(
+            '# Stranger\n\nThis workflow launches two read-only sub-agents in parallel.\n')
+        self.assertFailsRule('R6')
+
+    def test_contract_owner_need_not_be_a_registered_caller(self):
+        self.write_policy(callers=['skills/caller-one', 'skills/caller-two'],
+                          caller_bounds={'skills/caller-one': 'three follow-up rounds'})
+        self.write_caller('caller-two')
+        # owner-skill holds the contract but is not a caller: R6 must not flag it, and its own
+        # caller rules must not be applied to it.
+        failures = self.run_checker()
+        self.assertEqual([], [(f.rule, f.message) for f in failures
+                              if 'owner-skill' in f.message])
+
+    def test_signature_too_narrow_to_detect_a_registered_caller_fails(self):
+        # The real defect this caught: the signature matched only the singular "sub-agent",
+        # so it could not detect parallel-alert-investigation, a registered caller.
+        self.write_policy(delegation_signature=r'\bspawn_agent\b')
+        failures = self.assertFailsRule('R6')
+        self.assertTrue(any('could not have detected it' in f.message for f in failures))
 
     def test_skill_not_matching_the_signature_needs_no_registration(self):
         stranger = self.root / 'skills/quiet-skill'
@@ -232,6 +260,29 @@ class TestR6RegistryCompleteness(DelegationFixture):
 
 
 class TestR7PolicyIntegrityAndCounts(DelegationFixture):
+    def test_concept_silently_not_applied_to_a_caller_fails(self):
+        real = self.checker.check_caller
+
+        def drop_one(root, policy, caller, contract_absolute, compiled, failures):
+            applied = real(root, policy, caller, contract_absolute, compiled, failures)
+            if applied is None or caller != 'skills/caller-one':
+                return applied
+            return frozenset(sorted(applied)[1:])
+
+        self.checker.check_caller = drop_one
+        self.addCleanup(setattr, self.checker, 'check_caller', real)
+        report = self.checker.audit(self.root, self.policy_path)
+        self.assertLess(report.concepts_checked, 3)
+        self.assertIn('R7', {f.rule for f in report.failures})
+
+    def test_no_caller_checked_reports_zero_concepts(self):
+        shutil.rmtree(self.root / 'skills/owner-skill')
+        shutil.rmtree(self.root / 'skills/caller-one')
+        report = self.checker.audit(self.root, self.policy_path)
+        self.assertEqual(report.concepts_checked, 0)
+        self.assertEqual(report.callers_checked, 0)
+        self.assertIn('R7', {f.rule for f in report.failures})
+
     def test_unknown_version_fails(self):
         self.write_policy(version=2)
         self.assertFailsRule('R7')
@@ -267,6 +318,17 @@ class TestR7PolicyIntegrityAndCounts(DelegationFixture):
 
 class TestDeliveredRepository(unittest.TestCase):
     """The rules must hold on the tree this repository actually ships."""
+
+    def test_shipped_signature_detects_every_registered_caller(self):
+        checker = load_checker()
+        policy = checker.load_policy(REPOSITORY_ROOT / 'policy/delegation-contract.json')
+        signature = __import__('re').compile(policy['delegation_signature'])
+        for caller in policy['callers']:
+            directory = REPOSITORY_ROOT / caller
+            matched = [str(path) for path, text in checker.text_files(directory)
+                       if signature.search(text)]
+            self.assertTrue(matched, '%s is registered but the shipped signature %r cannot '
+                                     'detect it' % (caller, policy['delegation_signature']))
 
     def test_live_tree_passes(self):
         checker = load_checker()
