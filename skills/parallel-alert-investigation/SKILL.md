@@ -16,6 +16,13 @@ authorization; this skill owns the workflow. Within a multi-store
 [per-store fan-out](../per-store-fan-out/SKILL.md), this whole pattern nests inside the
 Grafana branch.
 
+Both agents here are delegated agents, so the launch-mode vocabulary, the manifest schema, the
+harness launch and continuation mechanics, the degradation rules, and the rule that agent output
+is leads until verified come from the
+[shared delegation contract](../per-store-fan-out/references/delegation-contract.md). This skill
+owns the two alert branches, their shared resolved inputs, and their reconciliation.
+Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.
+
 ## When to Use
 
 Use for a Grafana alert investigation request: launching the parallel Assistant and
@@ -44,7 +51,15 @@ its Grafana alert branch).
      does not execute them. Do not invent a shell command for the invocation or duplicate
      the other agent's Assistant prompt. Direct reads in this branch need not wait for the
      Assistant response.
-3. **Reconcile and verify.** Both agents must have used the same resolved Grafana context,
+3. **Record the manifest.** Every run records a fan-out manifest under the schema in the
+   [shared delegation contract](../per-store-fan-out/references/delegation-contract.md),
+   including a degraded run and a run whose Assistant branch is disabled. One row per branch:
+   the Assistant branch and the alert investigation branch, each with its own agent identity
+   and launch time, or null identity when it was never launched. The report's Source snapshot
+   cites it. Two agents that record nothing leave a hole in exactly the audit trail the
+   repository's Report Evidence rules exist to guarantee, so the manifest is required here on
+   the same terms as any other delegating run.
+4. **Reconcile and verify.** Both agents must have used the same resolved Grafana context,
    alert identity, environment, exact time window and timezone, and read-only scope.
    Reconcile their findings, verify material claims against direct evidence, and report
    disagreements, gaps, and limitations.
@@ -88,6 +103,7 @@ never treat it as disabling the investigation itself.
 - Assistant inferences presented as observed runtime results, or a silent context switch
   after a denial.
 - Sequential execution without a reported limitation.
+- A completed run with no fan-out manifest, including a degraded or Assistant-disabled run.
 - An Assistant prompt sent while the user's configuration disables it, or a disabled
   branch reported as a failure.
 
@@ -101,3 +117,5 @@ never treat it as disabling the investigation itself.
   reported, not smoothed over.
 - When the Assistant is disabled, no prompt was sent and the report records the branch as
   a configured limitation.
+- A fan-out manifest exists for the run, carries one row per branch with its observed agent
+  identity or an explicit null, and its launch mode matches what actually happened.

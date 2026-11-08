@@ -1,8 +1,12 @@
-# Sub-Agent Brief and Manifest Templates
+# Sub-Agent Brief Template
 
-Copy these templates verbatim. The resolved block and output contract are identical in
+Copy this template verbatim. The resolved block and output contract are identical in
 every brief of a run; only Store, Integration skill, and Store-specific questions change.
 Placeholders in angle brackets are the only editable text.
+
+The manifest schema, the launch-mode vocabulary and the harness mechanics are not here: they
+belong to the [shared delegation contract](delegation-contract.md), which every delegating skill
+in this catalog uses. This file owns only the store brief and the store conformity checklist.
 
 ## Brief template
 
@@ -37,39 +41,13 @@ Return exactly these sections:
 Do not draw cross-store conclusions; do not mutate anything.
 ```
 
-## Manifest template
-
-Record as a LOG artifact through Workflow Artifact Naming (default `logs/`); keep it
-local and untracked.
-
-```json
-{
-  "task": "<task path>",
-  "launch_mode": "parallel | sequential | disabled",
-  "degradation_reason": "<empty unless sequential/disabled>",
-  "environment": "<environment>",
-  "window": {"start": "<ISO-8601>", "end": "<ISO-8601>", "timezone": "<IANA>"},
-  "branches": [
-    {
-      "store": "<store>",
-      "integration_skill": "<skill>",
-      "agent_id": "<harness agent identifier, or 'inline'>",
-      "launched_at": "<ISO-8601>",
-      "iterations": 0,
-      "blocker": ""
-    }
-  ],
-  "iteration_rounds": 0,
-  "returned_to_user": ""
-}
-```
-
 ## Conformity checklist
 
 - One brief per resolved store; at most one Atlassian brief.
 - Resolved blocks byte-identical across briefs.
-- All branches launched before any result is awaited (parallel mode), or the
-  degradation declared in manifest and report.
-- Follow-ups routed by continuing the existing branch agent; `iterations`
-  incremented; three rounds maximum.
-- Manifest written for every run, including disabled runs.
+- All branches launched before any result is awaited, or the degradation declared in
+  the manifest and the report, under the [shared delegation contract](delegation-contract.md).
+- Follow-ups routed by continuing the existing branch agent, and three follow-up rounds
+  maximum — this skill's own bound, not the contract's.
+- A manifest written for every run, including disabled runs, with one row per resolved
+  store carrying `store` and `integration_skill`.

@@ -13,8 +13,14 @@ result is awaited, and their candidate evidence folded in by the orchestrating s
 alone. The repository policy's
 [Per-Store Investigation Fan-Out](../../AGENTS.md#per-store-investigation-fan-out) section
 owns the default-on rule and its disable switch; this skill owns the mechanics that make a
-run conform: store resolution, the brief and output contract templates, harness-specific
-launch, iteration bounds, and the manifest that proves what happened.
+run conform: store resolution, the brief and output contract templates, and the per-store
+iteration bound.
+
+The machinery every delegating skill in this catalog shares — the launch-mode vocabulary, the
+manifest schema, the harness launch and continuation mechanics, the degradation rules, and the
+rule that delegated output is leads until verified — lives in this package's
+[shared delegation contract](references/delegation-contract.md). This skill does not restate it.
+Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.
 
 ## When to Use
 
@@ -60,8 +66,9 @@ workflow inside the Grafana branch; the request itself carries that authorizatio
    [references/sub-agent-brief.md](references/sub-agent-brief.md). Every brief carries
    the identical resolved block and the output contract verbatim; only the store,
    integration skill, and store-specific questions differ.
-4. **Launch all briefs in one batch** before awaiting any result (see Harness Mechanics),
-   and record the launch in the fan-out manifest.
+4. **Launch all briefs in one batch** before awaiting any result, through the mechanics in
+   the [shared delegation contract](references/delegation-contract.md), and record the launch
+   in the fan-out manifest it defines.
 5. **Iterate within bounds.** Route a follow-up by continuing that store's existing
    sub-agent, never by spawning a fresh one. A finding in one store becomes the next
    query in another. Stop after three follow-up rounds without convergence, or whenever
@@ -75,32 +82,17 @@ workflow inside the Grafana branch; the request itself carries that authorizatio
 Sub-agents never mutate, acknowledge, message, or publish; those stay separately
 authorized with the orchestrating session.
 
-## Harness Mechanics
+## Manifest and Store Branches
 
-- **Claude Code:** launch the batch as multiple Agent tool calls in a single message so
-  the branches run concurrently; continue a branch with SendMessage to the same agent.
-  Sequential Agent calls across messages are not a batch — if that is all the session can
-  do, record the run as degraded.
-- **Codex:** use native `spawn_agent` when exposed by the active harness. Launch independent
-  briefs before waiting, retain each returned ID, and continue that same agent for follow-ups.
-  With limited capacity, reserve the parent slot and launch concurrent waves; record the
-  wave/capacity limitation. If native delegation is absent, run the same store briefs
-  sequentially inline and record `sequential` mode. This existing store degradation does
-  not satisfy Rhyming Incident Search's separate one-agent-per-endpoint contract.
-- **Any harness without parallel delegation:** degrading to sequential execution is
-  allowed only when it is declared — in the manifest and in the report's Source
-  snapshot. Running inline ad hoc queries without briefs is not a degraded fan-out; it
-  is a policy violation unless the user disabled fan-out.
+Every fan-out run records a manifest under the schema in the
+[shared delegation contract](references/delegation-contract.md), including a degraded or
+disabled run. The report's Source snapshot cites it, so conformity is auditable per run, and it
+stays local and untracked like all investigation output.
 
-## Fan-Out Manifest
-
-Every fan-out run (including degraded and disabled runs) records a manifest as a LOG
-artifact resolved through Workflow Artifact Naming (default destination `logs/`), using
-the template in [references/sub-agent-brief.md](references/sub-agent-brief.md): stores in
-scope, launch mode (`parallel`, `sequential`, or `disabled`), per-branch agent
-identifiers and launch timestamps, the shared window and timezone, iteration rounds, and
-per-branch blockers. The report's Source snapshot cites the manifest, so conformity is
-auditable per run. The manifest stays local and untracked, like all investigation output.
+This skill adds only what is specific to stores: each branch row carries `store` and
+`integration_skill` beside the contract's own fields, and at most one row exists per resolved
+integration — a repository plus its Jira ticket is one Atlassian row, not two. A store that
+cannot authenticate blocks only its own branch; record the exact blocker and continue.
 
 ## Common Rationalizations
 
