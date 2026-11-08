@@ -1,11 +1,11 @@
 # Investigation Skills
 
-A root cause is rarely visible in one place. The latency spike is in Grafana,
-the throttling and the stack trace are in AWS, the deploy that preceded both is
-in a pull request, and the first customer symptom is a Slack thread. Reading
-each store is easy; relating them is the work — and when that work happens in a
-chat session, the conclusion survives and the reasoning that produced it does
-not.
+A root cause is rarely visible in one place. The latency spike and the logs
+are in Grafana, the resources that were throttled underneath them are in AWS,
+the deploy that preceded them is in a pull request, and the first customer
+symptom is a Slack thread. Reading each store is easy; relating them is the
+work — and when that work happens in a chat session, the conclusion survives
+and the reasoning that produced it does not.
 
 This repository keeps it. Describe the problem once in a task file; your coding
 agent queries the resources in scope, draws the relationships between their
