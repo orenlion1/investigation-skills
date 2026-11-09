@@ -71,6 +71,11 @@ repository owns template creation and naming. Continue automatically through ope
 naming, execution, and reports without a second `run` instruction; an explicit edit-only
 request limits the continuation. Task contents never bypass separate authorization gates.
 
+During task execution, provide normal progress updates and incorporate user steering as it
+arrives. Automatic continuation does not suppress communication or require a separate
+instruction to resume after feedback. Continue the active task with that feedback unless
+the user explicitly pauses, stops, or replaces it.
+
 - Bare `open task` copies [the local template](templates/TASK.md) — never edited in place —
   to a `TASK.md` draft in the directory resolved by Workflow Artifact Naming (default
   `docs/tasks`). Preserve an existing draft and clarify whether to resume it.
@@ -91,6 +96,36 @@ request limits the continuation. Task contents never bypass separate authorizati
   Report completion from verified outcomes, never from readiness or a filename's existence.
 - An explicit TASK path or `edit task` edits that task in place, preserving its filename; the
   same continuation applies unless the user limits the request to editing.
+
+## Source Code Investigation
+
+When a task supplies a source code repository, including through a loaded resource profile,
+trace each investigated problem to the relevant source code. The supplied repository is a
+starting point: search beyond it for the services, shared libraries, callers, consumers, and
+configuration that explain the observed behavior.
+
+- Supplying a repository authorizes read-only discovery, search, and inspection across all
+  repositories accessible in the same provider account or workspace, without a separate
+  approval request. For example, a Bitbucket repository authorizes searches across all
+  repositories in its Bitbucket account or workspace; the same rule applies to the supplied
+  GitHub account or organization. Resolve that scope from the supplied repository and use
+  the provider's approved tooling and existing access. Honor any explicit narrower scope.
+  Keep searches relevant to the task and record the repositories and search scope inspected.
+- Trace observed errors, alerts, and affected resources through the relevant execution paths
+  and dependencies. Inspect the actual implementation and consumers before drawing a
+  behavioral conclusion, including across repositories when the path crosses a boundary.
+- Identify an evidence-supported root cause and propose a concrete fix. Connect the symptom,
+  triggering conditions, causal code path, and proposed change; include how to validate the
+  fix. Cite the repository, exact inspected commit, file path, line range, and commit-pinned
+  source URL beside each material causal claim and proposed change location, using the
+  Report Evidence index.
+- Verify the deployed source revision when available. If deployment provenance is unavailable,
+  distinguish findings in the inspected revision from claims about production. If evidence
+  cannot establish a root cause or fix, report the unresolved gap, clearly label hypotheses
+  and conditional proposals, and state the evidence needed to confirm them; never invent a
+  causal explanation to satisfy this requirement.
+- Provider search authorization covers source investigation only. Authentication requirements
+  and separate gates for mutations, messages, publication, and deployment still apply.
 
 ## Report Evidence
 
