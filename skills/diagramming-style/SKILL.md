@@ -17,6 +17,11 @@ examples. Use aligned key columns and crow's-foot endpoints for ER relationships
 plain labels with dashed action arrows for SQL dependencies. These examples establish visual
 conventions; replace their fictional entities and relationships with inspected evidence.
 
+For flapping or recurring alert investigations, apply the bundled
+[flapping-alert graphs reference](references/flapping-alert-graphs.md): it owns the visual
+specification of the required "Daily peaks and alert outcomes" and "Observed Pending and
+Alerting intervals" graph pair, its outcome encoding, pairing, and PDF placement rules.
+
 For process and skill diagrams, apply the guide's
 [workflow views](references/diagramming-style.md#workflow-views): show the main activity/artifact
 handoffs first, then a separate routing view for invoked skills and their outputs. Adapt the
