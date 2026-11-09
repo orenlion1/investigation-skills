@@ -240,8 +240,7 @@ probe for a connectivity-only request; proceed into telemetry queries only when 
 
 An alert investigation request routes to the
 [Parallel Alert Investigation](../parallel-alert-investigation/SKILL.md) skill, which owns the
-two-branch workflow, its authorization rule (the request itself authorizes the parallel
-read-only investigation; do not pause for separate approval), shared resolved inputs,
+two-branch workflow, its authorization rule, shared resolved inputs,
 reconciliation, and verification. Within that workflow this skill supplies the gcx mechanics:
 the required setup, refresh, context resolution, authentication, and the
 `gcx assistant prompt` Assistant branch with explicit `--context` and a fresh conversation.
