@@ -23,4 +23,6 @@ the settings that do not apply. Placeholders and examples do not count as resour
 - Alert: `<Alert name>`; UID `<Enter UID>`
 - Publish: `<Parent page>` (example: Confluence page "Investigations")
 - Rhyming endpoints: `<JSON endpoint array>`
+  <!-- grafana-assistant-search uses id/kind/target/context for scoped Assistant matching;
+       grafana-assistant-conversations remains history-only. Assistant disabled suppresses prompts. -->
 - Rhyming historical window days: `<positive integer days>`

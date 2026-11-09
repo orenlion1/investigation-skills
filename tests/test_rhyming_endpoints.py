@@ -53,6 +53,20 @@ class RhymingEndpointTests(unittest.TestCase):
         value = task.read_text().split('- Rhyming endpoints: `')[1].split('`')[0]
         self.assertEqual(json.loads(value), self.endpoints)
 
+    def test_assistant_search_round_trip_and_invalid_context(self):
+        endpoint = {'id': 'match', 'kind': 'grafana-assistant-search',
+                    'target': 'service-a', 'context': 'history-ops'}
+        self.set_endpoints([endpoint])
+        result = json.loads(self.cli('endpoints', '--profile', 'ops').stdout)
+        self.assertEqual(result['endpoints'], [endpoint])
+        self.assertEqual(result['historical_window_days'], 7)
+        self.assertIn('history-ops', self.cli('render', '--profile', 'ops').stdout)
+        for change in [{'context': ''}, {'context': 'wrong context'},
+                       {'target': '$(execute)'}, {'unknown': 'field'}]:
+            before = self.store.read_bytes()
+            self.set_endpoints([dict(endpoint, **change)], ok=False)
+            self.assertEqual(before, self.store.read_bytes())
+
     def test_legacy_profile_returns_no_endpoints(self):
         self.cli('set', '--profile', 'ops', '--field', 'REPO=service-a')
         self.assertEqual(json.loads(self.cli('endpoints', '--profile', 'ops').stdout)['endpoints'], [])
@@ -60,7 +74,8 @@ class RhymingEndpointTests(unittest.TestCase):
     def test_schema_exposes_structured_constraints(self):
         fields = {x['field']: x for x in json.loads(self.cli('schema').stdout)['fields']}
         self.assertEqual(fields['RHYMING_ENDPOINTS']['type'], 'endpoint-array')
-        self.assertEqual(len(fields['RHYMING_ENDPOINTS']['kinds']), 5)
+        self.assertEqual(len(fields['RHYMING_ENDPOINTS']['kinds']), 6)
+        self.assertIn('grafana-assistant-search', fields['RHYMING_ENDPOINTS']['kinds'])
 
     def test_invalid_structures_never_write(self):
         invalid = ['{', '{}', '[]', '[null]', '[{"id":"x","id":"y"}]',
