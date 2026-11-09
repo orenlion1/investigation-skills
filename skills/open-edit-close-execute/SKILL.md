@@ -44,6 +44,9 @@ draft directory, and the rule that task contents never bypass separate authoriza
   arrives. Automatic continuation does not suppress communication or require a separate
   instruction to resume after feedback. Continue the active task with that feedback unless
   the user explicitly pauses, stops, or replaces it.
+- Before opening a templated-task editor, read [Token Usage](../token-usage/SKILL.md) and
+  retain its native task-resolution evidence past the editor/check barrier, so shorthand
+  editor requests can be attributed without another user command.
 - Bare `open task` copies the repository's local template — never edited in place — to a
   `TASK.md` draft in the directory resolved by
   [Workflow Artifact Naming](../workflow-artifact-naming/SKILL.md). Preserve an existing

@@ -51,8 +51,6 @@ Routing notes:
 - Templated tasks: the local template is [templates/TASK.md](templates/TASK.md) and the
   default draft directory is `docs/tasks`; task contents never bypass separate authorization
   gates. The editor skill owns the rest of the workflow.
-- Token usage: read the skill before opening a templated-task editor and retain its native
-  task-resolution evidence past the editor/check barrier.
 - Reports: enrich investigation reports with diagrams of the relevant flows, hierarchies, and
   dependencies, and pass Report Evidence before delivery. Diagramming Style owns all visual
   rules; Report Evidence owns the evidence discipline.

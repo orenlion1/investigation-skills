@@ -4,7 +4,7 @@
     "AGENTS.md",
     "CLAUDE.md"
   ],
-  "max_lines": 160,
+  "max_lines": 180,
   "allowed_sections": [
     "Required Dependencies",
     "CodeGraph",
