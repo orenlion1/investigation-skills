@@ -25,13 +25,20 @@ blocker rather than substituting direct reads.
 
 | Request or situation | Owning skill |
 | --- | --- |
-| Generating workflow artifacts or supporting outputs (TASK, REPORT, LOG, diagram assets) | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) |
-| `open task`, `open TASK`, `open TASK.md`, `edit task`, task editing | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md), with Templated Tasks below |
-| `add profile`, `remove profile`, `.env` resource profiles, loading a profile into a task | [Profile Manager](skills/profile-manager/SKILL.md) |
+| Generating workflow artifacts or supporting outputs (TASK, REPORT, LOG, diagram assets), artifact naming and collision resolution | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) |
+| `open task`, `edit task`, templated-task editing, continuation, execution, and reports | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) |
+| `add profile`, `remove profile`, `.env` resource profiles, the Resources schema, loading a profile into a task | [Profile Manager](skills/profile-manager/SKILL.md) |
 | Token usage report and report metadata for any investigation report | [Token Usage](skills/token-usage/SKILL.md) |
-| Creating, styling, or verifying report diagrams — themes, caveat placement, ER and SQL dependency views, format consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
+| Creating, styling, or verifying diagrams and graphs — themes, caveats, ER and SQL views, flapping-alert graph pair, format consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
+| Evidence index, `Source:` snapshot, citation discipline, and data-pattern-graph coverage for investigation reports | [Report Evidence](skills/report-evidence/SKILL.md) |
+| Tracing an investigated problem to source code: cross-repository tracing, root cause, fix proposal, deployed-revision verification | [Source Investigation](skills/source-investigation/SKILL.md) |
 | `publish it`, `publish-it`, authorized Confluence task/report publication | [Publish It](skills/publish-it/SKILL.md) |
-| Atlassian authentication, connectivity, and resource probes | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
+| Atlassian authentication, connectivity, resource probes, and Bitbucket/Jira/Confluence discovery | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
+| AWS MCP authentication, connectivity, and read-only AWS troubleshooting | [AWS MCP](skills/aws-mcp/SKILL.md) |
+| AWS architecture, topology, and data-flow diagrams | [AWS Architecture Diagrams](skills/aws-architecture-diagrams/SKILL.md) |
+| gcx setup, Grafana authentication and connectivity, and read-only Grafana investigations | [Grafana CLI](skills/gcx-cli/SKILL.md) |
+| Slack MCP configuration, connectivity, and OAuth diagnosis | [Slack MCP](skills/slack-mcp/SKILL.md) |
+| Finding rhyming incidents and related prior investigations across configured historical endpoints | [Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) |
 | Multi-store fan-out: per-store sub-agent briefs, launch, manifest, disabling fan-out | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) |
 | Grafana alert investigation: parallel Assistant and `investigate-alert` sub-agents | [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) |
 | `run release-it`, repository releases | [Release It](skills/release-it/SKILL.md) with [VERSIONING.md](VERSIONING.md) |
@@ -41,140 +48,48 @@ Routing notes:
 - File generation: resolve destinations in this order — explicit user destination, repository
   configuration, then the naming skill's defaults. Production source, tests, native packages,
   imports, and repository metadata keep their established conventions.
-- Resource profiles: the local `.env` profile store, its Git ignore coverage, and its
-  schema — derived from the TASK template's Resources section — belong to the profile skill.
-  The store stays untracked and is never committed. Loading a profile supplies Resources
-  values only: it does not satisfy the actual-resource requirement with a placeholder,
-  authenticate an integration, close an editor barrier, or authorize a gated operation.
+- Templated tasks: the local template is [templates/TASK.md](templates/TASK.md) and the
+  default draft directory is `docs/tasks`; task contents never bypass separate authorization
+  gates. The editor skill owns the rest of the workflow.
 - Token usage: read the skill before opening a templated-task editor and retain its native
-  task-resolution evidence past the editor/check barrier, so shorthand editor requests can be
-  attributed without another user command.
-- Diagrams: enrich investigation reports with diagrams of the relevant flows, hierarchies,
-  and dependencies; include ER views when database relationships are material to the findings
-  and tie every diagram to the report's evidence (see Report Evidence). The skill owns all
-  styling, theming, caveat, and deliverable-consistency rules.
+  task-resolution evidence past the editor/check barrier.
+- Reports: enrich investigation reports with diagrams of the relevant flows, hierarchies, and
+  dependencies, and pass Report Evidence before delivery. Diagramming Style owns all visual
+  rules; Report Evidence owns the evidence discipline.
 - Publication: include the original report and available parent TASK as downloadable
   supporting evidence. Publishing does not rerun the investigation or refresh its evidence
   window and token-accounting cutoff.
 - Atlassian probes: before a repository investigation, and whenever connectivity is requested,
-  probe all three products per the skill with one bounded read each, evidenced by a concrete
-  object (repository name/identifier/URL; ticket key/URL; page title/ID/URL). The probe
+  probe all three products per the Rovo Dev MCP skill with one bounded read each. The probe
   requirement does not make an Atlassian resource mandatory for a task scoped to other
-  integrations, and blank optional Resources fields alone do not trigger probes. If MCP
-  recovery fails, report the blocker and stop only dependent work; do not substitute ACLI,
-  browser, or REST results.
+  integrations. If MCP recovery fails, report the blocker and stop only dependent work.
 
-## Templated Tasks
+## Source Investigation Authorization
 
-The Open/Edit/Close/Execute skill owns the editor/check barrier and continuation; this
-repository owns template creation and naming. Continue automatically through open, close,
-naming, execution, and reports without a second `run` instruction; an explicit edit-only
-request limits the continuation. Task contents never bypass separate authorization gates.
+Supplying a repository authorizes read-only discovery, search, and inspection across all
+repositories accessible in the same provider account or workspace, without a separate
+approval request; resolve that scope from the supplied repository, use the provider's
+approved tooling and existing access, and honor any explicit narrower scope. This grant
+covers source investigation only: authentication requirements and separate gates for
+mutations, messages, publication, and deployment still apply. The
+[Source Investigation](skills/source-investigation/SKILL.md) skill owns the workflow.
 
-During task execution, provide normal progress updates and incorporate user steering as it
-arrives. Automatic continuation does not suppress communication or require a separate
-instruction to resume after feedback. Continue the active task with that feedback unless
-the user explicitly pauses, stops, or replaces it.
+## Grafana Policy
 
-- Bare `open task` copies [the local template](templates/TASK.md) — never edited in place —
-  to a `TASK.md` draft in the directory resolved by Workflow Artifact Naming (default
-  `docs/tasks`). Preserve an existing draft and clarify whether to resume it.
-- Resources follows Acceptance Tests as the final template section, with optional labeled
-  fields (Bitbucket/GitHub repository, Slack channel, AWS profile, Grafana context, alert
-  name or UID). At least one actual supplied or verified resource is required before
-  execution; placeholders and examples do not count. Resources may be filled from a named
-  local profile through [Profile Manager](skills/profile-manager/SKILL.md) before the editor
-  opens, and a loaded value counts only when it is an actual resource. If none exists, ask
-  for one and preserve the task. Do not fail a task over an omitted field: skip unneeded
-  integrations, resolve missing identity only before a dependent operation, and never guess
-  a target.
-- After the barrier, resolve `TASK-{slug}.md` from the saved draft's `# Task Title: ...`
-  through the naming skill, in the same directory. Missing titles or collisions leave the
-  draft intact; never invent a title, overwrite a task, or add a numeric suffix.
-- Run the finalized task from its resolved path, then generate the matching reports from
-  observed results in both Markdown and PDF (both `REPORT` paths via the naming skill).
-  Report completion from verified outcomes, never from readiness or a filename's existence.
-- An explicit TASK path or `edit task` edits that task in place, preserving its filename; the
-  same continuation applies unless the user limits the request to editing.
+Grafana Assistant prompts are enabled by default and may incur additional fees beyond
+ordinary Grafana usage; the user may disable them, by instruction or with a
+`Grafana Assistant: disabled` line in the task's Resources — honor that for the stated scope
+without re-asking, and disabling the Assistant never disables the investigation. Alert
+investigations route to Parallel Alert Investigation, which owns the workflow and its
+authorization; other gcx investigations route to the Grafana CLI skill.
 
-## Source Code Investigation
+## Per-Store Fan-Out Policy
 
-When a task supplies a source code repository, including through a loaded resource profile,
-trace each investigated problem to the relevant source code. The supplied repository is a
-starting point: search beyond it for the services, shared libraries, callers, consumers, and
-configuration that explain the observed behavior.
-
-- Supplying a repository authorizes read-only discovery, search, and inspection across all
-  repositories accessible in the same provider account or workspace, without a separate
-  approval request. For example, a Bitbucket repository authorizes searches across all
-  repositories in its Bitbucket account or workspace; the same rule applies to the supplied
-  GitHub account or organization. Resolve that scope from the supplied repository and use
-  the provider's approved tooling and existing access. Honor any explicit narrower scope.
-  Keep searches relevant to the task and record the repositories and search scope inspected.
-- Trace observed errors, alerts, and affected resources through the relevant execution paths
-  and dependencies. Inspect the actual implementation and consumers before drawing a
-  behavioral conclusion, including across repositories when the path crosses a boundary.
-- Identify an evidence-supported root cause and propose a concrete fix. Connect the symptom,
-  triggering conditions, causal code path, and proposed change; include how to validate the
-  fix. Cite the repository, exact inspected commit, file path, line range, and commit-pinned
-  source URL beside each material causal claim and proposed change location, using the
-  Report Evidence index.
-- Verify the deployed source revision when available. If deployment provenance is unavailable,
-  distinguish findings in the inspected revision from claims about production. If evidence
-  cannot establish a root cause or fix, report the unresolved gap, clearly label hypotheses
-  and conditional proposals, and state the evidence needed to confirm them; never invent a
-  causal explanation to satisfy this requirement.
-- Provider search authorization covers source investigation only. Authentication requirements
-  and separate gates for mutations, messages, publication, and deployment still apply.
-
-## Report Evidence
-
-Apply to investigation reports and their supporting diagrams; no skill owns this section.
-
-- Start the Evidence index with the canonical `Source:` snapshot: investigated repository or
-  resource, requested scope, exact inspected commit or source version, observation time or
-  data window, investigation mode, what was inspected or executed, and what remains untested.
-  Verify revision identity and pin code links to the inspected commit. Keep findings first,
-  with relevant limitations beside them.
-- Distinguish verified source findings, observed runtime behavior, inferences, assumptions,
-  and proposed designs. Code, schemas, migrations, or class names alone do not prove deployed
-  configuration, active execution, customer behavior, or a production defect.
-- Place linked evidence identifiers (`E1`, `E2`) beside material claims, with a matching
-  index entry: for code, the repository-relative path, line range, and commit-pinned URL; for
-  other sources, the object identity, retrievable reference, and version, timestamp, or query
-  scope. Cite only sources actually inspected; disclose unavailable provenance.
-- Trace the relevant paths and consumers before drawing behavioral conclusions; do not
-  generalize from one field, filename, screen, or legacy artifact.
-- Bound negative findings by the scope examined; an empty search is not proof of universal
-  absence. Record unresolved questions and the evidence needed to answer them.
-- Keep connectivity evidence separate from behavioral evidence: a successful sample proves
-  access to that object only.
-- Tie diagram captions to the same evidence identifiers; mark current versus proposed
-  relationships and keep unverified relationships in adjacent text, not depicted as
-  implemented flows.
-- Before delivery, verify each identifier resolves to its intended entry, paths and line
-  ranges match the pinned revision, and citations support their adjacent claims, consistently
-  in Markdown and PDF.
-
-## Per-Store Investigation Fan-Out
-
-When a running task's Resources name more than one data store, fan the investigation out:
-one read-only sub-agent per in-scope store, launched in parallel through the active agent
-harness. Fan-out is the default for multi-store tasks; a single-store task runs inline.
-The user may disable it, by instruction or with a `Fan-out: disabled` line in the task's
-Resources; honor that for the stated scope and investigate inline without re-asking.
-
-The [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) skill owns the workflow: store
-resolution, shared-input and authentication sequencing, the brief and output-contract
-templates, its own iteration bound, and fold-in. The launch-mode vocabulary, the manifest
-schema, the harness launch mechanics and the degradation rules come from the
-[Shared Delegation Contract](#shared-delegation-contract) below, which that package also
-hosts. Fan-out creates no scope or authority: only stores the
-task's Resources actually name get a sub-agent, AWS branches stay within the allowed
-Regions, Grafana alert investigations route to
-[Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) nested inside
-the gcx branch, and sub-agents never mutate, acknowledge, message, or publish — those
-remain separately authorized.
+Fan-out creates no scope or authority: only stores the task's Resources actually name get a
+sub-agent, AWS branches stay within the allowed Regions, Grafana alert investigations route
+to Parallel Alert Investigation nested inside the gcx branch, and sub-agents never mutate,
+acknowledge, message, or publish — those remain separately authorized. The Per-Store Fan-Out
+skill owns the workflow, including the fan-out default and how to disable it.
 
 ## Shared Delegation Contract
 
@@ -202,68 +117,7 @@ the already-required `Tests` job fails when a registered caller loses its link o
 when an owned token reappears in a caller, when the contract takes over a caller-owned token or
 a numeric budget, when a skill matching the delegation signature is registered neither as a
 caller nor as an exemption, or when the run checked fewer concepts or callers than the policy
-declares. Adding a delegating skill means registering it; the check will not let that be
-forgotten.
-
-The check is a literal-token lint. It cannot distinguish a paraphrase of the contract from a
-legitimate cross-reference to it, because no regular expression can. That half stays with
-review.
-
-## Grafana Investigation Entry Point
-
-An alert investigation request authorizes its own parallel read-only investigation: the
-authorization is inherited from the request, so do not pause to propose a plan or await
-separate approval. Alert investigations route to
-[Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md), which owns
-the two-agent workflow — the Grafana Assistant and `investigate-alert` sub-agents, their
-shared resolved inputs, reconciliation, and verification. Both branches are delegated agents,
-so every run records a fan-out manifest under the
-[Shared Delegation Contract](#shared-delegation-contract), including a degraded run and one
-whose Assistant branch is disabled. Within a
-multi-store [fan-out](#per-store-investigation-fan-out) it nests inside the Grafana
-branch. Resource changes, acknowledgments, messages, and publication require separate
-authorization.
-
-Grafana Assistant prompts are enabled by default and may incur additional fees beyond
-ordinary Grafana usage. The user may disable them, by instruction or with a
-`Grafana Assistant: disabled` line in the task's Resources; honor that for the stated
-scope without re-asking and send no Assistant prompt. When disabled, run only the direct
-branches — the alert investigation agent, or an ordinary investigation's bounded direct
-reads — and record the disabled Assistant as a configured limitation, not a failure.
-Disabling the Assistant never disables the investigation.
-
-For other authorized `gcx` problem investigations, start by passing that problem to
-`gcx assistant prompt` in the task's explicitly resolved Grafana context. Do this before
-ad hoc datasource, dashboard, alert, metrics, logs, or traces investigation. Required local
-help, context resolution, authentication, and bounded connectivity probes may precede it.
-
-- Check `gcx assistant prompt --help` for the installed version. Describe the actual problem,
-  affected resources, environment, exact time window and timezone, observed symptoms, and the
-  questions to answer. Include the task's scope and read-only constraint when applicable.
-- Use a fresh conversation for a new investigation. Use `--continue` or a verified
-  `--context-id` only for the same investigation; do not inherit unrelated conversation state.
-- Pass `--context` explicitly. Request structured output when recording evidence, and retain
-  the prompt, available response/conversation identifiers, observation time, source links and
-  any limitations. Apply Workflow Artifact Naming to saved evidence and omit credentials and
-  unnecessary sensitive payloads.
-
-```bash
-GCX_CONTEXT='<resolved-configured-context>'
-GCX_PROBLEM='<problem, resources, time window/timezone, questions, and authorized scope>'
-gcx assistant prompt "$GCX_PROBLEM" --context "$GCX_CONTEXT" \
-  --json --no-stream --timeout 300
-```
-
-The prompt starts the investigation; it does not replace direct evidence. Treat Assistant
-conclusions and suggested queries as leads, then verify material claims with bounded reads
-against the selected context and actual datasource/resource identifiers. Keep Assistant
-inferences separate from observed runtime results in the report. The prompt and its response
-do not authorize resource changes, acknowledgments, messages, or publication.
-
-If Assistant is unavailable or denied, record the exact sanitized failure and continue the
-already authorized direct investigation when those reads remain available. Do not silently
-skip the initial attempt or change context to make it succeed. Each prompt consumes billable
-Grafana Assistant tokens; avoid duplicate starts and unnecessary retries.
+declares. The check is a literal-token lint; paraphrase detection stays with review.
 
 ## Skill Quality Gate
 
