@@ -154,7 +154,7 @@ page configured in the task.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-skill-routing-dark.png">
-  <img alt="Initialize in Open and Edit mode invokes the naming, editor, and profile skills; Investigate in Close and Execute mode routes to the orchestration skills, Per-Store Fan-Out and Parallel Alert Investigation, which invoke the resource skills; Report invokes the naming, token usage, and diagramming skills; Publish invokes Publish It and Rovo Dev MCP, which deliver the artifact to a repository or content system where the next lifecycle step picks it up." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
+  <img alt="Initialize in Open and Edit mode invokes the naming, editor, and profile skills; Investigate in Close and Execute mode routes to the orchestration skills, Per-Store Fan-Out, Parallel Alert Investigation, and Rhyming Incident Search, which invoke the resource skills including Source Investigation; Report invokes the naming, token usage, report evidence, diagramming, and AWS architecture diagram skills; Publish invokes Publish It, Release It, and Rovo Dev MCP, which deliver the artifact to a repository or content system where the next lifecycle step picks it up." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
 </picture>
 
 **Figure 2 — Skill routing.** The same lifecycle expanded into the skill that
