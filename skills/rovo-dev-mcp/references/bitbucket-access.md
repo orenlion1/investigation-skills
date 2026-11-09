@@ -113,8 +113,11 @@ When the selected OAuth client requires user interaction:
    and sanitized status/error text before forwarding output. Never forward arbitrary URLs from
    logs, returned authorization codes, access/refresh tokens, or callback URLs. Do not derive a
    link from credential caches or browser callback state.
-3. Attempt to open the link in the user's browser and immediately present it as a clickable link
-   in chat, even when opening reports success. For example, use **Sign in to Bitbucket MCP** as
+3. Open the link in the user's default browser with the platform's opener — `open "<url>"` on
+   macOS, `xdg-open "<url>"` on Linux, `start "" "<url>"` on Windows — quoting the URL exactly
+   as issued, and immediately present it as a clickable link in chat, even when opening reports
+   success; the printed link is the fallback whenever a browser cannot be opened (headless
+   session, missing opener, or a nonzero exit). For example, use **Sign in to Bitbucket MCP** as
    the link label, name the selected connection, and explain that its repository read will resume
    after sign-in. Do not claim the window appeared without evidence or wait silently for timeout.
    Preserve the client-issued URL, including its state and PKCE parameters; do not construct or

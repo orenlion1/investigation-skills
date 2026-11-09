@@ -95,8 +95,9 @@ local product cache, or the selected hosted connection's own Connect/Reconnect f
 separate Bitbucket and Jira/Confluence grants and request only the product scopes needed by the
 task. Do not substitute a generic Rovo Dev CLI login for MCP consent.
 
-Attempt to open the sign-in page and promptly give the user a clickable authorization link issued
-by that active flow, even if browser opening was attempted. Name the product and connection and
+Open the sign-in page in the user's default browser (`open` on macOS, `xdg-open` on Linux,
+`start` on Windows) and promptly give the user a clickable authorization link issued by that
+active flow — the printed link is the fallback when a browser cannot be opened. Name the product and connection and
 say which read will resume; do not wait for a timeout or assume a window appeared. Keep the
 client and callback listener running while the user signs in. Follow the recovery guide's
 [authorization-link handoff](references/bitbucket-access.md#authorization-link-handoff) for URL
