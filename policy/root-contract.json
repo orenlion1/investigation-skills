@@ -1,0 +1,43 @@
+{
+  "schema": "root-contract/v1",
+  "files": ["AGENTS.md", "CLAUDE.md"],
+  "max_lines": 160,
+  "allowed_sections": [
+    "Required Dependencies",
+    "CodeGraph",
+    "Routing",
+    "Source Investigation Authorization",
+    "Grafana Policy",
+    "Per-Store Fan-Out Policy",
+    "Shared Delegation Contract",
+    "Skill Quality Gate",
+    "Policy Synchronization"
+  ],
+  "required_sections": [
+    "Required Dependencies",
+    "CodeGraph",
+    "Routing",
+    "Skill Quality Gate",
+    "Policy Synchronization"
+  ],
+  "routing_section": "Routing",
+  "skills_dir": "skills",
+  "minimum": {
+    "sections": 9,
+    "skills": 17
+  },
+  "docs": {
+    "readme": "README.md",
+    "readme_required_sections": [],
+    "diagram_dir": "diagrams",
+    "diagram_suffixes": [".dot", ".svg", "-light.svg", "-dark.svg", "-light.png", "-dark.png"],
+    "routing_diagram": {
+      "enabled": false,
+      "dot": "diagrams/DIAGRAM-investigation-skill-routing.dot"
+    },
+    "minimum": {
+      "diagram_sets": 5,
+      "readme_diagram_references": 10
+    }
+  }
+}
