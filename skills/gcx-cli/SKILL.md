@@ -17,7 +17,7 @@ Example agent requests:
 ```text
 Use $gcx-cli with context example to authenticate; open sign-in if needed and wait.
 Use $gcx-cli with context example to investigate memory alerts for <service>
-between <start> and <end> UTC; propose the parallel investigation plan without running it.
+between <start> and <end> UTC through the parallel alert investigation.
 ```
 
 The context names are examples, not defaults. Resolve the actual configured context before
@@ -238,28 +238,16 @@ probe for a connectivity-only request; proceed into telemetry queries only when 
 
 ## Start a root-cause investigation
 
-For an alert investigation request, first propose two parallel sub-agents and wait for explicit
-authorization to execute that plan. Do not run investigation commands, install or refresh skills,
-start sign-in, or launch sub-agents while preparing the proposal. Use supplied or already
-verified context and identify missing inputs without live discovery. This proposal-only rule
-takes precedence over the operational setup steps above and any task execution continuation.
-
-Propose the same Grafana context, alert identity, environment, exact time window and timezone,
-and read-only scope for both agents:
-
-1. **Grafana Assistant agent:** run `gcx assistant prompt` with explicit `--context` and a fresh
-   conversation. Retain structured output, response/conversation identifiers, links, and limits.
-2. **Alert investigation agent:** load and invoke the refreshed official `investigate-alert`
-   skill through the active harness, gathering bounded direct evidence. The command
-   `gcx agent skills get investigate-alert` only displays the instructions; it does not run an
-   investigation. Do not invent a CLI invocation or start a second Assistant conversation.
-
-After authorization, perform the required setup, refresh, context resolution, and authentication,
-then launch both agents before awaiting either. Direct reads in the second branch need not wait
-for the Assistant response; this parallel alert workflow replaces the sequential entry point
-below. If delegation is unavailable, report the limitation rather than silently running serially.
-Reconcile both results, verify material claims against direct evidence, and preserve disagreements,
-gaps, and limitations. Changes, acknowledgments, messages, and publication need separate authority.
+An alert investigation request routes to the
+[Parallel Alert Investigation](../parallel-alert-investigation/SKILL.md) skill, which owns the
+two-branch workflow, its authorization rule (the request itself authorizes the parallel
+read-only investigation; do not pause for separate approval), shared resolved inputs,
+reconciliation, and verification. Within that workflow this skill supplies the gcx mechanics:
+the required setup, refresh, context resolution, authentication, and the
+`gcx assistant prompt` Assistant branch with explicit `--context` and a fresh conversation.
+`gcx agent skills get investigate-alert` only displays the official skill's instructions; it
+does not run an investigation. The parallel alert workflow replaces the sequential entry point
+below. Changes, acknowledgments, messages, and publication need separate authority.
 
 For other authorized problem investigations, resolve the symptoms, affected resources, environment, exact time
 window and timezone, and questions to answer. After local help, context resolution,
