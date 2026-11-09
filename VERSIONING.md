@@ -29,7 +29,8 @@ verification, and curated release read-back. Its maintainer skill is named `rele
 this repository exposes the adapted workflow as `skills/release-it`.
 
 Like the source package, this package has no npm runtime or development dependencies.
-Release validation uses Python 3.10+ and its standard library, Node.js 22+, Git, Bash, and GitHub CLI
+Release validation uses Python 3.10+ with the pinned report-reference requirements in
+`skills/report-evidence/scripts/requirements.txt`, Node.js 22+, Git, Bash, and GitHub CLI
 with repository/workflow access. Graphviz is required for the diagram test suite.
 CI uses Python 3.14 and immutable Action pins. No npm installation or npm publication
 is required. Investigation integrations remain conditional on the resources used;

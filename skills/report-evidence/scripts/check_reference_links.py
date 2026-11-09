@@ -17,6 +17,7 @@ from urllib.parse import unquote, urlsplit
 SCHEMA = 'reference-links/v1'
 IDENTIFIER = re.compile(r'\b(?:[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}|I[A-Z0-9]{12}|E[1-9][0-9]*)\b')
 BLOCKS = {'p', 'div', 'tr', 'li', 'br', 'hr', 'td', 'th'}
+EVIDENCE_ENTRY = re.compile(r'^(E[1-9][0-9]*)\s+[-–—]\s+')
 
 
 def validate_manifest(data):
@@ -40,6 +41,11 @@ def validate_manifest(data):
             raise ValueError('references need unique, nonempty visible labels')
         if ref.get('section') is not None and not isinstance(ref['section'], str):
             raise ValueError('reference section must be a literal heading')
+        aliases = ref.get('scoped_labels', [])
+        if (not isinstance(aliases, list) or any(not isinstance(alias, dict) or
+                not all(isinstance(alias.get(k), str) and alias[k].strip()
+                        for k in ('label', 'section')) for alias in aliases)):
+            raise ValueError('scoped labels require literal label and section strings')
         if ref['provenance'] == 'verified' and not isinstance(ref.get('url'), str):
             raise ValueError('verified provenance requires a source-derived URL')
         if ref.get('url') is not None and not isinstance(ref['url'], str):
@@ -55,6 +61,7 @@ class VisibleHTML(HTMLParser):
         self.stack = []
         self.section = 'Document'
         self.heading = None
+        self.paragraph = None
         self.anchors = set()
 
     def emit(self, value, href=None):
@@ -74,6 +81,8 @@ class VisibleHTML(HTMLParser):
             self.emit('\n')
         if re.fullmatch('h[1-6]', tag):
             self.heading = len(self.chars)
+        if tag == 'p':
+            self.paragraph = len(self.chars)
         if attrs.get('data-type') in ('media', 'media-inline'):
             identity = attrs.get('data-id', attrs.get('data-media-id', ''))
             collection = attrs.get('data-collection', attrs.get('data-media-collection', ''))
@@ -90,7 +99,19 @@ class VisibleHTML(HTMLParser):
             # Confluence's documented short evidence headings produce same-page anchors.
             if re.fullmatch(r'E[1-9][0-9]*', title):
                 self.anchors.add(title)
+                self.chars[self.heading:] = [(c, u, self.section, 'declaration ' + loc)
+                                            for c, u, _, loc in self.chars[self.heading:]]
             self.heading = None
+        if tag == 'p' and self.paragraph is not None:
+            paragraph = ''.join(c[0] for c in self.chars[self.paragraph:])
+            leading = len(paragraph) - len(paragraph.lstrip())
+            entry = EVIDENCE_ENTRY.match(paragraph.lstrip())
+            if entry:
+                self.section = entry[1]
+                self.chars[self.paragraph:] = [
+                    (c, u, self.section, ('declaration ' if leading <= i < leading + len(entry[1]) else '') + loc)
+                    for i, (c, u, _, loc) in enumerate(self.chars[self.paragraph:])]
+            self.paragraph = None
         for index in range(len(self.stack) - 1, -1, -1):
             if self.stack[index][0] == tag:
                 del self.stack[index:]
@@ -115,9 +136,16 @@ def pdf_document(path):
     with pymupdf.open(path) as doc:
         if doc.needs_pass:
             raise ValueError('encrypted PDF cannot establish coverage')
+        section = None
         for page in doc:
             uris = [(link['from'], link['uri']) for link in page.get_links() if 'uri' in link]
             for block in page.get_text('rawdict', sort=True)['blocks']:
+                block_text = ''.join(char['c'] for line in block.get('lines', [])
+                                     for span in line['spans'] for char in span['chars'])
+                entry = EVIDENCE_ENTRY.match(block_text)
+                if entry:
+                    section = entry[1]
+                position = 0
                 for line in block.get('lines', []):
                     for span in line['spans']:
                         for char in span['chars']:
@@ -126,7 +154,10 @@ def pdf_document(path):
                             targets = {uri for bounds, uri in uris if bounds.contains(center)}
                             href = next(iter(targets)) if len(targets) == 1 else None
                             loc = 'page %s bbox %s' % (page.number + 1, tuple(char['bbox']))
-                            chars.append((char['c'], href, 'page %s' % (page.number + 1), loc))
+                            if entry and position < len(entry[1]):
+                                loc = 'declaration ' + loc
+                            chars.append((char['c'], href, section or 'page %s' % (page.number + 1), loc))
+                            position += 1
                     chars.append(('\n', None, 'page %s' % (page.number + 1), loc if chars else 'empty'))
             chars.append(('\n', None, 'page %s' % (page.number + 1), 'page end'))
     if not any(c.strip() for c, _, _, _ in chars):
@@ -175,9 +206,16 @@ def inventory(chars, anchors, data, artifact):
     text = ''.join(c[0] for c in chars)
     # Whitespace may wrap within a label in PDF/HTML. Retain original locations.
     labels = {label for ref in refs for label in ref['labels']}
+    labels.update(alias['label'] for ref in refs for alias in ref.get('scoped_labels', []))
     patterns = [re.escape(label).replace(r'\ ', r'\s+') for label in labels]
     pattern = re.compile(r'(?<!\w)(?:' + '|'.join(sorted(patterns, key=len, reverse=True)) + r')(?!\w)')
-    matches = list(pattern.finditer(text))
+    def matching(ref, label, section):
+        return ((label in ref['labels'] and (not ref.get('section') or ref['section'] == section))
+                or any(alias['label'] == label and alias['section'] == section
+                       for alias in ref.get('scoped_labels', [])))
+
+    matches = [match for match in pattern.finditer(text) if any(
+        matching(ref, re.sub(r'\s+', ' ', match.group()), chars[match.start()][2]) for ref in refs)]
     known_ranges = [(m.start(), m.end()) for m in matches]
     unknown = [m for m in IDENTIFIER.finditer(text)
                if not any(start <= m.start() and m.end() <= end for start, end in known_ranges)]
@@ -185,8 +223,9 @@ def inventory(chars, anchors, data, artifact):
     for match in sorted(matches + unknown, key=lambda m: m.start()):
         label = re.sub(r'\s+', ' ', match.group())
         section, loc = chars[match.start()][2:]
-        candidates = [r for r in refs if label in r['labels'] and
-                      (not r.get('section') or r['section'] == section)]
+        candidates = [r for r in refs if matching(r, label, section)]
+        if not candidates and loc.startswith('declaration '):
+            continue
         urls = {c[1] for c in chars[match.start():match.end()] if c[0].strip()}
         href = next(iter(urls)) if len(urls) == 1 else None
         ref = candidates[0] if len(candidates) == 1 else None

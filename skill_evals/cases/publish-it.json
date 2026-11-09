@@ -37,6 +37,17 @@
         "Packages and publishes the existing verified artifacts with downloads",
         "Verifies the published page by reading it back"
       ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "Publish this report now: existing links work and all attachment hashes match, but the prior incident ID is plain text in the evidence index. The browser is unavailable.",
+      "expected_output": "Stops before any publication write and records incomplete browser acceptance.",
+      "expectations": [
+        "Runs reference completeness before any publication write including attachment preparation and upload",
+        "Blocks publication on the unlinked required occurrence despite matching hashes",
+        "Does not fabricate a URL or report unavailable browser acceptance as passing"
+      ]
     }
   ]
 }

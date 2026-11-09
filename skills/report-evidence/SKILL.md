@@ -34,6 +34,17 @@ match the evidence.
   other sources, the object identity, retrievable reference, and version, timestamp, or query
   scope. Cite only sources actually inspected; disclose unavailable provenance.
 
+## Reference completeness
+
+Follow [the reference-completeness contract](references/reference-completeness.md) before
+report delivery and pass its helper gate for every delivered Markdown, PDF and HTML artifact.
+Inventory every material incident, investigation, backing chat, conversation and cross-report
+evidence reference at its point of use: reconciliation prose, coverage tables and evidence-index
+entries all count. A working link elsewhere, attachment hash or report-title link never satisfies
+an unlinked occurrence. Register source-derived identities and visible aliases, review the full
+source for omitted references, and retain occurrence-level diagnostics and separate unique-target
+counts. Unavailable provenance and unverified navigation remain explicit incomplete results.
+
 ## Evidence Discipline
 
 - Distinguish verified source findings, observed runtime behavior, inferences, assumptions,
@@ -101,6 +112,8 @@ match the evidence.
 - [ ] Each identifier resolves to its intended entry; paths and line ranges match the pinned
       revision; citations support their adjacent claims, consistently in every delivered
       format.
+- [ ] Reference completeness passes for every delivered artifact and every material occurrence;
+      source provenance, structural link matching and browser acceptance are distinguished.
 - [ ] Verified, observed, inferred, assumed, and proposed statements are labeled as such.
 - [ ] Negative findings state the scope examined; unresolved questions are recorded.
 - [ ] Every pattern claim maps to a visible, evidence-matched graph, and flapping-alert
