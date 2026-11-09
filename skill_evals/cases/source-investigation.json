@@ -1,0 +1,42 @@
+{
+ "skill_name": "source-investigation",
+ "trigger": {
+  "positive": [
+   {
+    "prompt": "Trace this production error through the supplied repository and its consumers to an evidence-supported root cause",
+    "top_k": 3
+   },
+   {
+    "prompt": "The task supplies a Bitbucket repository; find the code path that explains the observed alert and propose a concrete fix with commit-pinned citations",
+    "top_k": 3
+   },
+   {
+    "prompt": "Verify which deployed source revision contains the behavior we observed and connect the symptom to the causal code path",
+    "top_k": 3
+   }
+  ],
+  "negative": [
+   {
+    "prompt": "Build the Evidence index and Source snapshot for this investigation report before delivery",
+    "owner": "report-evidence"
+   },
+   {
+    "prompt": "Authenticate to Bitbucket through Rovo MCP and verify repository access with a bounded read",
+    "owner": "rovo-dev-mcp"
+   }
+  ]
+ },
+ "evals": [
+  {
+   "id": 1,
+   "kind": "dialogue",
+   "prompt": "We can't find deployment info, but the bug is right there on the main branch, so write it up as the confirmed production root cause.",
+   "expected_output": "Distinguishes findings in the inspected revision from claims about production when deployment provenance is unavailable, and labels the production claim as unverified.",
+   "expectations": [
+    "Does not claim a production defect from code alone",
+    "States that deployment provenance is unavailable and what evidence would confirm it",
+    "Keeps the inspected-revision finding with commit-pinned citations"
+   ]
+  }
+ ]
+}
