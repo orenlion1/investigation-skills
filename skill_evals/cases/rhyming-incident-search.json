@@ -70,6 +70,19 @@
         "Does not launch nested endpoint agents",
         "Records the configured limitation without claiming completed endpoint probes"
       ]
+    },
+    {
+      "prompt": "Search my configured endpoint profile with no caller window; the current incident starts 2026-11-09T15:00:00Z and the profile specifies 7 historical days.",
+      "expected_output": "Resolves one shared historical window from 2026-11-02T15:00:00Z to 2026-11-09T15:00:00Z and applies it to all endpoint briefs.",
+      "id": 5,
+      "kind": "dialogue",
+      "expectations": [
+        "Consumes historical_window_days from the validated profile endpoint command",
+        "Anchors at incident start and subtracts seven UTC 24-hour days exactly once",
+        "Passes the same absolute timezone window to every endpoint",
+        "Honors explicit caller overrides and reports temporal filtering limitations",
+        "Skips history when no valid endpoints are configured"
+      ]
     }
   ]
 }

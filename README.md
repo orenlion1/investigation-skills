@@ -222,6 +222,30 @@ incidents and investigations using the selected local profile's optional `RHYMIN
 JSON array. [Profile Manager](skills/profile-manager/SKILL.md) validates that field against
 the task template. Existing profiles remain valid without it; `.env` stays local and untracked.
 
+Profiles also support `RHYMING_HISTORICAL_WINDOW_DAYS` (positive integer days). New profiles
+persist `7` in their local `.env` block when omitted. Profile Manager renders the lookback
+into task Resources only when valid rhyming endpoints are configured. Explicit caller search
+windows take precedence; otherwise searches look back from the current incident's start.
+Legacy endpoint profiles resolve seven days without rewriting the store; their next profile
+update persists a missing default.
+
+For a new ignored profile store, run `ignore` and `init` first. These commands illustrate
+creating a 30-day profile and updating it to 14 days; replace the example endpoint with your
+actual repository. Omitting the window flag on creation saves the seven-day default.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . ignore
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . init
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  set --profile history \
+  --field 'RHYMING_ENDPOINTS=[{"id":"code","kind":"repository","target":"https://github.com/example/service-a","provider":"github"}]' \
+  --field RHYMING_HISTORICAL_WINDOW_DAYS=30
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  set --profile history --field RHYMING_HISTORICAL_WINDOW_DAYS=14
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  load --profile history --task docs/tasks/TASK.md --dry-run
+```
+
 Each configured endpoint gets its own read-only sub-agent. Independent queries use parallel
 capacity waves across prior gcx investigations, prior Grafana Assistant conversations,
 configured Confluence pages, Slack channels, and code repositories. The per-store parent
