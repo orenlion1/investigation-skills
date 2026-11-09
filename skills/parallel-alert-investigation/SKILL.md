@@ -41,9 +41,17 @@ its Grafana alert branch).
    orchestrating session. Ask for missing context rather than starting live discovery to
    guess it; the request already authorizes the investigation, so do not pause to propose
    a plan or await separate approval.
+   Before launch, accept any parent-prepared `grafana-assistant-search` handoff using
+   [Assistant matching](../rhyming-incident-search/references/assistant-search.md). Register this
+   prospective Assistant branch with its original request, exact context/scope/shared block and
+   unsent state. A compatible branch owns one combined initial prompt; each endpoint still keeps
+   its separate child and manifest row, linked to that execution receipt. A late matching request
+   is unavailable for initial-prompt reuse; do not automatically start a second prompt.
 2. **Launch both sub-agents before awaiting either result:**
    - **Grafana Assistant agent:** pass the problem to `gcx assistant prompt` with an
-     explicit `--context`, a fresh conversation, and the shared read-only scope. Retain
+     explicit `--context`, a fresh conversation, and the shared read-only scope. Include the
+     prepared matching request in this initial prompt when this branch is its owner; do not
+     start a separate matching prompt. Endpoint consumers inspect the retained response. Retain
      the prompt, response/conversation identifiers, source references, and limitations as
      investigation leads.
    - **Alert investigation agent:** load and invoke gcx's refreshed `investigate-alert`

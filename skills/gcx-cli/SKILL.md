@@ -248,6 +248,13 @@ the required setup, refresh, context resolution, authentication, and the
 does not run an investigation. The parallel alert workflow replaces the sequential entry point
 below. Changes, acknowledgments, messages, and publication need separate authority.
 
+Before an initial Assistant prompt, accept the parent's prepared rhyming handoff under
+[Assistant matching](../rhyming-incident-search/references/assistant-search.md) when an explicit
+`grafana-assistant-search` endpoint is configured. A compatible unsent branch owns the combined
+initial prompt; preserve both the original problem and matching request. Consumers send no
+additional prompt. Retain the shared execution receipt and initial-inclusion evidence; do not
+change the endpoint context or broaden scope. Disabled Assistant sends no prompt.
+
 For other authorized problem investigations, resolve the symptoms, affected resources, environment, exact time
 window and timezone, and questions to answer. After local help, context resolution,
 authentication, and any bounded connectivity probes, start with `gcx assistant prompt` before

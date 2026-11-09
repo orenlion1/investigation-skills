@@ -78,6 +78,18 @@
         "Uses one agent per configured historical endpoint even when both use Grafana",
         "Does not duplicate the historical search inside store agents"
       ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "Launch Grafana store investigation and configured grafana-assistant-search endpoints sharing context scope incident and historical windows.",
+      "expected_output": "Prepares prospective unsent Assistant ownership before launch; Does not wait for historical leads before launching their owner; Keeps one endpoint child/manifest row per endpoint and links one combined execution; History-only endpoints do not send prompts.",
+      "expectations": [
+        "Prepares prospective unsent Assistant ownership before launch",
+        "Does not wait for historical leads before launching their owner",
+        "Keeps one endpoint child/manifest row per endpoint and links one combined execution",
+        "History-only endpoints do not send prompts"
+      ]
     }
   ]
 }

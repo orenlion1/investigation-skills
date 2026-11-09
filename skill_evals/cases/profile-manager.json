@@ -76,6 +76,17 @@
         "Uses set to update the window to 30 and load/render only with validated RHYMING_ENDPOINTS",
         "Does not treat a stored window without endpoints as an actual resource or inject it"
       ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "Add a grafana-assistant-search rhyming endpoint to my profile with target service-a and context ops.",
+      "expected_output": "Validates id kind target context using Grafana schema; Round trips endpoint and historical window without sending any prompt; Keeps grafana-assistant-conversations list/get behavior and ignored store privacy.",
+      "expectations": [
+        "Validates id kind target context using Grafana schema",
+        "Round trips endpoint and historical window without sending any prompt",
+        "Keeps grafana-assistant-conversations list/get behavior and ignored store privacy"
+      ]
     }
   ]
 }

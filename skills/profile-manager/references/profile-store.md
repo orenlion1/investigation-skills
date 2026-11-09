@@ -134,6 +134,7 @@ and the conditional key below. IDs are lowercase kebab-case. Unknown keys/kinds 
 | --- | --- | --- |
 | grafana-investigations | Explicit prior-investigation scope or search phrase | context: configured gcx context |
 | grafana-assistant-conversations | Explicit historical conversation scope or phrase | context: configured gcx context |
+| grafana-assistant-search | Explicit historical resource scope or search phrase for an Assistant matching request | context: configured gcx context |
 | confluence | HTTPS Atlassian Cloud page URL under /wiki/ | None |
 | slack | Channel ID beginning C or G, or explicit #channel name | None |
 | repository | HTTPS GitHub or Bitbucket owner/repository URL | provider: github or bitbucket, matching the host |
@@ -159,7 +160,7 @@ edits, before returning resources or changing a task. `endpoints` also requires 
 untracked storage and rejects unknown fields. Errors do not echo endpoint values. The command
 returns `{ "profile": "NAME", "endpoints": [...], "historical_window_days": 7 }`; no auth, query or delegation occurs there.
 
-Search dependencies are conditional: gcx-cli for the two Grafana kinds, rovo-dev-mcp for
+Search dependencies are conditional: gcx-cli for the three Grafana kinds, rovo-dev-mcp for
 Confluence and Bitbucket, slack-mcp for Slack, and GitHub access tooling for GitHub. Native
 agent delegation is required by the rhyming search contract. Profile management itself stays
 Python/Git only and does not require credentials or any connected endpoint.
@@ -186,3 +187,8 @@ legacy profiles. Without endpoints it is omitted, and a window alone cannot sati
 resource requirement. `endpoints` returns integer `historical_window_days`, or `null` when the
 endpoint list is absent. No read command rewrites `.env`; an unavailable search integration is
 handled later by Rhyming Incident Search and never causes profile management to authenticate.
+
+The explicit `grafana-assistant-search` kind permits a scoped billable Assistant prompt through
+[Rhyming Incident Search](../../rhyming-incident-search/SKILL.md). It uses the same Grafana
+validation; profile reads/writes never launch a prompt. `grafana-assistant-conversations`
+continues to read existing history only. Honor `Grafana Assistant: disabled` during execution.

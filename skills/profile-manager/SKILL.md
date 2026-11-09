@@ -197,3 +197,7 @@ The `endpoints` command also returns `historical_window_days` as an integer when
 exist (`null` otherwise); legacy endpoint profiles resolve seven days without a store write.
 Read [the window contract](references/profile-store.md#rhyming-historical-window) for reset
 and validation behavior. Profile management never starts a history search.
+
+The endpoint kinds include `grafana-assistant-search` (id/kind/target/context) for a scoped
+Assistant matching request. See [the endpoint schema](references/profile-store.md#rhyming-endpoints).
+Profile operations do not send prompts; history-only kinds retain list/get behavior.

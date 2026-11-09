@@ -26,6 +26,7 @@ MAX_ENDPOINTS = 16
 HISTORICAL_WINDOW = 'RHYMING_HISTORICAL_WINDOW_DAYS'
 DEFAULT_HISTORICAL_WINDOW_DAYS = '7'
 ENDPOINT_KINDS = ('grafana-investigations', 'grafana-assistant-conversations',
+                  'grafana-assistant-search',
                   'confluence', 'slack', 'repository')
 IGNORE_BLOCK = ('# Local resource-profile store; never commit.', '.env', '.env.*', '!.env.example')
 
