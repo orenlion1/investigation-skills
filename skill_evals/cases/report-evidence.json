@@ -1,0 +1,42 @@
+{
+ "skill_name": "report-evidence",
+ "trigger": {
+  "positive": [
+   {
+    "prompt": "Build the Evidence index and Source snapshot for this investigation report before delivery",
+    "top_k": 3
+   },
+   {
+    "prompt": "Place E1/E2 citation identifiers beside the report's material claims and verify each resolves",
+    "top_k": 3
+   },
+   {
+    "prompt": "Check that every reported data pattern in the report has an evidence-backed graph and that flapping alerts carry the required graph pair",
+    "top_k": 3
+   }
+  ],
+  "negative": [
+   {
+    "prompt": "Restyle this Mermaid diagram with portable light and dark themes",
+    "owner": "diagramming-style"
+   },
+   {
+    "prompt": "Report the token usage and investigation duration from my local conversation files",
+    "owner": "token-usage"
+   }
+  ]
+ },
+ "evals": [
+  {
+   "id": 1,
+   "kind": "dialogue",
+   "prompt": "The search for other consumers came back empty, so just state in the report that no other service reads this table anywhere.",
+   "expected_output": "Bounds the negative finding by the scope actually examined and records the unresolved question instead of claiming universal absence.",
+   "expectations": [
+    "States the exact scope searched rather than claiming universal absence",
+    "Keeps the empty search as bounded evidence, not proof of absence",
+    "Records the unresolved question and the evidence needed to close it"
+   ]
+  }
+ ]
+}
