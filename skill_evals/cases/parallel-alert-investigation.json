@@ -95,6 +95,17 @@
         "Records one row per branch with its observed agent identity, or an explicit null when a branch was never launched",
         "Cites the manifest from the report's Source snapshot"
       ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "Investigate an alert with a prepared grafana-assistant-search matching handoff for the same context scope and windows.",
+      "expected_output": "Includes matching in Assistant initial prompt once; Retains direct branch concurrency and endpoint-specific children/manifest references; Disabled Assistant sends zero prompts and direct branch continues.",
+      "expectations": [
+        "Includes matching in Assistant initial prompt once",
+        "Retains direct branch concurrency and endpoint-specific children/manifest references",
+        "Disabled Assistant sends zero prompts and direct branch continues"
+      ]
     }
   ]
 }

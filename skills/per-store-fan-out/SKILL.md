@@ -59,7 +59,15 @@ workflow inside the Grafana branch; the request itself carries that authorizatio
    then invoke [Rhyming Incident Search](../rhyming-incident-search/SKILL.md) once with the
    shared question/environment/windows. It owns one read-only sub-agent per endpoint,
    including same-store endpoints, parallel capacity waves, and a separate endpoint manifest.
-   Reconcile its leads before the store batch; store agents never recursively repeat it.
+   Reconcile its leads in the parent; store agents never recursively repeat it.
+   Prepare historical requests before the store batch, but do not await matching results
+   before their designated Assistant owner is scheduled.
+   Before any Assistant prompt starts, prepare its handoff under
+   [Assistant matching](../rhyming-incident-search/references/assistant-search.md). Register the
+   prospective Grafana Assistant branch with exact scope and both windows so the combined
+   initial prompt has one owner. Launch endpoint work and store work with linked execution
+   receipts; do not wait for historical leads before scheduling their unsent Assistant owner.
+   Preserve every endpoint child/row, honor disabled Assistant and never broaden scope to share.
    An unset field skips history search. Invalid configuration stops endpoint launches; failed
    providers block only their endpoints. Honor disabled parent fan-out by disabling nested
    endpoint delegation and recording that limitation. Ordinary inline store work may continue.

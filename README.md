@@ -252,6 +252,14 @@ configured Confluence pages, Slack channels, and code repositories. The per-stor
 invokes this skill once before its store batch. Reports separate verified relationships,
 hypotheses, no matches in the searched scope, and unavailable endpoints. Existing conversation
 reads do not send new Assistant prompts; disabled parent fan-out disables nested endpoint agents.
+The explicit `grafana-assistant-search` kind sends the complete incident-matching brief through
+`gcx assistant prompt` in its configured context. Compatible work shares a combined initial
+prompt with one execution owner while every endpoint retains its own child and manifest row.
+`Grafana Assistant: disabled` suppresses all prompts while permitted historical reads continue.
+A request arriving after the initial prompt is recorded unavailable for reuse; it does not
+automatically start another billable prompt. See the
+[Assistant matching contract](skills/rhyming-incident-search/references/assistant-search.md) for
+preparation, receipts, budgets and evidence verification.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-rhyming-incident-search-dark.png">

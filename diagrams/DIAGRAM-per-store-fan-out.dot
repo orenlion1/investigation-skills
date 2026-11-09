@@ -10,13 +10,13 @@ digraph PerStoreFanOut {
   subgraph cluster_setup {
     label="Fan-out setup"; labeljust=l; style=filled;
     scope [shape=oval, label="Task Resources name\nthe stores in scope"];
-    resolve [shape=oval, label="Resolve shared inputs\nand authentication"];
+    resolve [shape=oval, label="Resolve shared inputs\nand prompt ownership"];
     rhyming [shape=box, label="Rhyming incident\nsearch skill"];
     launch [shape=oval, label="Launch one agent\nper store"];
     { rank=same; scope; resolve; rhyming; launch; }
     scope -> resolve [weight=100];
     resolve -> rhyming [label="  invokes", style=dashed, weight=100];
-    rhyming -> launch [label="  historical leads", weight=100];
+    rhyming -> launch [label="  prepared matching request", weight=100];
   }
 
   subgraph cluster_parallel {

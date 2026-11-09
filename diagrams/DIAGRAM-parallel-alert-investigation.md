@@ -34,3 +34,13 @@ Editable [Graphviz source](DIAGRAM-parallel-alert-investigation.dot),
 [dark](DIAGRAM-parallel-alert-investigation-dark.png) images are included.
 Regenerate with `bash scripts/render-workflow-diagram.sh` from the repository root.
 The renderer derives both palettes from the canonical source and checks SVG overlaps.
+
+## Assistant matching integration
+
+The explicit `grafana-assistant-search` endpoint prepares the matching request before an
+Assistant initial prompt. Compatible context/scope/windows share one execution owner and receipt;
+every configured endpoint retains its own child and manifest row. Disabled Assistant submits no
+prompt while history-only reads and the direct investigation continue. An already-sent prompt
+cannot retroactively include matching; no automatic duplicate is submitted. Assistant output is
+leads until the parent verifies material source evidence. See
+[Assistant matching](../skills/rhyming-incident-search/references/assistant-search.md).

@@ -83,6 +83,40 @@
         "Honors explicit caller overrides and reports temporal filtering limitations",
         "Skips history when no valid endpoints are configured"
       ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "Two grafana-assistant-search endpoints match an unsent current Assistant branch in context ops and scope service-a. Include incident-example and both exact windows in its initial prompt.",
+      "expected_output": "Prepares full matching brief including symptoms services environment windows timezones criteria and evidence; Retains separate endpoint children and manifest rows with one combined initial-prompt owner; Records shared execution receipt, actual conversation references and parent verification.",
+      "expectations": [
+        "Prepares full matching brief including symptoms services environment windows timezones criteria and evidence",
+        "Retains separate endpoint children and manifest rows with one combined initial-prompt owner",
+        "Records shared execution receipt, actual conversation references and parent verification"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "dialogue",
+      "prompt": "Grafana Assistant: disabled. Search one grafana-assistant-search endpoint and one grafana-assistant-conversations history endpoint.",
+      "expected_output": "Sends zero prompts; Records configured disabled limitation, not failure; Continues scoped history list/get without prompt.",
+      "expectations": [
+        "Sends zero prompts",
+        "Records configured disabled limitation, not failure",
+        "Continues scoped history list/get without prompt"
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "dialogue",
+      "prompt": "Existing compatible Assistant branch already sent its initial prompt. Another search scope uses a different context; first owner later times out with malformed output and missing links.",
+      "expected_output": "Late matching endpoint is unavailable for initial-prompt reuse; no blind duplicate; Never shares across context or scope; Owner failure and uncertain timeout propagate to consumers as unavailable; independent history continues; Missing references remain hypotheses or unavailable, not verified relationships.",
+      "expectations": [
+        "Late matching endpoint is unavailable for initial-prompt reuse; no blind duplicate",
+        "Never shares across context or scope",
+        "Owner failure and uncertain timeout propagate to consumers as unavailable; independent history continues",
+        "Missing references remain hypotheses or unavailable, not verified relationships"
+      ]
     }
   ]
 }

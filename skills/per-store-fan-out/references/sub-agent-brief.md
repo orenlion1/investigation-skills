@@ -29,6 +29,8 @@ in this catalog uses. This file owns only the store brief and the store conformi
 ## Store-specific questions
 - <question 1>
 - <question 2>
+- Assistant handoff: <none | prepared execution reference, owner/consumer role, matching request,
+  exact scope/shared windows and retained execution receipt>
 
 ## Output contract
 Return exactly these sections:
@@ -51,3 +53,9 @@ Do not draw cross-store conclusions; do not mutate anything.
   maximum — this skill's own bound, not the contract's.
 - A manifest written for every run, including disabled runs, with one row per resolved
   store carrying `store` and `integration_skill`.
+
+For Grafana briefs, the parent prepares the [Assistant matching handoff](../../rhyming-incident-search/references/assistant-search.md)
+before initial prompts. The owner includes the matching request in its initial prompt alongside
+the original investigation; consumers send no prompt and retain their own endpoint child identity.
+Assistant disabled means no prompt. A failed or already-sent owner is an explicit limitation,
+never permission to start a duplicate. History-only endpoint reads continue within scope.
