@@ -384,6 +384,30 @@ one, so the answer to a new requirement is usually a narrower skill or a bundled
 reference, not a broader one. Depth lives in each skill's `references/`, where
 it loads only when that skill is selected.
 
+## Skill philosophy
+
+This catalog treats each capability like a code module — "skill as code". The root
+[AGENTS.md](AGENTS.md)/[CLAUDE.md](CLAUDE.md) files only route requests to their owning
+skills: each skill owns its workflow, guidance, and verification, and the root files never
+restate or override it. That gives every capability exactly one owner, a clear interface
+(its routing trigger — the `description` the router matches), and its own tests (the eval
+case in `skill_evals/cases/<name>.json`), so a developer can see and refine capabilities the
+way they would modules.
+
+Repository-owned policy is limited to what no skill covers: required dependencies,
+CodeGraph, the routing table and its trimmed notes, the source-investigation authorization
+grant, Grafana billing/disable facts, the fan-out scope/authority rule, the shared
+delegation contract, the quality gate, and the sync rule — exactly the section allowlist
+that [policy/root-contract.json](policy/root-contract.json) declares.
+
+Two gates enforce the model in the required CI jobs: the
+[Skill Quality Gate](AGENTS.md#skill-quality-gate) exercises every skill's structure,
+routing (80% rank-one threshold), and behavioral evals, and the drift checks
+(`scripts/check-root-drift.py`, `scripts/check-docs-drift.py`) fail closed when workflow
+content accretes in the root files, a skill loses its routing row, the root files diverge
+or outgrow their budget, or README/diagram assets drift. New workflow content therefore
+belongs in a skill (with an eval case), never in the routing files.
+
 ## Where the rules live
 
 This README is the entry point. Each rule has exactly one owner, so follow the
@@ -391,18 +415,20 @@ link rather than a summary:
 
 | Topic | Owner |
 | --- | --- |
-| Task lifecycle, resources, naming, continuation | [Templated Tasks](AGENTS.md#templated-tasks) |
-| Resource profiles, the local `.env` store, and its ignore rules | [Profile Manager](skills/profile-manager/SKILL.md) |
-| Evidence, citations, and stated limitations | [Report Evidence](AGENTS.md#report-evidence) |
+| Task lifecycle, resources, continuation, execution and reports | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) |
+| Resource profiles, the local `.env` store, its schema and ignore rules | [Profile Manager](skills/profile-manager/SKILL.md) |
+| Evidence index, citations, data pattern graphs, and stated limitations | [Report Evidence](skills/report-evidence/SKILL.md) |
+| Source tracing, root cause, and deployed-revision verification | [Source Investigation](skills/source-investigation/SKILL.md) |
 | Artifact paths and destinations | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) |
 | Report duration and token accounting | [Token Usage](skills/token-usage/SKILL.md) |
-| Diagram style, theming, and consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
+| Diagram style, theming, flapping-alert graph pair, and consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
 | Atlassian connectivity probes | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
-| Per-store investigation fan-out | [AGENTS.md](AGENTS.md#per-store-investigation-fan-out) |
+| Per-store investigation fan-out | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) |
 | Shared sub-agent delegation machinery | [Shared Delegation Contract](skills/per-store-fan-out/references/delegation-contract.md) |
-| Grafana investigation entry point | [AGENTS.md](AGENTS.md#grafana-investigation-entry-point) |
+| Grafana investigations and authentication | [Grafana CLI](skills/gcx-cli/SKILL.md) |
 | Parallel alert sub-agent workflow | [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) |
 | Skill and eval quality gate | [Skill Quality Gate](AGENTS.md#skill-quality-gate) |
+| Root and docs drift contract | [policy/root-contract.json](policy/root-contract.json) |
 | Publication security and disclosure | [SECURITY.md](SECURITY.md) |
 | Release contract | [VERSIONING.md](VERSIONING.md) |
 
