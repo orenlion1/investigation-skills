@@ -1,4 +1,9 @@
 // Independent skill routes; peer placement is not an execution-order edge.
+// Coverage manifest, checked by scripts/check-docs-drift.py against the root routing table:
+// workflow-artifact-naming, open-edit-close-execute, profile-manager, token-usage,
+// diagramming-style, report-evidence, source-investigation, publish-it, rovo-dev-mcp,
+// aws-mcp, aws-architecture-diagrams, gcx-cli, slack-mcp, rhyming-incident-search,
+// per-store-fan-out, parallel-alert-investigation, release-it.
 // Activity labels carry the Open/Edit/Close/Execute mode they run in, matching
 // the lifecycle view. Dashed edges invoke or route; the solid edge delivers.
 digraph InvestigationSkillRouting {
@@ -12,10 +17,10 @@ digraph InvestigationSkillRouting {
   report [label="Report"];
   publish [label="Publish"];
   setup_skills [label="Skills\nWorkflow Artifact Naming\nOpen/Edit/Close/Execute\nProfile Manager"];
-  orchestration_skills [label="Orchestration skills\nPer-Store Fan-Out\nParallel Alert Investigation"];
-  resource_skills [label="Resource skills\nRovo Dev MCP\nGrafana CLI\nSlack MCP / AWS MCP"];
-  report_skills [label="Report skills\nWorkflow Artifact Naming\nToken Usage\nDiagramming Style"];
-  publish_skills [label="Publish skills\nPublish It\nRovo Dev MCP"];
+  orchestration_skills [label="Orchestration skills\nPer-Store Fan-Out\nParallel Alert Investigation\nRhyming Incident Search"];
+  resource_skills [label="Resource skills\nRovo Dev MCP / Grafana CLI\nSlack MCP / AWS MCP\nSource Investigation"];
+  report_skills [label="Report skills\nWorkflow Artifact Naming\nToken Usage / Report Evidence\nDiagramming Style\nAWS Architecture Diagrams"];
+  publish_skills [label="Publish skills\nPublish It / Release It\nRovo Dev MCP"];
   destination [label="Repository or content system\nNext lifecycle step picks it up"];
 
   { rank=same; initialize; investigate; report; publish; }

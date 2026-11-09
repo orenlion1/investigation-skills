@@ -44,7 +44,7 @@
       "-dark.png"
     ],
     "routing_diagram": {
-      "enabled": false,
+      "enabled": true,
       "dot": "diagrams/DIAGRAM-investigation-skill-routing.dot"
     },
     "minimum": {
