@@ -1,6 +1,9 @@
 {
   "schema": "root-contract/v1",
-  "files": ["AGENTS.md", "CLAUDE.md"],
+  "files": [
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
   "max_lines": 160,
   "allowed_sections": [
     "Required Dependencies",
@@ -28,9 +31,18 @@
   },
   "docs": {
     "readme": "README.md",
-    "readme_required_sections": [],
+    "readme_required_sections": [
+      "Skill philosophy"
+    ],
     "diagram_dir": "diagrams",
-    "diagram_suffixes": [".dot", ".svg", "-light.svg", "-dark.svg", "-light.png", "-dark.png"],
+    "diagram_suffixes": [
+      ".dot",
+      ".svg",
+      "-light.svg",
+      "-dark.svg",
+      "-light.png",
+      "-dark.png"
+    ],
     "routing_diagram": {
       "enabled": false,
       "dot": "diagrams/DIAGRAM-investigation-skill-routing.dot"
