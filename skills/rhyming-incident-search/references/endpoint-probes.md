@@ -3,7 +3,11 @@
 The authoritative endpoint schema is [Profile Manager's endpoint contract](../../profile-manager/references/profile-store.md#rhyming-endpoints),
 and the delegation machinery is the [shared delegation contract](../../per-store-fan-out/references/delegation-contract.md).
 This file owns the provider probes, the endpoint brief and the endpoint result contract.
-Consume `profile_env.py endpoints --profile NAME` output; no second store parser.
+Consume `profile_env.py endpoints --profile NAME` output, including `historical_window_days`;
+no second store parser. Resolve the shared absolute UTC start/end once per the owning skill.
+Apply that same historical window to every provider. For providers without server time filters,
+check candidate timestamps within the capped reads; unknown/out-of-window dates are unverified
+leads, never evidence-backed historical matches. Disclose incomplete temporal coverage.
 An endpoint contains id, kind and target, plus context for Grafana or provider for repositories.
 Do not override an endpoint context using the task's ordinary Grafana context.
 

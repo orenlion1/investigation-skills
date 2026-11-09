@@ -52,7 +52,7 @@ class ProfileStoreTests(unittest.TestCase):
         fields = {field['field']: field for field in schema['fields']}
         self.assertEqual(schema['template'], 'templates/TASK.md')
         self.assertEqual(set(fields), {'REPO', 'SLACK_CHANNEL', 'AWS_ACCOUNT', 'AWS_REGION',
-                                       'GRAFANA_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH', 'RHYMING_ENDPOINTS'})
+                                       'GRAFANA_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH', 'RHYMING_ENDPOINTS', 'RHYMING_HISTORICAL_WINDOW_DAYS'})
         self.assertEqual(fields['REPO']['label'], 'Repo (Bitbucket/Github)')
         self.assertEqual(fields['ALERT_UID']['requires'], 'ALERT')
         self.assertIsNone(fields['ALERT']['requires'])
@@ -94,7 +94,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
         merged = self.ok('set', '--profile', 'example', '--field', 'GRAFANA_CONTEXT=example')
         self.assertEqual(merged['fields'], {'REPO': 'example-service',
-                                            'GRAFANA_CONTEXT': 'example'})
+                                            'GRAFANA_CONTEXT': 'example', 'RHYMING_HISTORICAL_WINDOW_DAYS': '7'})
         self.assertEqual(merged['added'], ['GRAFANA_CONTEXT'])
         contents = self.store.read_text(encoding='utf-8')
         self.assertIn('# local only\nUNRELATED_TOKEN="keep me"\n', contents)
@@ -102,7 +102,7 @@ class ProfileStoreTests(unittest.TestCase):
         replaced = self.ok('set', '--profile', 'example', '--replace',
                            '--field', 'REPO=example-service')
         self.assertEqual(replaced['fields'], {'REPO': 'example-service'})
-        self.assertEqual(replaced['cleared'], ['GRAFANA_CONTEXT'])
+        self.assertEqual(replaced['cleared'], ['GRAFANA_CONTEXT', 'RHYMING_HISTORICAL_WINDOW_DAYS'])
         cleared = self.ok('set', '--profile', 'example', '--field', 'REPO=other-service',
                           '--field', 'GRAFANA_CONTEXT=')
         self.assertEqual(cleared['fields'], {'REPO': 'other-service'})
@@ -140,7 +140,8 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertFalse(listed['tracked'])
         self.assertNotIn('keep me', json.dumps(listed))
         shown = self.ok('show', '--profile', 'example')
-        self.assertEqual(shown['fields'], {'REPO': 'example-service'})
+        self.assertEqual(shown['fields'], {'REPO': 'example-service',
+                                           'RHYMING_HISTORICAL_WINDOW_DAYS': '7'})
         self.assertIn('PUBLISH', shown['missing_fields'])
         self.assertEqual(shown['unknown_fields'], [])
         self.assertNotIn('keep me', json.dumps(shown))

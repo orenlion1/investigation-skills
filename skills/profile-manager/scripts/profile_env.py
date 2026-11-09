@@ -23,6 +23,8 @@ MAX_TASK_BYTES = 1_048_576
 MAX_VALUE_LENGTH = 512
 MAX_ENDPOINT_BYTES = 8192
 MAX_ENDPOINTS = 16
+HISTORICAL_WINDOW = 'RHYMING_HISTORICAL_WINDOW_DAYS'
+DEFAULT_HISTORICAL_WINDOW_DAYS = '7'
 ENDPOINT_KINDS = ('grafana-investigations', 'grafana-assistant-conversations',
                   'confluence', 'slack', 'repository')
 IGNORE_BLOCK = ('# Local resource-profile store; never commit.', '.env', '.env.*', '!.env.example')
@@ -146,6 +148,10 @@ def parse_template(text):
             max_bytes=MAX_ENDPOINT_BYTES, max_items=MAX_ENDPOINTS,
             required=['id', 'kind', 'target'],
             conditional={'grafana': ['context'], 'repository': ['provider']})
+    if HISTORICAL_WINDOW in fields:
+        fields[HISTORICAL_WINDOW].update(
+            type='positive-integer-days', default=DEFAULT_HISTORICAL_WINDOW_DAYS,
+            render_requires='RHYMING_ENDPOINTS')
     return {'schema': SCHEMA, 'fields': fields, 'bullets': bullets}
 
 
@@ -258,6 +264,11 @@ def validate_rhyming_endpoints(value):
 
 
 def check_field(field, value):
+    if field == HISTORICAL_WINDOW:
+        if (not isinstance(value, str) or len(value) > MAX_VALUE_LENGTH
+                or not re.fullmatch(r'[1-9][0-9]*', value)):
+            raise ProfileError('invalid ' + HISTORICAL_WINDOW + '; expected positive integer days')
+        return value
     if field == 'RHYMING_ENDPOINTS':
         validate_rhyming_endpoints(value)
         return value
@@ -396,6 +407,9 @@ def render_store(lines, managed, name, values):
 
 def render_section(schema, values):
     """Render the Resources section body from resolved values, omitting unset bullets."""
+    values = dict(values)
+    if 'RHYMING_ENDPOINTS' in values and HISTORICAL_WINDOW in schema['fields']:
+        values.setdefault(HISTORICAL_WINDOW, DEFAULT_HISTORICAL_WINDOW_DAYS)
     for field, definition in schema['fields'].items():
         required = definition['requires']
         if field in values and required is not None and required not in values:
@@ -404,6 +418,8 @@ def render_section(schema, values):
     for bullet in schema['bullets']:
         primary = bullet['keys'][0]
         if primary not in values:
+            continue
+        if primary == HISTORICAL_WINDOW and 'RHYMING_ENDPOINTS' not in values:
             continue
         text = '- ' + bullet['label'] + ': `' + values[primary] + '`'
         for key in bullet['keys'][1:]:
@@ -469,6 +485,9 @@ def command_set(arguments, context):
     values.update(updates)
     for field in cleared:
         values.pop(field, None)
+    if (values and HISTORICAL_WINDOW in schema['fields'] and HISTORICAL_WINDOW not in cleared
+            and (not existing or 'RHYMING_ENDPOINTS' in values)):
+        values.setdefault(HISTORICAL_WINDOW, DEFAULT_HISTORICAL_WINDOW_DAYS)
     for field in list(values):
         if field not in schema['fields']:
             raise ProfileError('store holds unknown field ' + field + ' for profile ' + name)
@@ -579,7 +598,9 @@ def command_endpoints(arguments, context):
         raise ProfileError('profile has unknown fields; verify the intended template')
     value = known.get('RHYMING_ENDPOINTS')
     return {'profile': arguments.profile,
-            'endpoints': validate_rhyming_endpoints(value) if value else []}
+            'endpoints': validate_rhyming_endpoints(value) if value else [],
+            'historical_window_days': int(known.get(HISTORICAL_WINDOW,
+                                                   DEFAULT_HISTORICAL_WINDOW_DAYS)) if value else None}
 
 
 def command_load(arguments, context):

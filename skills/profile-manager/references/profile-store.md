@@ -157,9 +157,32 @@ unsupported hosts require an explicit future schema extension, never a silent pr
 `set`, `show`, `render`, `load`, and `endpoints` validate known stored values, including manual
 edits, before returning resources or changing a task. `endpoints` also requires ignored,
 untracked storage and rejects unknown fields. Errors do not echo endpoint values. The command
-returns `{ "profile": "NAME", "endpoints": [...] }`; no auth, query or delegation occurs there.
+returns `{ "profile": "NAME", "endpoints": [...], "historical_window_days": 7 }`; no auth, query or delegation occurs there.
 
 Search dependencies are conditional: gcx-cli for the two Grafana kinds, rovo-dev-mcp for
 Confluence and Bitbucket, slack-mcp for Slack, and GitHub access tooling for GitHub. Native
 agent delegation is required by the rhyming search contract. Profile management itself stays
 Python/Git only and does not require credentials or any connected endpoint.
+
+## Rhyming historical window
+
+`RHYMING_HISTORICAL_WINDOW_DAYS` is declared by the template's **Rhyming historical window days**
+bullet. The v1 format is unchanged. Schema metadata exposes type `positive-integer-days`,
+default `7`, and `render_requires: RHYMING_ENDPOINTS`. Values are ASCII positive integers,
+without units, signs, leading zeroes or whitespace, within the scalar 512-character limit.
+Malformed stored values fail before show/render/load/endpoints or a write; errors omit values.
+
+On new nonempty profile creation, `set` appends the missing default to that profile's `.env`
+block, even when endpoints have not yet been supplied. An explicit value wins. Updates preserve
+it; updates to legacy endpoint profiles persist a missing default. `--replace` builds a new
+set of fields, applying the same missing-default rule to endpoint profiles. An empty window
+assignment clears its stored key on that command; endpoint reads/rendering then use seven days.
+Setting `7` explicitly persists a reset. A later endpoint-profile update may persist the default
+again. Empty replacement/removal never creates a default-only profile. `--dry-run` shows the
+would-be default without writing. Custom templates without this field receive no stored default.
+
+Render/load include this setting only with validated endpoints, including a resolved default for
+legacy profiles. Without endpoints it is omitted, and a window alone cannot satisfy the actual
+resource requirement. `endpoints` returns integer `historical_window_days`, or `null` when the
+endpoint list is absent. No read command rewrites `.env`; an unavailable search integration is
+handled later by Rhyming Incident Search and never causes profile management to authenticate.

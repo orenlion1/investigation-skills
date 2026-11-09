@@ -182,3 +182,18 @@ belongs to those integrations. Dependency absence during execution is reported p
 - Unmanaged lines in the store are unchanged, and no profile value is a placeholder, example, or credential.
 - The written store or task Resources section was read back and matches the reported result.
 - Deletions were previewed, explicitly agreed, and confirmed as applied.
+
+## Rhyming historical window
+
+The template-derived `RHYMING_HISTORICAL_WINDOW_DAYS` field takes positive integer days.
+New profiles persist `7` in `.env` when the field is omitted. `set` preserves an explicit
+value and appends a missing default on updates to legacy endpoint profiles. Use
+`--field RHYMING_HISTORICAL_WINDOW_DAYS=30` to create or update an override; read-only
+commands never migrate the store. A custom template must declare this field to enable it.
+
+Render/load inject `Rhyming historical window days` into task Resources only when validated
+`RHYMING_ENDPOINTS` exist. A stored duration alone is configuration, never an actual resource.
+The `endpoints` command also returns `historical_window_days` as an integer when endpoints
+exist (`null` otherwise); legacy endpoint profiles resolve seven days without a store write.
+Read [the window contract](references/profile-store.md#rhyming-historical-window) for reset
+and validation behavior. Profile management never starts a history search.

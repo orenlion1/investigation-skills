@@ -51,7 +51,14 @@ those workflows or authorize new resource mutations.
    `not configured` and skip, without querying an integration or treating it as no matches.
 3. Resolve one shared block: investigation question, concrete incident identity, environment,
    current-incident window, historical-search window (both with explicit timezone), permitted
-   query terms and redactions. Ask only for missing dependent input; never invent a window.
+   query terms and redactions. Use an explicit caller historical window first. Otherwise consume
+   `historical_window_days` from the validated endpoint read (seven days for legacy endpoint
+   profiles), freeze the historical end at the explicit caller end or current-incident start,
+   and subtract that many 24-hour days in UTC. Resolve both endpoints once with explicit
+   timezone and reuse them in every brief/query; do not slide the window between reads or
+   inherit the current-incident duration. Ask only when the anchor/timezone is missing or
+   the requested duration cannot be represented; never invent a window. No endpoints means
+   no injected historical-window setting and no history search.
    Defaults: at most 3 read operations and 20 returned candidates per endpoint, 2 follow-up
    rounds, and 60 seconds per read where supported. Caller limits may narrow these bounds.
    Count pages and detail reads against the same budget. Report truncation when caps apply.

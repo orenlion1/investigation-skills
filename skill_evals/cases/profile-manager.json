@@ -64,6 +64,18 @@
         "Uses endpoints --profile to return validated resources without authenticating or querying",
         "Keeps the store ignored and untracked and preserves unmanaged entries"
       ]
+    },
+    {
+      "prompt": "Create a resource profile with rhyming endpoints but no historical window, then update its lookback to 30 days and load a task.",
+      "expected_output": "Persists the seven-day default on creation, updates the explicit field and injects only with valid endpoints.",
+      "id": 4,
+      "kind": "dialogue",
+      "expectations": [
+        "Derives RHYMING_HISTORICAL_WINDOW_DAYS from the template schema",
+        "Persists 7 in the new .env profile when omitted and preserves dry-run",
+        "Uses set to update the window to 30 and load/render only with validated RHYMING_ENDPOINTS",
+        "Does not treat a stored window without endpoints as an actual resource or inject it"
+      ]
     }
   ]
 }

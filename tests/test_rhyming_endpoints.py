@@ -109,3 +109,54 @@ class RhymingEndpointTests(unittest.TestCase):
         two = [self.endpoints[0], dict(self.endpoints[0], id='past-two', target='service-b')]
         self.set_endpoints(two)
         self.assertEqual(len(json.loads(self.cli('endpoints', '--profile', 'ops').stdout)['endpoints']), 2)
+
+    def test_default_window_is_persisted_and_only_injected_with_endpoints(self):
+        self.cli('set', '--profile', 'ops', '--field', 'REPO=service-a')
+        self.assertIn("PROFILE__OPS__RHYMING_HISTORICAL_WINDOW_DAYS='7'", self.store.read_text())
+        self.assertNotIn('Rhyming historical window', self.cli('render', '--profile', 'ops').stdout)
+        self.assertIsNone(json.loads(self.cli('endpoints', '--profile', 'ops').stdout)['historical_window_days'])
+        self.set_endpoints(self.endpoints)
+        self.assertIn('- Rhyming historical window days: `7`', self.cli('render', '--profile', 'ops').stdout)
+        task = self.root / 'TASK.md'; task.write_text('## Resources\n')
+        self.cli('load', '--profile', 'ops', '--task', str(task))
+        self.assertIn('- Rhyming historical window days: `7`', task.read_text())
+        self.cli('set', '--profile', 'ops', '--field', 'RHYMING_ENDPOINTS=')
+        self.assertNotIn('Rhyming historical window', self.cli('render', '--profile', 'ops').stdout)
+
+    def test_explicit_window_create_update_and_dry_run(self):
+        self.set_endpoints(self.endpoints, True, '--field', 'RHYMING_HISTORICAL_WINDOW_DAYS=30')
+        self.cli('set', '--profile', 'ops', '--field', 'REPO=service-a')
+        self.assertEqual(json.loads(self.cli('endpoints', '--profile', 'ops').stdout)['historical_window_days'], 30)
+        before = self.store.read_bytes()
+        self.cli('set', '--profile', 'ops', '--field', 'RHYMING_HISTORICAL_WINDOW_DAYS=14', '--dry-run')
+        self.assertEqual(before, self.store.read_bytes())
+        self.cli('set', '--profile', 'ops', '--field', 'RHYMING_HISTORICAL_WINDOW_DAYS=14')
+        self.assertEqual(json.loads(self.cli('endpoints', '--profile', 'ops').stdout)['historical_window_days'], 14)
+
+    def test_legacy_endpoint_profile_resolves_default_without_read_mutation(self):
+        self.store.write_text("PROFILE__OPS__RHYMING_ENDPOINTS='" + json.dumps(self.endpoints) + "'\n")
+        before = self.store.read_bytes()
+        self.assertEqual(json.loads(self.cli('endpoints', '--profile', 'ops').stdout)['historical_window_days'], 7)
+        self.assertIn('Rhyming historical window days: `7`', self.cli('render', '--profile', 'ops').stdout)
+        self.assertEqual(before, self.store.read_bytes())
+        self.cli('set', '--profile', 'ops', '--field', 'REPO=service-a')
+        self.assertIn("RHYMING_HISTORICAL_WINDOW_DAYS='7'", self.store.read_text())
+
+    def test_window_validation_and_window_alone_is_not_a_resource(self):
+        for value in ['0', '-1', '1.5', '7d', ' 7', '01', '١', '9' * 513]:
+            with self.subTest(value=value):
+                before = self.store.read_bytes()
+                result = self.cli('set', '--profile', 'ops', '--field',
+                                  'RHYMING_HISTORICAL_WINDOW_DAYS=' + value, ok=False)
+                self.assertIn('positive integer days', result.stderr)
+                self.assertEqual(before, self.store.read_bytes())
+        self.cli('set', '--profile', 'ops', '--field', 'RHYMING_HISTORICAL_WINDOW_DAYS=7', ok=False)
+        self.store.write_text("PROFILE__OPS__REPO='service-a'\nPROFILE__OPS__RHYMING_HISTORICAL_WINDOW_DAYS='bad'\n")
+        for command in ['show', 'render', 'endpoints']:
+            self.cli(command, '--profile', 'ops', ok=False)
+
+    def test_window_schema_constraints(self):
+        fields = {x['field']: x for x in json.loads(self.cli('schema').stdout)['fields']}
+        window = fields['RHYMING_HISTORICAL_WINDOW_DAYS']
+        self.assertEqual(window['default'], '7')
+        self.assertEqual(window['render_requires'], 'RHYMING_ENDPOINTS')
