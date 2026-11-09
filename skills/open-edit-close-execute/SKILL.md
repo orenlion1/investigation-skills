@@ -32,6 +32,39 @@ so both local references remain available.
 - Opening any existing TASK, PROMPT, INTENT, or other input for editing before execution.
 - A caller-supplied continuation must run automatically after the editor/check barrier.
 
+## Templated Task Continuation
+
+This repository's templated tasks run through this contract, and this skill owns their
+workflow. Root policy keeps only the template location (`templates/TASK.md`), the default
+draft directory, and the rule that task contents never bypass separate authorization gates.
+
+- Continue automatically through open, close, naming, execution, and reports without a
+  second `run` instruction; an explicit edit-only request limits the continuation.
+- During execution, provide normal progress updates and incorporate user steering as it
+  arrives. Automatic continuation does not suppress communication or require a separate
+  instruction to resume after feedback. Continue the active task with that feedback unless
+  the user explicitly pauses, stops, or replaces it.
+- Bare `open task` copies the repository's local template — never edited in place — to a
+  `TASK.md` draft in the directory resolved by
+  [Workflow Artifact Naming](../workflow-artifact-naming/SKILL.md). Preserve an existing
+  draft and clarify whether to resume it.
+- Before execution, at least one actual supplied or verified resource is required in the
+  task's Resources section; placeholders and examples do not count. Resources may be filled
+  from a named local profile through [Profile Manager](../profile-manager/SKILL.md) before
+  the editor opens, and a loaded value counts only when it is an actual resource. If none
+  exists, ask for one and preserve the task. Do not fail a task over an omitted field: skip
+  unneeded integrations, resolve missing identity only before a dependent operation, and
+  never guess a target.
+- After the barrier, resolve `TASK-{slug}.md` from the saved draft's `# Task Title: ...`
+  through Workflow Artifact Naming, in the same directory. Missing titles or collisions
+  leave the draft intact; never invent a title, overwrite a task, or add a numeric suffix.
+- Run the finalized task from its resolved path, then generate the matching reports from
+  observed results in both Markdown and PDF (both `REPORT` paths via Workflow Artifact
+  Naming). Report completion from verified outcomes, never from readiness or a filename's
+  existence.
+- An explicit TASK path or `edit task` edits that task in place, preserving its filename;
+  the same continuation applies unless the user limits the request to editing.
+
 ## Common Rationalizations
 
 - "The launcher exited, so editing is done." A launcher exit, saving alone, elapsed time, or a timeout is not closure; require a tracked close or explicit confirmation.

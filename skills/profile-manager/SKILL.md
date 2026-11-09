@@ -95,7 +95,9 @@ deletes only that profile's keys and its own comment marker.
 
 Supply actual resources. Placeholder-shaped values, example values from the template, and
 credential-shaped values are refused, because a placeholder in a task's Resources section is
-not a resource.
+not a resource. The same rule gates task execution: loading a profile supplies Resources
+values only — it does not satisfy the actual-resource requirement with a placeholder,
+authenticate an integration, close an editor barrier, or authorize a gated operation.
 
 ## Delete the store
 
