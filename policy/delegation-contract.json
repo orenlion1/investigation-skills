@@ -40,7 +40,7 @@
   "exemptions": [
     {
       "path": "skills/gcx-cli",
-      "reason": "Proposes two parallel sub-agents and routes the work to parallel-alert-investigation; it neither launches nor briefs them, so it owns no delegation machinery."
+      "reason": "Routes alert investigations to parallel-alert-investigation, which owns the two-branch workflow and its authorization rule; gcx-cli supplies only the gcx mechanics and neither launches nor briefs the delegated agents, so it owns no delegation machinery."
     }
   ],
   "caller_no_bound": [
