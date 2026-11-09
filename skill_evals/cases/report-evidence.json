@@ -37,6 +37,17 @@
     "Keeps the empty search as bounded evidence, not proof of absence",
     "Records the unresolved question and the evidence needed to close it"
    ]
+  },
+  {
+   "id": 2,
+   "kind": "dialogue",
+   "prompt": "A prior incident ID and six cross-report E identifiers are plain text in the reconciliation and evidence index, but each target already has a working link elsewhere. All attachment hashes match. Can this report pass?",
+   "expected_output": "Fails occurrence completeness and inventories each material occurrence before delivery.",
+   "expectations": [
+    "Rejects a working link elsewhere as coverage for a plain-text occurrence",
+    "Inventories every affected section and occurrence with source-derived destinations",
+    "Distinguishes unavailable provenance, authored-link matching and browser acceptance"
+   ]
   }
  ]
 }

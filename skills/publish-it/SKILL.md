@@ -68,6 +68,21 @@ to production resources, or changes to other pages. Existing authorization needs
    roles, attachment/media mappings, published version, checks and remaining gaps. Preserve local
    source files and user configuration; never store upload credentials or signed URLs in evidence.
 
+## Required reference preflight
+
+Before **any publication write**, including attachment preparation/uploads and draft creation,
+apply [Report Evidence reference completeness](../report-evidence/references/reference-completeness.md).
+Check the selected Markdown/PDF and composed HTML from the same source revision; require zero
+unresolved material occurrences and reviewed source-derived targets. A valid existing-link list,
+complete attachment inventory, matching hashes or successful conversion dry run cannot substitute.
+Stop publication on a missing, wrong-target, broken-fragment, ambiguous, unavailable or unverified
+required reference. Preserve the diagnostics; never invent a destination to pass the gate.
+
+After publication, repeat the occurrence check against saved published HTML from the same page
+identity/version, verify native media with adjacent captions and refreshed source/PDF downloads,
+and compare download hashes. Retain the preflight and saved-page receipts with explicit browser,
+anchor-landing and preview results. A browser capability or authentication gap stays incomplete.
+
 ## Publish and verify
 
 Read [the Confluence publication procedure](references/confluence-publication.md) before external

@@ -42,6 +42,21 @@ page must supply the usable published references. Attach theme variants and edit
 sources without replacing the main figures with source-file cards. Keep all inventoried figures
 and their qualifications beside them, including when a different page layout is necessary.
 
+## Reference gate before the first write
+
+Before attachment preparation, upload, create/update or any other publication write, run the
+[shared reference-completeness gate](../../report-evidence/references/reference-completeness.md)
+on the original Markdown, matching current PDF and composed page HTML. Review every material
+occurrence across prose, tables and evidence entries. A missing occurrence fails even when the
+same URL is linked elsewhere. A nonzero helper result blocks writes; unavailable provenance or
+unsupported extraction is incomplete, never an empty passing population.
+
+If native media IDs are not yet known, validate source-reference completeness before the first
+write, and retain unresolved native-media slots as a distinct packaging dependency. Do not call
+the final composed page complete until verified upload IDs/collections replace those slots and
+its complete inventory passes. A new-page draft may be needed to establish the owning page's
+collection; it does not waive the source-reference gate or authorize another destination.
+
 ## Attach files and embed diagrams
 
 Discover `createConfluenceAttachment`, then invoke it with `executeWrite`, the verified
@@ -129,6 +144,14 @@ After publishing, read the **published** page (`draft` omitted or false) in full
 - attachment ownership, filename and size through bounded attachment metadata reads;
 - no local filesystem links, attachment placeholders or silently missing sections;
 - preserved historical evidence window and accounting cutoff for publication-only work.
+
+Repeat the shared occurrence gate on this saved published HTML and reconcile the exact page
+ID, published version and source hashes with the preflight. A changed Confluence title suffix is
+acceptable only when origin, space/page identity, query and evidence fragment are unchanged.
+Re-download refreshed Markdown/PDF attachments and compare their SHA-256 values with the exact
+validated originals. Reject local-only links, stale companions and mismatched native-media IDs or
+collections. Verify each media item's adjacent caption/evidence as well as its ID; these checks
+remain separate from the helper's authored-link result.
 
 Use the browser for remaining visual acceptance: load every diagram, including lazy-loaded
 ones, verify nonzero image dimensions and inspect readability at the delivered size. Test

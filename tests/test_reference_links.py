@@ -39,6 +39,13 @@ class ReferenceLinksTests(unittest.TestCase):
         rows = self.audit(f'<p><a href="{URL}"><b>ABCDEFG</b>HIJKLM</a> ABCDEFGHIJKLM</p>', 'html')
         self.assertEqual([r['status'] for r in rows], ['linked', 'missing'])
 
+    def test_bold_evidence_entry_is_a_section_without_becoming_a_reference(self):
+        data = manifest('E4', 'https://example.atlassian.net/wiki/spaces/TEST/pages/123#E4')
+        data['references'][0]['section'] = 'E13'
+        rows = self.audit('<a id="e13"></a>\n**E13 - Prior search.** [E4](%s)' % data['references'][0]['url'], data=data)
+        self.assertEqual([r['status'] for r in rows], ['linked'])
+        self.assertEqual(rows[0]['section'], 'E13')
+
     def test_wrong_object_and_broken_fragment(self):
         expected = 'https://example.atlassian.net/wiki/spaces/TEST/pages/123/Report#E4'
         data = manifest('E4', expected)
@@ -126,6 +133,14 @@ class ReferenceLinksTests(unittest.TestCase):
     def test_partial_label_link_does_not_cover_full_reference(self):
         rows = self.audit(f'<p><a href="{URL}">ABCDEFG</a>HIJKLM</p>', 'html')
         self.assertEqual(rows[0]['status'], 'missing')
+
+    def test_contextual_alias_does_not_capture_unrelated_conversation_text(self):
+        data = manifest('prior conversation')
+        data['references'][0]['scoped_labels'] = [{'label': 'conversation', 'section': 'History'}]
+        rows = self.audit('# Accounting\nconversation usage\n\n# History\nconversation\n\n' +
+                          f'[prior conversation]({URL})', data=data)
+        self.assertEqual([r['status'] for r in rows], ['missing', 'linked'])
+        self.assertEqual([r['section'] for r in rows], ['History', 'History'])
 
     def test_twelve_target_regression_population_counts_occurrences_separately(self):
         # Same object classes and 12-target population as the historical report;
