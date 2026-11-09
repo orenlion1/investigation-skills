@@ -25,6 +25,8 @@ jobs:
           python-version: '3.14'
       - name: Install diagram test dependency
         run: sudo apt-get update && sudo apt-get install -y graphviz
+      - name: Install reference validation dependencies
+        run: python3 -m pip install -r skills/report-evidence/scripts/requirements.txt
       - name: Verify the profile-manager chain end to end
         run: python3 -m unittest tests.test_profile_manager_e2e -v
       - name: Validate metadata and run all repository and skill checks
