@@ -12,6 +12,11 @@ Identify the Slack connection being tested, inspect its authentication and avail
 prove access with a minimal read. Distinguish configured settings, reachable transport,
 authenticated MCP initialization, tool discovery, and successful Slack data access.
 
+When this skill runs as part of an investigation, use the root
+[soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md)
+from request receipt; carry its original start into this work and check it at control boundaries.
+Reuse verified setup and shared evidence; preserve this skill's required coverage and gates.
+
 ## When to Use
 
 Use for Slack MCP setup inspection, authentication troubleshooting, capability discovery, or a

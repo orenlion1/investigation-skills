@@ -173,3 +173,7 @@ again, or identify the exact saved snapshot already published.
 
 Report the actual result and URL, including missing companions or incomplete verification.
 Creating or revising this skill alone does not authorize replaying an earlier publication.
+
+## Conditional PDF inventory
+
+Follow the [saved report format decision](../../open-edit-close-execute/references/investigation-delivery.md#report-formats) before attachment preparation or dependency setup. All Markdown/PDF, file-preview and download instructions above apply only to selected formats. Generate PDF F publishes the verified Markdown source, available TASK, composed HTML and required diagrams/evidence without requiring or uploading a PDF. Preserve historical PDFs outside the current inventory. Verify current downloads and native media; never skip shared evidence/browser checks. This does not authorize publication, refresh accounting or rerun an investigation.

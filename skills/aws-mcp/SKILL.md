@@ -19,6 +19,11 @@ Use $aws-mcp with profile production-readonly to investigate ECS service <servic
 in us-east-1 between <start> and <end> UTC; open sign-in if needed and wait.
 ```
 
+When this skill runs as part of an investigation, use the root
+[soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md)
+from request receipt; carry its original start into this work and check it at control boundaries.
+Reuse verified setup and shared evidence; preserve this skill's required coverage and gates.
+
 ## When to Use
 
 - Authenticating a supplied AWS profile and verifying AWS MCP access.
