@@ -74,6 +74,15 @@ or the task requires renewal, start the selected profile's supported flow within
 that authorization without asking for duplicate permission. A status-only or
 explicit no-login request stops at the diagnostic result.
 
+An absent AWS MCP tool or connection does not defer this authentication step. After resolving
+the profile, its login method, and allowed resource and SSO Regions, recover expired credentials
+through the supported flow while preparing permitted MCP setup independently. Before declaring
+AWS unavailable, record an authentication attempt or its explicit blocker and a separate
+connection/tool setup attempt or blocker. Honor the status-only/no-login exception and existing
+credential-owner and setup safeguards; never change authentication methods or weaken controls
+to make either step succeed. Keep authentication, MCP identity, and resource-read verification
+as separate reported outcomes, including a pending sign-in or required host reload.
+
 - **IAM Identity Center:** after validating its configured SSO Region, run
   `aws sso login --profile "$AWS_TASK_PROFILE" --region "$AWS_TASK_REGION"`.
   Respect both modern `sso_session` and legacy SSO profiles; do not migrate them.
@@ -185,6 +194,8 @@ Report the selected profile, verified account/principal, MCP connection, Regions
 resource IDs, observation time/window, queries, result limits, and access failures.
 Distinguish login success, CLI identity, MCP identity, object access, and behavioral
 evidence. Successful login is not proof of MCP access or root cause.
+When the MCP tool is absent, report authentication recovery and connection setup separately;
+do not replace an authorized renewal attempt with an immediate capability-unavailable result.
 
 Consult current installed help and official sources for version-sensitive setup:
 
