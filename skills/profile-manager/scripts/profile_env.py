@@ -25,6 +25,8 @@ MAX_ENDPOINT_BYTES = 8192
 MAX_ENDPOINTS = 16
 HISTORICAL_WINDOW = 'RHYMING_HISTORICAL_WINDOW_DAYS'
 DEFAULT_HISTORICAL_WINDOW_DAYS = '7'
+GENERATE_PDF = 'GENERATE_PDF'
+DEFAULT_GENERATE_PDF = 'T'
 ENDPOINT_KINDS = ('grafana-investigations', 'grafana-assistant-conversations',
                   'grafana-assistant-search',
                   'confluence', 'slack', 'repository')
@@ -153,6 +155,8 @@ def parse_template(text):
         fields[HISTORICAL_WINDOW].update(
             type='positive-integer-days', default=DEFAULT_HISTORICAL_WINDOW_DAYS,
             render_requires='RHYMING_ENDPOINTS')
+    if GENERATE_PDF in fields:
+        fields[GENERATE_PDF].update(type='T/F', default=DEFAULT_GENERATE_PDF, resource=False)
     return {'schema': SCHEMA, 'fields': fields, 'bullets': bullets}
 
 
@@ -265,6 +269,10 @@ def validate_rhyming_endpoints(value):
 
 
 def check_field(field, value):
+    if field == GENERATE_PDF:
+        if value not in ('T', 'F'):
+            raise ProfileError('invalid GENERATE_PDF; expected T or F')
+        return value
     if field == HISTORICAL_WINDOW:
         if (not isinstance(value, str) or len(value) > MAX_VALUE_LENGTH
                 or not re.fullmatch(r'[1-9][0-9]*', value)):
@@ -409,6 +417,9 @@ def render_store(lines, managed, name, values):
 def render_section(schema, values):
     """Render the Resources section body from resolved values, omitting unset bullets."""
     values = dict(values)
+    if GENERATE_PDF in schema['fields']:
+        values.setdefault(GENERATE_PDF, DEFAULT_GENERATE_PDF)
+    actual_resources = False
     if 'RHYMING_ENDPOINTS' in values and HISTORICAL_WINDOW in schema['fields']:
         values.setdefault(HISTORICAL_WINDOW, DEFAULT_HISTORICAL_WINDOW_DAYS)
     for field, definition in schema['fields'].items():
@@ -422,12 +433,14 @@ def render_section(schema, values):
             continue
         if primary == HISTORICAL_WINDOW and 'RHYMING_ENDPOINTS' not in values:
             continue
+        if primary not in (GENERATE_PDF, HISTORICAL_WINDOW):
+            actual_resources = True
         text = '- ' + bullet['label'] + ': `' + values[primary] + '`'
         for key in bullet['keys'][1:]:
             if key in values:
                 text += '; ' + bullet['sublabels'][key] + ' `' + values[key] + '`'
         bullets.append(text)
-    if not bullets:
+    if not actual_resources:
         raise ProfileError('profile supplies no actual resource for the Resources section')
     return bullets
 
@@ -462,7 +475,9 @@ def command_show(arguments, context):
                                      arguments.profile)
     return {'profile': arguments.profile, 'store': context['env_relative'], 'fields': known,
             'unknown_fields': unknown,
-            'missing_fields': sorted(set(context['schema']['fields']) - set(known))}
+            'missing_fields': sorted(set(context['schema']['fields']) - set(known)),
+            'effective_generate_pdf': known.get(GENERATE_PDF, DEFAULT_GENERATE_PDF)
+            if GENERATE_PDF in context['schema']['fields'] else None}
 
 
 def command_set(arguments, context):
@@ -489,6 +504,8 @@ def command_set(arguments, context):
     if (values and HISTORICAL_WINDOW in schema['fields'] and HISTORICAL_WINDOW not in cleared
             and (not existing or 'RHYMING_ENDPOINTS' in values)):
         values.setdefault(HISTORICAL_WINDOW, DEFAULT_HISTORICAL_WINDOW_DAYS)
+    if values and GENERATE_PDF in schema['fields'] and GENERATE_PDF not in cleared:
+        values.setdefault(GENERATE_PDF, DEFAULT_GENERATE_PDF)
     for field in list(values):
         if field not in schema['fields']:
             raise ProfileError('store holds unknown field ' + field + ' for profile ' + name)
@@ -607,7 +624,6 @@ def command_endpoints(arguments, context):
 def command_load(arguments, context):
     known, unknown = resolve_profile(profiles(context['managed']), context['schema'],
                                      arguments.profile)
-    bullets = render_section(context['schema'], known)
     task_path = Path(arguments.task)
     if not task_path.is_absolute():
         task_path = context['root'] / task_path
@@ -616,7 +632,20 @@ def command_load(arguments, context):
     text = read_text(task_path, 'task', MAX_TASK_BYTES)
     lines = text.splitlines()
     start, end = section_bounds(lines, 'task')
-    supplied = supplied_values(lines[start + 1:end])
+    section = lines[start + 1:end]
+    if GENERATE_PDF in context['schema']['fields']:
+        overrides = [line for line in section if line.startswith('- Generate PDF:')]
+        if len(overrides) > 1:
+            raise ProfileError('duplicate Generate PDF setting in task Resources')
+        if overrides:
+            raw = overrides[0][len('- Generate PDF:'):].strip()
+            if not PLACEHOLDER.fullmatch(raw):
+                if not re.fullmatch(r'`[TF]`', raw):
+                    raise ProfileError('invalid GENERATE_PDF; expected T or F')
+                known[GENERATE_PDF] = check_field(GENERATE_PDF, raw[1:-1])
+        section = [line for line in section if not line.startswith('- Generate PDF:')]
+    bullets = render_section(context['schema'], known)
+    supplied = supplied_values(section)
     if supplied and not arguments.replace:
         raise ProfileError('task Resources already supplies ' + ', '.join(supplied) +
                            '; re-run with --replace to overwrite it')

@@ -87,6 +87,18 @@
         "Round trips endpoint and historical window without sending any prompt",
         "Keeps grafana-assistant-conversations list/get behavior and ignored store privacy"
       ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "Set GENERATE_PDF=F in a real resource profile, load a task explicitly set to T, then show legacy absent and invalid settings. Can the toggle alone start an investigation?",
+      "expected_output": "Derives Generate PDF from template; validates exact T/F. Explicit task T overrides profile F. Missing defaults T, legacy reads do not migrate. Toggle alone is configuration; invalid settings fail before writes.",
+      "expectations": [
+        "Derives GENERATE_PDF from the template and validates exact T/F, rejecting invalid stored or task settings",
+        "Uses explicit task over profile over absent T, preserving explicit task choice even with replacement",
+        "Round trips set/show/render/load, keeps legacy reads non-mutating and preserves unrelated values",
+        "Refuses a toggle alone as an actual resource and does not authorize investigation or publication"
+      ]
     }
   ]
 }

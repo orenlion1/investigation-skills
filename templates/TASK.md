@@ -26,3 +26,4 @@ the settings that do not apply. Placeholders and examples do not count as resour
   <!-- grafana-assistant-search uses id/kind/target/context for scoped Assistant matching;
        grafana-assistant-conversations remains history-only. Assistant disabled suppresses prompts. -->
 - Rhyming historical window days: `<positive integer days>`
+- Generate PDF: `<T or F>`

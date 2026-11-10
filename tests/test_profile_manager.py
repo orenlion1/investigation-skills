@@ -47,12 +47,51 @@ class ProfileStoreTests(unittest.TestCase):
         self.ok('ignore')
         self.ok('init')
 
+    def test_generate_pdf_roundtrip_default_and_task_override(self):
+        self.ignore_and_init()
+        added = self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
+        self.assertEqual(added['fields']['GENERATE_PDF'], 'T')
+        self.ok('set', '--profile', 'example', '--field', 'GENERATE_PDF=F')
+        self.assertIn('- Generate PDF: `F`', self.ok('render', '--profile', 'example'))
+        task = self.root / 'TASK.md'
+        task.write_text('# Task Title: demo\n\n## Resources\n\n- Generate PDF: `T`\n')
+        self.ok('load', '--profile', 'example', '--task', str(task))
+        self.assertIn('- Generate PDF: `T`', task.read_text())
+        first = task.read_bytes()
+        self.ok('load', '--profile', 'example', '--task', str(task), '--replace')
+        self.assertEqual(task.read_bytes(), first)
+        self.assertEqual(self.ok('show', '--profile', 'example')['fields']['GENERATE_PDF'], 'F')
+
+    def test_generate_pdf_legacy_invalid_and_configuration_only(self):
+        self.ignore_and_init()
+        self.store.write_text('UNMANAGED="keep"\nPROFILE__example__REPO="example-service"\n')
+        before = self.store.read_bytes()
+        shown = self.ok('show', '--profile', 'example')
+        self.assertEqual(shown['effective_generate_pdf'], 'T')
+        self.assertIn('- Generate PDF: `T`', self.ok('render', '--profile', 'example'))
+        self.assertEqual(self.store.read_bytes(), before)
+        for bad in ('true', 't', 'False', '0', ' T'):
+            self.assertIn('expected T or F', self.fails('set', '--profile', 'example',
+                                                       '--field', 'GENERATE_PDF=' + bad))
+            self.assertEqual(self.store.read_bytes(), before)
+        self.assertIn('no actual resource', self.fails('set', '--profile', 'only',
+                                                      '--field', 'GENERATE_PDF=F'))
+        task = self.root / 'TASK.md'
+        task.write_text('# Task Title: demo\n\n## Resources\n\n- Generate PDF: `false`\n')
+        original = task.read_bytes()
+        self.assertIn('expected T or F', self.fails('load', '--profile', 'example',
+                                                  '--task', str(task), '--replace'))
+        self.assertEqual(task.read_bytes(), original)
+        task.write_text('# Task Title: demo\n\n## Resources\n\n- Generate PDF: `T`\n- Generate PDF: `F`\n')
+        self.assertIn('duplicate Generate PDF', self.fails('load', '--profile', 'example',
+                                                        '--task', str(task), '--replace'))
+
     def test_schema_is_derived_from_the_template_labels(self):
         schema = self.ok('schema')
         fields = {field['field']: field for field in schema['fields']}
         self.assertEqual(schema['template'], 'templates/TASK.md')
         self.assertEqual(set(fields), {'REPO', 'SLACK_CHANNEL', 'AWS_ACCOUNT', 'AWS_REGION',
-                                       'GRAFANA_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH', 'RHYMING_ENDPOINTS', 'RHYMING_HISTORICAL_WINDOW_DAYS'})
+                                       'GRAFANA_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH', 'RHYMING_ENDPOINTS', 'RHYMING_HISTORICAL_WINDOW_DAYS', 'GENERATE_PDF'})
         self.assertEqual(fields['REPO']['label'], 'Repo (Bitbucket/Github)')
         self.assertEqual(fields['ALERT_UID']['requires'], 'ALERT')
         self.assertIsNone(fields['ALERT']['requires'])
@@ -94,18 +133,18 @@ class ProfileStoreTests(unittest.TestCase):
         self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
         merged = self.ok('set', '--profile', 'example', '--field', 'GRAFANA_CONTEXT=example')
         self.assertEqual(merged['fields'], {'REPO': 'example-service',
-                                            'GRAFANA_CONTEXT': 'example', 'RHYMING_HISTORICAL_WINDOW_DAYS': '7'})
+                                            'GRAFANA_CONTEXT': 'example', 'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_PDF': 'T'})
         self.assertEqual(merged['added'], ['GRAFANA_CONTEXT'])
         contents = self.store.read_text(encoding='utf-8')
         self.assertIn('# local only\nUNRELATED_TOKEN="keep me"\n', contents)
         self.assertIn("PROFILE__EXAMPLE__REPO='example-service'", contents)
         replaced = self.ok('set', '--profile', 'example', '--replace',
                            '--field', 'REPO=example-service')
-        self.assertEqual(replaced['fields'], {'REPO': 'example-service'})
+        self.assertEqual(replaced['fields'], {'REPO': 'example-service', 'GENERATE_PDF': 'T'})
         self.assertEqual(replaced['cleared'], ['GRAFANA_CONTEXT', 'RHYMING_HISTORICAL_WINDOW_DAYS'])
         cleared = self.ok('set', '--profile', 'example', '--field', 'REPO=other-service',
                           '--field', 'GRAFANA_CONTEXT=')
-        self.assertEqual(cleared['fields'], {'REPO': 'other-service'})
+        self.assertEqual(cleared['fields'], {'REPO': 'other-service', 'GENERATE_PDF': 'T'})
         self.assertIn('UNRELATED_TOKEN="keep me"', self.store.read_text(encoding='utf-8'))
 
     def test_dependent_field_requires_its_primary_field(self):
@@ -141,7 +180,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertNotIn('keep me', json.dumps(listed))
         shown = self.ok('show', '--profile', 'example')
         self.assertEqual(shown['fields'], {'REPO': 'example-service',
-                                           'RHYMING_HISTORICAL_WINDOW_DAYS': '7'})
+                                           'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_PDF': 'T'})
         self.assertIn('PUBLISH', shown['missing_fields'])
         self.assertEqual(shown['unknown_fields'], [])
         self.assertNotIn('keep me', json.dumps(shown))
@@ -202,7 +241,7 @@ class ProfileStoreTests(unittest.TestCase):
                           '--dry-run')
         self.assertEqual(preview['resources'],
                          ['- Repo (Bitbucket/Github): `example-service`',
-                          '- Slack channel: `#example-support`'])
+                          '- Slack channel: `#example-support`', '- Generate PDF: `T`'])
         self.assertFalse(preview['replaced'])
         self.assertEqual(task.read_text(encoding='utf-8'), original)
         loaded = self.ok('load', '--profile', 'example', '--task', 'docs/tasks/TASK.md')
