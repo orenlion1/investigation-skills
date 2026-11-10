@@ -93,6 +93,15 @@ Keep authentication, authorization, tool availability, and a successful reposito
 
 Check the selected connection and credential source first. Reuse working authentication and let
 the owning OAuth client refresh an expired token; a successful refresh needs no user sign-in.
+Assess each requested product independently: Jira-only access is partial authentication when
+Bitbucket or Confluence is also required. A missing product in `resources` or `discover`, or an
+absent dedicated credential cache, starts that product's scoped recovery below; it is not a
+terminal capability blocker. Create missing dedicated metadata under the separate-grant contract
+and start its supported OAuth flow, preserving working product grants and existing cache metadata.
+Do not overwrite conflicting metadata, change the selected provider, or try another credential
+source as an implicit fallback. A hosted connection uses its own Connect/Reconnect control;
+do not claim a local grant repaired it. Honor status-only/no-login instructions and report an
+explicit setup or consent blocker when recovery cannot proceed.
 When interactive authorization is required, start the selected client's supported sign-in flow
 within the task's authorization, honoring any applicable prerequisite login barrier. Use the
 [scoped MCP OAuth flow](references/bitbucket-access.md#establish-scoped-mcp-oauth) for the selected
@@ -207,6 +216,13 @@ does not by itself establish a scope problem. Keep response bodies and credentia
 Never repeatedly refresh Rovo Dev login to repair missing MCP v2 scopes or substitute ACLI/browser
 results as proof that MCP works. Product creation, editing, transitions, and publishing stay with
 their owning workflows.
+
+For every requested product, report authentication, tool availability, and the bounded object
+read separately, with an observed result or sanitized blocker for each. Before declaring a
+product unavailable, attempt applicable scoped recovery or record the precise reason it cannot
+start. Re-run that product's resources, complete catalog/discovery, and object probe after consent;
+another product's success never substitutes for these checks. Continue independent products
+while consent or a connection reload is pending, without labeling the pending product verified.
 
 ## Bitbucket Workflow
 
