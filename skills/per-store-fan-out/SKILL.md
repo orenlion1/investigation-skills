@@ -57,8 +57,14 @@ workflow inside the Grafana branch; the request itself carries that authorizatio
 
 1. **Resolve shared inputs in the main session.** One environment, exact time window and
    timezone, concrete object identities, and each store's authentication through its own
-   skill. Interactive sign-in never happens inside a sub-agent. A store that cannot
-   authenticate blocks only its own branch; record the exact blocker and continue.
+   skill. Assess authentication independently of connection/tool availability. When credentials
+   need renewal and the owning skill permits sign-in, start that flow even if its tool or MCP
+   connection is missing; prepare the permitted connection setup alongside recovery. Before
+   declaring a store blocked, attempt both applicable recovery paths or record the explicit
+   blocker for each. Honor no-login instructions, credential ownership, Region limits, and
+   separate approval gates; missing tools never authorize a fallback provider or weaker controls.
+   Interactive sign-in never happens inside a sub-agent. A store that cannot authenticate
+   blocks only its own branch; record the exact blocker and continue independent branches.
 2. **Invoke historical search once in the parent when configured.** Consume the selected
    profile's validated endpoint resources via [Profile Manager](../profile-manager/SKILL.md),
    then invoke [Rhyming Incident Search](../rhyming-incident-search/SKILL.md) once with the
@@ -108,6 +114,13 @@ This skill adds only what is specific to stores: each branch row carries `store`
 integration — a repository plus its Jira ticket is one Atlassian row, not two. A store that
 cannot authenticate blocks only its own branch; record the exact blocker and continue.
 
+Each store row also records `authentication_status`, `tool_status`, and
+`resource_read_status` separately. Each contains an observed outcome and its evidence or
+sanitized blocker; distinguish pending, verified, failed, unavailable, and operator-disabled
+work. A successful login does not verify a resource read, and a missing tool does not imply
+authentication failed. Update these store-owned fields after recovery and retain unresolved
+steps rather than collapsing them into a single unavailable result.
+
 ## Common Rationalizations
 
 - "The harness can't parallelize, so the fan-out rules don't apply." Degradation changes
@@ -135,5 +148,7 @@ cannot authenticate blocks only its own branch; record the exact blocker and con
 - Every brief embeds the identical resolved block, and every branch result follows the
   output contract.
 - Iterations are recorded, within the three-round bound, and inside the authorized scope.
+- Authentication recovery and connection/tool setup were assessed independently for every
+  store; each applicable attempt or explicit blocker is recorded separately from resource reads.
 - The report separates per-store leads from orchestrator-verified findings and lists each
   failed branch as an untested area with its exact blocker.

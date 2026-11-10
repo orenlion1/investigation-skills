@@ -90,6 +90,19 @@
         "Keeps one endpoint child/manifest row per endpoint and links one combined execution",
         "History-only endpoints do not send prompts"
       ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "Investigate the Grafana and AWS resources in this task. The selected AWS profile has an expired SSO session in an allowed Region, and no AWS MCP tool is exposed. Grafana works. Continue the authorized multi-store investigation and explain how you handle AWS setup.",
+      "expected_output": "Assesses authentication independently of tool availability, starts the authorized supported AWS sign-in in the parent while preparing permitted MCP setup, and continues independent Grafana work. Records separate authentication, tool, and resource-read outcomes without weakening controls or claiming login proves resource access.",
+      "expectations": [
+        "Starts authorized authentication recovery despite the missing AWS MCP tool",
+        "Prepares permitted connection setup independently and records an attempt or explicit blocker for both paths",
+        "Records authentication_status, tool_status, and resource_read_status separately in the store row",
+        "Keeps interactive authentication in the parent and continues independent branches",
+        "Honors no-login instructions and safeguards rather than changing providers or weakening controls"
+      ]
     }
   ]
 }
