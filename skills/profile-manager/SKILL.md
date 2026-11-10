@@ -1,6 +1,6 @@
 ---
 name: profile-manager
-description: Maintain the repository's local untracked .env resource-profile store: create or delete .env, add, update, remove and inspect a named profile, keep .env ignored by Git, load a profile into a task's Resources section, and derive the profile schema from the TASK template. Use when asked to add, remove or load an .env profile, to set up .env ignore rules, or to fill task Resources from a saved profile; credentials stay in their own credential stores.
+description: "Maintain the repository's local untracked .env resource-profile store: create or delete .env, add, update, remove and inspect a named profile, keep .env ignored by Git, load a profile into a task's Resources section, and derive the profile schema from the TASK template. Use when asked to add, remove or load an .env profile, to set up .env ignore rules, or to fill task Resources from a saved profile; credentials stay in their own credential stores."
 ---
 
 # Profile Manager
