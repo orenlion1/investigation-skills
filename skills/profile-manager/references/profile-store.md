@@ -192,3 +192,34 @@ The explicit `grafana-assistant-search` kind permits a scoped billable Assistant
 [Rhyming Incident Search](../../rhyming-incident-search/SKILL.md). It uses the same Grafana
 validation; profile reads/writes never launch a prompt. `grafana-assistant-conversations`
 continues to read existing history only. Honor `Grafana Assistant: disabled` during execution.
+
+## Generate PDF
+
+`GENERATE_PDF` derives from the template's **Generate PDF** Resources bullet. Only exact
+`T` or `F` is valid; lowercase, boolean words and whitespace are errors. An empty `set`
+assignment clears the stored key and restores the effective default `T`. Explicit task
+value overrides the selected profile, which overrides absent-value default `T`.
+
+New/updated nonempty profiles persist missing `T` (except on explicit clearing); legacy
+read-only show/render/load resolves `T` without rewriting the store. `show` distinguishes
+stored `fields` from `effective_generate_pdf`; custom templates without the field do not
+materialize it. Invalid stored settings fail before writes, including when a task overrides.
+A toggle or historical-window setting alone is configuration, never an actual resource.
+
+Render includes the effective choice alongside actual resources. Load preserves an explicit
+task `Generate PDF` value even with `--replace`; duplicate or invalid task values fail
+before mutation. A template placeholder is absent. An explicit toggle alone does not trigger
+the supplied-resource overwrite guard; other existing Resources still require `--replace`.
+Loading a finalized task remains subject to the editor contract. Repeated loads with the
+same inputs and `--replace` produce the same bytes. Unrelated store lines remain untouched.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field GENERATE_PDF=F
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
+```
+
+Resolve this choice before report dependencies: T generates/verifies the current PDF;
+F retains verified Markdown, evidence and required graphs, skips PDF-only tooling/checks,
+and preserves older PDFs as historical. Record the choice with the saved report so later
+publication honors it without attaching stale companions. Configuration never authorizes
+an investigation or publication.

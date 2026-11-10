@@ -113,7 +113,7 @@ outside the `PROFILE__` namespace is preserved and those key names are reported.
 ## Load a profile into a task
 
 `load` replaces the task's `## Resources` body with the profile's resolved bullets in
-template order, omitting fields the profile does not set, and reads the section back.
+template order, omitting unset resource fields and preserving an explicit task PDF choice, and reads the section back.
 
 ```sh
 python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
@@ -201,3 +201,34 @@ and validation behavior. Profile management never starts a history search.
 The endpoint kinds include `grafana-assistant-search` (id/kind/target/context) for a scoped
 Assistant matching request. See [the endpoint schema](references/profile-store.md#rhyming-endpoints).
 Profile operations do not send prompts; history-only kinds retain list/get behavior.
+
+## Generate PDF
+
+`GENERATE_PDF` derives from the template's **Generate PDF** Resources bullet. Only exact
+`T` or `F` is valid; lowercase, boolean words and whitespace are errors. An empty `set`
+assignment clears the stored key and restores the effective default `T`. Explicit task
+value overrides the selected profile, which overrides absent-value default `T`.
+
+New/updated nonempty profiles persist missing `T` (except on explicit clearing); legacy
+read-only show/render/load resolves `T` without rewriting the store. `show` distinguishes
+stored `fields` from `effective_generate_pdf`; custom templates without the field do not
+materialize it. Invalid stored settings fail before writes, including when a task overrides.
+A toggle or historical-window setting alone is configuration, never an actual resource.
+
+Render includes the effective choice alongside actual resources. Load preserves an explicit
+task `Generate PDF` value even with `--replace`; duplicate or invalid task values fail
+before mutation. A template placeholder is absent. An explicit toggle alone does not trigger
+the supplied-resource overwrite guard; other existing Resources still require `--replace`.
+Loading a finalized task remains subject to the editor contract. Repeated loads with the
+same inputs and `--replace` produce the same bytes. Unrelated store lines remain untouched.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field GENERATE_PDF=F
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
+```
+
+Resolve this choice before report dependencies: T generates/verifies the current PDF;
+F retains verified Markdown, evidence and required graphs, skips PDF-only tooling/checks,
+and preserves older PDFs as historical. Record the choice with the saved report so later
+publication honors it without attaching stale companions. Configuration never authorizes
+an investigation or publication.
