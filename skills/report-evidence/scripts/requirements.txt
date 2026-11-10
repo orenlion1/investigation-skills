@@ -1,5 +1,4 @@
-# Markdown parsing (MIT), PDF text and URI annotation geometry (AGPL-3.0/commercial).
-# External dependencies retain their own licenses; not relicensed by this repository.
-markdown-it-py==4.0.0
-mdurl==0.1.2
+# Full validation for PDF-enabled investigations and repository CI.
+# PyMuPDF retains AGPL-3.0/commercial licensing, not the repository MIT license.
+-r requirements-markdown.txt
 PyMuPDF==1.26.7

@@ -23,6 +23,11 @@ does not restate it; it owns the endpoint kinds, the endpoint questions, and its
 
 Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.
 
+When this skill runs as part of an investigation, use the root
+[soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md)
+from request receipt; carry its original start into this work and check it at control boundaries.
+Reuse verified setup and shared evidence; preserve this skill's required coverage and gates.
+
 ## When to Use
 
 - Find rhyming incidents or similar prior investigations in the selected profile's endpoints.

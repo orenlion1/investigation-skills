@@ -184,13 +184,15 @@ subset labels remain part of the compact presentation.
 
 ## Validate the deliverables
 
-Update the canonical report source and regenerate every supported deliverable format.
+Update the canonical report source and regenerate each selected deliverable format under the
+[delivery contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats).
+Generate PDF F skips PDF-only work; preserve historical PDFs without updating or claiming them.
 Render the collector's numeric fields and session/model rows from the saved accounting data;
 do not hard-code `unavailable` in a renderer after records have been recovered.
-Read the saved Markdown and PDF back: the final section and any subheading must agree across
+Read the saved Markdown and, when selected, PDF back: the final section and any subheading must agree across
 formats on totals, duration, start/cutoff, and the recorded population. Compare displayed values and the
 session/model table with the supporting evidence. Verify that the section ends at that table
-and that omitted diagnostics have not reappeared elsewhere. Check the rendered PDF for
+and that omitted diagnostics have not reappeared elsewhere. When PDF is selected, check the rendered PDF for
 readable labels and tables. A presentation change does not change historical accounting data.
 
 ## Provenance
@@ -219,3 +221,5 @@ conversation endpoints. It does not invoke the Agent Tasks lifecycle or alter fr
 - The collector ran over the explicitly selected conversation files with verified boundaries.
 - The rendered report passed the checks in [Validate the deliverables](#validate-the-deliverables).
 - Evidence identifiers resolve and contain no credentials or private payloads.
+
+Delivery elapsed time and observed waits follow the [single investigation timing contract](../open-edit-close-execute/references/investigation-delivery.md). Keep the accounting cutoff distinct from verified handoff; never infer processing time from elapsed wall time.

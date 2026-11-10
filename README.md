@@ -311,6 +311,8 @@ figure illustrates the documented workflow, not an executed investigation.
 [Dark SVG](diagrams/DIAGRAM-parallel-alert-investigation-dark.svg) ·
 [Source notes and regeneration](diagrams/DIAGRAM-parallel-alert-investigation.md)
 
+Investigations use a [ten-minute soft checkpoint](skills/open-edit-close-execute/references/investigation-delivery.md), including setup, reporting and required QA, with observed waits reported separately. It surfaces findings/gaps and explains necessary continuation. Profiles support exact `GENERATE_PDF=T/F`: absent defaults T; explicit task values override profiles. F keeps verified Markdown/evidence/required graphs and skips PDF-only work. Historical PDFs remain preserved and excluded from new companions.
+
 ## What a run looks like
 
 A flapping alert is the ordinary case. Illustrative, with placeholder

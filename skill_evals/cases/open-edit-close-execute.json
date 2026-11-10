@@ -37,6 +37,30 @@
         "Requires a tracked close or explicit user confirmation before executing",
         "Runs the saved requirements only after the barrier completes"
       ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "An investigation request arrived 12 minutes ago. The editor wait was observed for five minutes, auth wait overlapped it by a minute, and core findings are ready but report QA is pending. Hard-stop now?",
+      "expected_output": "Uses the shared root ten-minute soft checkpoint including setup, editor/auth waits, reporting and QA; Checkpoints verified findings, evidence gaps, known waits and remaining QA; explains continuation without redundant permission; Unions overlapping waits and never sums parallel children or fabricates missing processing/phase time; Preserves editor closure, authorization and required evidence and quality gates; no automatic failure or hard cancellation.",
+      "expectations": [
+        "Uses the shared root ten-minute soft checkpoint including setup, editor/auth waits, reporting and QA",
+        "Checkpoints verified findings, evidence gaps, known waits and remaining QA; explains continuation without redundant permission",
+        "Unions overlapping waits and never sums parallel children or fabricates missing processing/phase time",
+        "Preserves editor closure, authorization and required evidence and quality gates; no automatic failure or hard cancellation"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "Execute the saved investigation with Generate PDF F. Reuse verified setup and reporting machinery; an older PDF already exists.",
+      "expected_output": "Validates exact task PDF choice with task over profile over absent T before PDF dependency setup; Produces verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks; Preserves old PDF as historical and excludes it from current companions and delivery links; Records effective choice and verified output provenance without granting publication.",
+      "expectations": [
+        "Validates exact task PDF choice with task over profile over absent T before PDF dependency setup",
+        "Produces verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks",
+        "Preserves old PDF as historical and excludes it from current companions and delivery links",
+        "Records effective choice and verified output provenance without granting publication"
+      ]
     }
   ]
 }

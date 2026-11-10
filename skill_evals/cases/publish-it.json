@@ -48,6 +48,18 @@
         "Blocks publication on the unlinked required occurrence despite matching hashes",
         "Does not fabricate a URL or report unavailable browser acceptance as passing"
       ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "Publish this verified report whose saved metadata says Generate PDF F. There is an older same-name PDF. Do we need a PDF attachment?",
+      "expected_output": "Honors saved F decision and excludes historical PDF from selected inventory while preserving it; Requires no PDF attachment, card, preview or PDF-only dependency; Publishes authorized Markdown, available TASK, HTML, diagrams and evidence with shared gates and hosted read-back; Does not refresh investigation evidence window or accounting cutoff.",
+      "expectations": [
+        "Honors saved F decision and excludes historical PDF from selected inventory while preserving it",
+        "Requires no PDF attachment, card, preview or PDF-only dependency",
+        "Publishes authorized Markdown, available TASK, HTML, diagrams and evidence with shared gates and hosted read-back",
+        "Does not refresh investigation evidence window or accounting cutoff"
+      ]
     }
   ]
 }

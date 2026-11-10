@@ -23,6 +23,11 @@ between <start> and <end> UTC through the parallel alert investigation.
 The context names are examples, not defaults. Resolve the actual configured context before
 authentication or live queries, as `aws-mcp` resolves the supplied AWS profile.
 
+When this skill runs as part of an investigation, use the root
+[soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md)
+from request receipt; carry its original start into this work and check it at control boundaries.
+Reuse verified setup and shared evidence; preserve this skill's required coverage and gates.
+
 ## When to Use
 
 Use for gcx authentication and connectivity, datasource discovery, PromQL, LogQL, TraceQL, and

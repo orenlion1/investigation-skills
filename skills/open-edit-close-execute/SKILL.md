@@ -44,6 +44,8 @@ draft directory, and the rule that task contents never bypass separate authoriza
   arrives. Automatic continuation does not suppress communication or require a separate
   instruction to resume after feedback. Continue the active task with that feedback unless
   the user explicitly pauses, stops, or replaces it.
+- For an investigation, establish and check the [shared soft delivery budget](references/investigation-delivery.md)
+  from request receipt, including editor/setup waits. Apply it to direct investigations too.
 - Before opening a templated-task editor, read [Token Usage](../token-usage/SKILL.md) and
   retain its native task-resolution evidence past the editor/check barrier, so shorthand
   editor requests can be attributed without another user command.
@@ -62,8 +64,9 @@ draft directory, and the rule that task contents never bypass separate authoriza
   through Workflow Artifact Naming, in the same directory. Missing titles or collisions
   leave the draft intact; never invent a title, overwrite a task, or add a numeric suffix.
 - Run the finalized task from its resolved path, then generate the matching reports from
-  observed results in both Markdown and PDF (both `REPORT` paths via Workflow Artifact
-  Naming). Report completion from verified outcomes, never from readiness or a filename's
+  observed results in verified Markdown and, only when effective Generate PDF is T, a verified
+  same-source PDF (selected `REPORT` paths via Workflow Artifact Naming). Resolve formats before
+  PDF-only tooling using the [delivery contract](references/investigation-delivery.md). Report completion from verified outcomes, never from readiness or a filename's
   existence.
 - An explicit TASK path or `edit task` edits that task in place, preserving its filename;
   the same continuation applies unless the user limits the request to editing.

@@ -15,6 +15,11 @@ Bitbucket discovery. Rovo Dev is one client context; the endpoint and tool contr
 the current Atlassian Rovo MCP server. Keep Git transport and broader Jira or Confluence
 workflows in their owning tools or skills.
 
+When this skill runs as part of an investigation, use the root
+[soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md)
+from request receipt; carry its original start into this work and check it at control boundaries.
+Reuse verified setup and shared evidence; preserve this skill's required coverage and gates.
+
 ## When to Use
 
 Use this skill when asked to connect or authenticate to Atlassian resources, diagnose MCP errors

@@ -14,6 +14,11 @@ configuration that explain the observed behavior. The provider-scope authorizati
 a supplied repository authorizes you to search) is repository policy and lives in the root
 routing files; this skill owns how the investigation is done within that scope.
 
+When this skill runs as part of an investigation, use the root
+[soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md)
+from request receipt; carry its original start into this work and check it at control boundaries.
+Reuse verified setup and shared evidence; preserve this skill's required coverage and gates.
+
 ## When to Use
 
 - A task names a repository and asks why an observed error, alert, or behavior happens.

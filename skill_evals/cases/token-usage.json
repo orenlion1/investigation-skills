@@ -37,6 +37,17 @@
         "Verifies task and turn boundaries before accounting",
         "Sanitizes the evidence included in the report"
       ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "Generate PDF F. Accounting cutoff was 12:08, report QA finished 12:12; request started 12:00 and only part of the editor wait was observed. Show processing time?",
+      "expected_output": "Validates Markdown accounting without requiring a PDF companion or PDF-only checks; Keeps accounting cutoff separate from verified handoff and total delivery duration; Reports only observed waits; leaves processing and unsupported phase timings unavailable.",
+      "expectations": [
+        "Validates Markdown accounting without requiring a PDF companion or PDF-only checks",
+        "Keeps accounting cutoff separate from verified handoff and total delivery duration",
+        "Reports only observed waits; leaves processing and unsupported phase timings unavailable"
+      ]
     }
   ]
 }

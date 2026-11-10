@@ -38,6 +38,7 @@ match the evidence.
 
 Follow [the reference-completeness contract](references/reference-completeness.md) before
 report delivery and pass its helper gate for every delivered Markdown, PDF and HTML artifact.
+Resolve selected report formats through the [delivery contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats) first. Generate PDF F skips PDF-only dependencies and checks; Markdown, evidence, graphs and each delivered HTML still pass their gates.
 Inventory every material incident, investigation, backing chat, conversation and cross-report
 evidence reference at its point of use: reconciliation prose, coverage tables and evidence-index
 entries all count. A working link elsewhere, attachment hash or report-title link never satisfies

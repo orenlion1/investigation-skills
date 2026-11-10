@@ -4,6 +4,7 @@ import tempfile
 import subprocess
 import json
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -85,6 +86,16 @@ class ReferenceLinksTests(unittest.TestCase):
         data = manifest(); other = dict(data['references'][0], id='other', url=URL+'/other')
         data['references'].append(other)
         self.assertEqual(self.audit('ABCDEFGHIJKLM', data=data)[0]['status'], 'ambiguous-reference')
+
+    def test_markdown_and_html_validate_without_pdf_runtime(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.dict('sys.modules', {'pymupdf': None}):
+            md = Path(tmp) / 'report.md'
+            md.write_text(f'[ABCDEFGHIJKLM]({URL})')
+            html = Path(tmp) / 'report.html'
+            html.write_text(f'<a href="{URL}">ABCDEFGHIJKLM</a>')
+            result = links.require_complete([md, html], manifest())
+            self.assertEqual(result['unresolved'], 0)
+            self.assertEqual(result['occurrences'], 2)
 
     def test_pdf_annotations_belong_to_each_visible_occurrence(self):
         import pymupdf

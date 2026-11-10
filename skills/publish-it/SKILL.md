@@ -51,7 +51,12 @@ to production resources, or changes to other pages. Existing authorization needs
    do not claim both were published. If the caller requires both, stop that publication until both
    are available. A task-only publication presents its saved requirements and recorded outcomes;
    it does not execute them or invent a completed investigation report.
-3. Build a bounded inventory: parent TASK, original report source, matching available PDF,
+3. Resolve the saved report's effective Generate PDF choice and same-source metadata under the
+   [format contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats).
+   Legacy absent values default T. F excludes historical PDFs and requires no PDF attachment,
+   card, preview, renderer or PDF-only validation dependency. Preserve old files. Reject invalid
+   values and reconcile conflicting task/report decisions before writes.
+   Build a bounded inventory: parent TASK, original report source, selected matching available PDF,
    every report diagram and caption, theme variants, editable diagram sources, and actually cited
    local evidence. Follow links only within verified authorized roots. Do not upload whole task/log
    directories, credential caches, conversation transcripts or unreferenced files. Resolve filename
@@ -88,7 +93,7 @@ anchor-landing and preview results. A browser capability or authentication gap s
 Read [the Confluence publication procedure](references/confluence-publication.md) before external
 writes. Verify the destination and duplicates, compose the report as the page body, attach the
 original report and parent task as supporting evidence, and include their clearly labeled download
-cards. Include the matching PDF and the inventoried diagrams/evidence. For a PDF-only report,
+cards. Include the matching PDF only when selected, and the inventoried diagrams/evidence. For a PDF-only report,
 inspect it with suitable tooling, attach the original and publish a faithful readable summary or
 conversion; disclose any conversion limitation. Do not claim a full rich page if only a file card
 was delivered. A task-only page identifies its actual scope and includes its task download.
