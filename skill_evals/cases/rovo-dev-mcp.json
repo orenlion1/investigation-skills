@@ -48,6 +48,32 @@
     "Presents the exact client-issued link in chat as the fallback when a browser cannot be opened",
     "Preserves the URL's state and PKCE parameters and never edits or fabricates the link"
    ]
+  },
+  {
+   "id": 3,
+   "kind": "dialogue",
+   "prompt": "Investigate the supplied Bitbucket repository and linked Confluence runbook through Rovo MCP. The existing connection successfully reads a Jira issue, but resources and discover expose Jira only. The dedicated Bitbucket and Jira/Confluence OAuth cache directories do not exist. Continue the requested read-only investigation.",
+   "expected_output": "Treats Jira success as partial authentication, prepares the separate missing read-grant metadata without replacing working grants, and starts the supported Bitbucket and Confluence OAuth flows with browser and live-link handoffs. After consent, repeats each product resources/catalog/discovery and a bounded repository or page read. Tracks each product authentication, tool availability, and verified reads separately.",
+   "expectations": [
+    "Does not treat Jira-only resources or missing product tools as proof that Bitbucket or Confluence cannot be authenticated",
+    "Treats absent dedicated caches as authorized scoped setup work and starts supported product OAuth recovery",
+    "Preserves the working Jira connection and existing metadata without a fallback provider or credential-source switch",
+    "Keeps active login clients tracked and presents their validated authorization-start links promptly when interaction is required",
+    "Verifies each requested product through its own resources, complete catalog/discovery, and bounded object read after consent",
+    "Reports per-product authentication, tools, and resource-read outcomes separately and continues independent work while consent or reload is pending"
+   ]
+  },
+  {
+   "id": 4,
+   "kind": "dialogue",
+   "prompt": "Check Rovo connectivity status only. Do not start sign-in or change any grants or configuration. Jira reads work, Bitbucket tools are missing, and the Confluence cache metadata already contains a different scope from the requested one.",
+   "expected_output": "Reports the product-specific authentication and capability gaps, preserves existing metadata and grants, and provides supported next steps without starting login or changing configuration. Does not claim another product success verifies Bitbucket or Confluence.",
+   "expectations": [
+    "Honors explicit status-only and no-login constraints",
+    "Preserves conflicting existing metadata and working product grants",
+    "Reports product-specific blockers separately without claiming access based on Jira success",
+    "Does not switch providers, broaden scopes silently, or start competing login flows"
+   ]
   }
  ]
 }
