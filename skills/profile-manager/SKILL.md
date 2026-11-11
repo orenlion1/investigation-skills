@@ -1,6 +1,6 @@
 ---
 name: profile-manager
-description: "Maintain the local untracked .env resource-profile store: create, inspect, compose or remove named profiles; store single or multiple repositories; load task Resources; derive the schema from the TASK template. Use when composing environmental/application profiles, managing .env profiles or ignore rules, or loading task Resources; credentials stay in their own stores."
+description: "Maintain the local untracked .env resource-profile store: create, inspect, compose or remove named profiles; store single or multiple repositories and Slack channels; load task Resources; derive the schema from the TASK template. Use when composing environmental/application profiles, managing .env profiles or ignore rules, or loading task Resources; credentials stay in their own stores."
 ---
 
 # Profile Manager
@@ -8,7 +8,7 @@ description: "Maintain the local untracked .env resource-profile store: create, 
 ## Overview
 
 A resource profile is a named set of the values a task's Resources section takes: a
-repository or repository list, a Slack channel, an AWS profile, a Grafana context, an alert identity, a
+repository or repository list, a Slack channel or channel list, an AWS profile, a Grafana context, an alert identity, a
 publication parent page, or typed historical-search endpoints. This skill owns that store, its schema, and the ignore rules that
 keep it out of Git. Reach for it when a profile is created, changed, inspected, deleted, or
 loaded into a task; read the [store and schema contract](references/profile-store.md) for
@@ -112,8 +112,8 @@ outside the `PROFILE__` namespace is preserved and those key names are reported.
 
 ## Load a profile into a task
 
-`REPO` accepts the existing scalar or a JSON array of 1–16 unique strings (512 characters
-per entry, 8192 UTF-8 bytes total). Arrays render as repeated Repo bullets; never drop all
+`REPO` and `SLACK_CHANNEL` accept an existing scalar or a JSON array of 1–16 unique strings (512 characters
+per entry, 8192 UTF-8 bytes total). Arrays render as repeated Repo or Slack channel bullets; never drop all
 but the first entry. All commands validate stored arrays before returning resources. Reads
 never migrate the store. See [repository values](references/profile-store.md#repository-values).
 
@@ -131,7 +131,7 @@ python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
 ```
 
 Display names “Prod US” and “App Alpha” use CLI identifiers `prod-us` and `app-alpha`.
-Supply at least two unique sources and a target distinct from them. Repository lists form an
+Supply at least two unique sources and a target distinct from them. Repository and Slack channel lists form an
 ordered union with exact duplicates removed; other stored fields must agree when overlapping.
 Conflicts fail before writes, naming the field without its values. This includes stored PDF
 and history defaults; align or clear conflicting source settings explicitly before retrying.
@@ -151,9 +151,9 @@ configuration on later loads. Unknown task controls such as `Fan-out: disabled` 
 
 Compose/load accept repeated `--field` overrides, validated against the same schema. An
 explicit compose field resolves conflicts only for that field; others still fail. Explicit
-REPO replaces an inherited list. Sources remain unchanged. Load overrides change only TASK;
+REPO or SLACK_CHANNEL replaces its inherited list. Sources remain unchanged. Load overrides change only TASK;
 compose overrides persist only in the named target. Empty/duplicate override assignments and
-invalid/duplicate known TASK settings fail before writing. The supplied-resource guard remains:
+invalid scalar duplicates or duplicate list entries in known TASK settings fail before writing. The supplied-resource guard remains:
 use load `--replace` to permit rewriting an already-populated Resources section, while retaining
 user values. It never authorizes investigation, editor closure, or scope expansion.
 
@@ -279,3 +279,22 @@ F retains verified Markdown, evidence and required graphs, skips PDF-only toolin
 and preserves older PDFs as historical. Record the choice with the saved report so later
 publication honors it without attaching stale companions. Configuration never authorizes
 an investigation or publication.
+
+
+## Multiple Slack channels
+
+Keep the SLACK_CHANNEL key. Store a scalar for compatibility or a JSON array of 1–16 unique
+strings, bounded to 512 characters each and 8192 UTF-8 bytes per field. The shared resource-list
+parser validates set/show/render/load and composition; readers never migrate stored arrays.
+Render/load emit a separate Slack channel bullet for each entry. Compose uses a stable ordered
+union for both list fields; explicit command or saved user TASK selections replace inherited
+lists rather than appending to them. All sources remain validated and unchanged.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  set --profile app-alpha --field 'SLACK_CHANNEL=["#ops-alpha","#app-alpha"]'
+```
+
+Profile operations never query Slack. The parent resolves actual workspace/channel identities
+and cardinality after user overrides, then routes multiple channels to
+[Per-Store Fan-Out](../per-store-fan-out/SKILL.md#channel-resolution-and-scheduling).

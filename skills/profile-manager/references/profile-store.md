@@ -253,9 +253,9 @@ It requires at least two unique sources and a distinct target. Names remain keba
 “Prod US” and “App Alpha” are display names. No source is modified and no TASK is loaded
 implicitly. Run the existing load command with the combined profile afterward.
 
-Merge stored fields only. REPO uses first-seen order and exact-string deduplication across
+Merge stored fields only. REPO and SLACK_CHANNEL use first-seen order and exact-string deduplication across
 profiles, then revalidates the union's limits; duplicates within one input array are errors.
-A one-entry result uses scalar form. Identical non-REPO values are compatible; differing
+A one-entry result uses scalar form. Identical non-list values are compatible; differing
 values fail without a write and identify only the conflicting field. This includes endpoint
 JSON strings and stored PDF/history defaults, since the store has no provenance distinguishing
 implicit defaults from explicit values. Missing defaults are filled after merging. Align or
@@ -285,10 +285,27 @@ command field. TASK user fields do not modify the profile store.
 
 `compose` also accepts repeated `--field FIELD=value`. Validate all sources; resolve scalar
 conflicts only when the user supplies that field explicitly, then layer the override before
-missing defaults and effective dependency validation. An explicit REPO replaces the inherited
+missing defaults and effective dependency validation. An explicit REPO or SLACK_CHANNEL replaces its inherited
 union. Overrides must be nonempty, unique, schema-declared, validated values. They change only
 the composed target, never its sources. All other conflicting stored fields remain errors.
 
 Current explicit user instructions are the highest authority when the orchestrator prepares an
 investigation's effective resources; profile values cannot replace them. Reflect the chosen
 values in the shared resolved input before delegation, honoring all scope and authentication gates.
+
+
+## Slack channel values
+
+SLACK_CHANNEL accepts the existing scalar or a JSON array of 1–16 unique strings, at most
+512 characters per entry and 8192 UTF-8 bytes total, using the same bounded resource-list
+parser as REPO. Malformed/empty arrays, duplicates within an input list, non-strings,
+placeholders, credentials, controls and unsafe Markdown delimiters fail before writes.
+No stored value is migrated by reading. Set replaces/clears the field; show retains stored
+format; render/load emit every channel as a repeated Slack channel bullet.
+
+Compose forms a stable first-seen union of channel entries across profiles, then revalidates
+limits. User --field overrides and existing explicit TASK channel selections replace inherited
+lists. Repeated TASK channel bullets form one validated list, while other scalar duplicate
+settings remain errors. All source profiles and unrelated .env bytes remain unchanged. A
+single resulting channel uses scalar form. Resolve names, IDs, aliases, workspaces and access
+later through Slack MCP; successful storage proves neither access nor permission to query.

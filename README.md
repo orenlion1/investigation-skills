@@ -209,8 +209,8 @@ python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
   --field SLACK_CHANNEL='#latest-channel'
 ```
 
-`compose ... --field SLACK_CHANNEL='#my-channel'` likewise resolves a conflict in that field
-using your supplied value. Other unresolved profile conflicts remain errors. An explicit REPO
+`compose ... --field SLACK_CHANNEL='#my-channel'` replaces the profile-derived channel list
+with your supplied channel. Other unresolved scalar profile conflicts remain errors. An explicit REPO
 override replaces the profile repository list. Compose overrides affect only the combined
 snapshot; load overrides affect only the TASK. Source profiles remain unchanged. Existing TASK
 values are treated as user configuration on subsequent loads; edit them or supply `--field`
@@ -236,14 +236,17 @@ python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
   --field 'RHYMING_ENDPOINTS=[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]'
 ```
 
-“App Alpha” (`app-alpha`) supplies the application configuration: multiple repositories.
+“App Alpha” (`app-alpha`) supplies the application configuration: multiple repositories
+and multiple Slack channels. SLACK_CHANNEL accepts the same scalar-or-array shape and limits
+as REPO, rendering a separate Slack channel bullet for every entry.
 `REPO` keeps its field name and accepts either the existing scalar or a JSON array of up to
 16 unique strings, 512 characters each and 8192 UTF-8 bytes total.
 
 ```sh
 python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
   set --profile app-alpha \
-  --field 'REPO=["https://github.com/demo-org/app-alpha","https://github.com/demo-org/app-alpha-lib"]'
+  --field 'REPO=["https://github.com/demo-org/app-alpha","https://github.com/demo-org/app-alpha-lib"]' \
+  --field 'SLACK_CHANNEL=["#demo-app","#demo-library"]'
 ```
 
 Compose both profiles into a named snapshot in `.env`, then load that snapshot into the
@@ -272,6 +275,8 @@ The effective task Resources are:
 - Repo (Bitbucket/Github): `https://github.com/demo-org/app-alpha`
 - Repo (Bitbucket/Github): `https://github.com/demo-org/app-alpha-lib`
 - Slack channel: `#demo-ops`
+- Slack channel: `#demo-app`
+- Slack channel: `#demo-library`
 - AWS account: `demo-prod-us-readonly`
 - AWS region: `us-east-1`
 - Grafana context: `demo-prod-us`
@@ -281,8 +286,8 @@ The effective task Resources are:
 - Generate PDF: `T`
 ```
 
-Sources merge in command order. Repository entries form a first-seen ordered union with exact
-duplicates removed across sources. All other overlapping stored fields must match; conflicting
+Sources merge in command order. Repository and Slack channel entries form first-seen ordered
+unions with exact duplicates removed across sources. All other overlapping stored fields must match; conflicting
 values fail before writes and name the field. For example, different GRAFANA_CONTEXT values
 require explicit alignment of the source profiles before composition. Stored PDF/history defaults
 participate in conflict checks; absent defaults apply only after merging. Endpoint arrays are
@@ -297,8 +302,8 @@ starts an investigation. Existing scalar profiles need no migration. See the
 
 ### Per-store fan-out
 
-When a task's Resources name more than one data store, the gather step fans
-out by default: one read-only sub-agent per named store, launched in parallel
+When a task's effective Resources name multiple stores, repositories or Slack channels, the gather step fans
+out by default: read-only store or per-resource inspection units, launched in parallel
 with the same resolved identity, environment, time window, timezone, and
 questions. You can disable it — by asking, or with `Fan-out: disabled` in the
 task's Resources — and the agent investigates inline instead. Scope and authority live in
@@ -351,6 +356,23 @@ capacity and unavailable delegation; manifests retain every repository outcome o
 One failure does not cancel independent work. The store diagram above shows the store layer;
 repository inspections are additional parent-owned units described in the
 [repository workflow](skills/per-store-fan-out/SKILL.md#repository-resolution-and-scheduling).
+
+#### Parallel inspection of multiple Slack channels
+
+Multiple effective Slack channels activate a separate read-only inspection for each resolved
+channel, including Slack-only tasks. The parent resolves workspace/channel identity and access,
+applies explicit user overrides, and schedules channel work alongside repository/store work.
+Aliases share one owner; ordinary Slack briefs exclude reads already assigned to channel units.
+One channel keeps the existing inline or ordinary store owner. A user-selected single channel
+replaces an inherited list, so delegation is selected from the effective channel count.
+
+The [channel workflow](skills/per-store-fan-out/SKILL.md#channel-resolution-and-scheduling)
+uses the same shared delegation contract and identical effective Resources across briefs.
+Disabled parent fan-out includes channel work. Capacity waves and isolated access/ambiguity
+failures preserve every configured channel's outcome without inventing access or broadening
+workspace scope. Channel agents return message/thread references and limitations; the parent
+verifies material evidence and correlates across channels. These rules authorize no messages,
+acknowledgments, mutations or publication.
 
 ### Rhyming incident search
 

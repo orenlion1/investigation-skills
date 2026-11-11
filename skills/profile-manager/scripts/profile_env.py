@@ -23,8 +23,9 @@ MAX_TASK_BYTES = 1_048_576
 MAX_VALUE_LENGTH = 512
 MAX_ENDPOINT_BYTES = 8192
 MAX_ENDPOINTS = 16
-MAX_REPOSITORY_BYTES = 8192
-MAX_REPOSITORIES = 16
+MAX_RESOURCE_LIST_BYTES = 8192
+MAX_RESOURCE_LIST_ITEMS = 16
+LIST_FIELDS = {'REPO': 'repository-or-array', 'SLACK_CHANNEL': 'channel-or-array'}
 HISTORICAL_WINDOW = 'RHYMING_HISTORICAL_WINDOW_DAYS'
 DEFAULT_HISTORICAL_WINDOW_DAYS = '7'
 GENERATE_PDF = 'GENERATE_PDF'
@@ -153,10 +154,11 @@ def parse_template(text):
             max_bytes=MAX_ENDPOINT_BYTES, max_items=MAX_ENDPOINTS,
             required=['id', 'kind', 'target'],
             conditional={'grafana': ['context'], 'repository': ['provider']})
-    if 'REPO' in fields:
-        fields['REPO'].update(type='repository-or-array', max_items=MAX_REPOSITORIES,
-                              max_item_characters=MAX_VALUE_LENGTH,
-                              max_bytes=MAX_REPOSITORY_BYTES)
+    for key, field_type in LIST_FIELDS.items():
+        if key in fields:
+            fields[key].update(type=field_type, max_items=MAX_RESOURCE_LIST_ITEMS,
+                               max_item_characters=MAX_VALUE_LENGTH,
+                               max_bytes=MAX_RESOURCE_LIST_BYTES)
     if HISTORICAL_WINDOW in fields:
         fields[HISTORICAL_WINDOW].update(
             type='positive-integer-days', default=DEFAULT_HISTORICAL_WINDOW_DAYS,
@@ -275,10 +277,10 @@ def validate_rhyming_endpoints(value):
 
 
 def check_field(field, value):
-    if field == 'REPO':
+    if field in LIST_FIELDS:
         if isinstance(value, str) and not value.startswith('['):
             check_value(value)
-        repository_values(value)
+        resource_values(value, field)
         return value
     if field == GENERATE_PDF:
         if value not in ('T', 'F'):
@@ -295,15 +297,15 @@ def check_field(field, value):
     return check_value(value)
 
 
-def repository_values(value):
-    """Normalize legacy scalars and JSON arrays without rewriting stored values."""
+def resource_values(value, field):
+    """Normalize bounded repository/channel lists without rewriting stored values."""
     try:
         if (not isinstance(value, str) or value != value.strip()
-                or len(value.encode('utf-8')) > MAX_REPOSITORY_BYTES
+                or len(value.encode('utf-8')) > MAX_RESOURCE_LIST_BYTES
                 or any(ord(char) < 32 or ord(char) == 127 for char in value)):
             raise ValueError()
         entries = json.loads(value) if value.startswith('[') else [value]
-        if not isinstance(entries, list) or not 1 <= len(entries) <= MAX_REPOSITORIES:
+        if not isinstance(entries, list) or not 1 <= len(entries) <= MAX_RESOURCE_LIST_ITEMS:
             raise ValueError()
         seen = set()
         for entry in entries:
@@ -311,7 +313,7 @@ def repository_values(value):
             entry.encode('utf-8')
             if entry in seen or any(char in entry for char in '`<>\\\x85\u2028\u2029'):
                 raise ValueError()
-            if '://' in entry:
+            if field == 'REPO' and '://' in entry:
                 url = urlsplit(entry)
                 ssh_identity = url.scheme == 'ssh' and url.username == 'git'
                 if ((url.username is not None and not ssh_identity) or url.password is not None
@@ -320,7 +322,7 @@ def repository_values(value):
             seen.add(entry)
         return entries
     except (ValueError, TypeError, UnicodeError, RecursionError):
-        raise ProfileError('invalid REPO; expected a repository or a bounded unique JSON array') from None
+        raise ProfileError('invalid ' + field + '; expected a resource or a bounded unique JSON array') from None
 
 
 def assigned_keys(lines):
@@ -474,9 +476,9 @@ def render_section(schema, values):
             continue
         if primary not in (GENERATE_PDF, HISTORICAL_WINDOW):
             actual_resources = True
-        if primary == 'REPO':
+        if primary in LIST_FIELDS:
             bullets.extend('- ' + bullet['label'] + ': `' + entry + '`'
-                           for entry in repository_values(values[primary]))
+                           for entry in resource_values(values[primary], primary))
             continue
         text = '- ' + bullet['label'] + ': `' + values[primary] + '`'
         for key in bullet['keys'][1:]:
@@ -599,24 +601,25 @@ def command_compose(arguments, context):
     if target in store and not arguments.replace:
         raise ProfileError('target profile already exists; use --replace to replace it')
     overrides = explicit_fields(arguments.field, context['schema'])
-    values, repositories = {}, []
+    values, lists = {}, {field: [] for field in LIST_FIELDS}
     for name in names:
         known, unknown = resolve_profile(store, context['schema'], name)
         if unknown:
             raise ProfileError('source profile has unknown fields; verify the intended template')
         for field, value in known.items():
-            if field == 'REPO':
-                for entry in repository_values(value):
-                    if entry not in repositories:
-                        repositories.append(entry)
+            if field in LIST_FIELDS:
+                for entry in resource_values(value, field):
+                    if entry not in lists[field]:
+                        lists[field].append(entry)
             elif field in values and values[field] != value and field not in overrides:
                 raise ProfileError('conflicting field ' + field + '; align source profiles first')
             else:
                 values[field] = value
-    if repositories and 'REPO' not in overrides:
-        values['REPO'] = (repositories[0] if len(repositories) == 1
-                          else json.dumps(repositories, separators=(',', ':'), ensure_ascii=False))
-        check_field('REPO', values['REPO'])
+    for field, entries in lists.items():
+        if entries and field not in overrides:
+            values[field] = (entries[0] if len(entries) == 1
+                             else json.dumps(entries, separators=(',', ':'), ensure_ascii=False))
+            check_field(field, values[field])
     values.update(overrides)
     # Defaults apply only after all stored source values have been reconciled.
     if values:
@@ -788,7 +791,8 @@ def explicit_fields(assignments, schema):
 def task_fields(lines, schema):
     """Collect explicit task fields; keep unrecognized settings such as Fan-out."""
     definitions = {bullet['label']: bullet for bullet in schema['bullets']}
-    values, repositories, preserved, seen = {}, [], [], set()
+    values, preserved, seen = {}, [], set()
+    lists = {field: [] for field in LIST_FIELDS}
     for line in lines:
         match = BULLET.fullmatch(EXAMPLES.sub('', line.rstrip()))
         # A malformed known label must not be silently replaced by a profile.
@@ -799,7 +803,7 @@ def task_fields(lines, schema):
             continue
         bullet = definitions[label]
         primary = bullet['keys'][0]
-        if primary != 'REPO' and primary in seen:
+        if primary not in LIST_FIELDS and primary in seen:
             raise ProfileError('duplicate ' + label + ' setting in task Resources')
         seen.add(primary)
         pattern = r'`([^`]*)`' + ''.join(
@@ -814,14 +818,15 @@ def task_fields(lines, schema):
             if value is None or (value.startswith('<') and value.endswith('>')):
                 continue
             check_field(key, value)
-            if key == 'REPO':
-                repositories.extend(repository_values(value))
+            if key in LIST_FIELDS:
+                lists[key].extend(resource_values(value, key))
             else:
                 values[key] = value
-    if repositories:
-        values['REPO'] = (repositories[0] if len(repositories) == 1
-                          else json.dumps(repositories, separators=(',', ':'), ensure_ascii=False))
-        check_field('REPO', values['REPO'])
+    for field, entries in lists.items():
+        if entries:
+            values[field] = (entries[0] if len(entries) == 1
+                             else json.dumps(entries, separators=(',', ':'), ensure_ascii=False))
+            check_field(field, values[field])
     return values, preserved
 
 
