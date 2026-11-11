@@ -141,6 +141,31 @@ Structural/read failures use `invalid_local_evidence`; raw exceptions and privat
 enter diagnostics. Repair
 the selection or report unavailable evidence instead of relaxing validation.
 
+## Observe the report cutoff
+
+A native endpoint still requires an exact timestamp match. If a future report will finish
+between native events, record the current cutoff once at the accounting freeze, using the
+[checkpoint recorder](scripts/record_accounting_cutoff.py):
+
+```sh
+python3 -B skills/token-usage/scripts/record_accounting_cutoff.py \
+  --task-artifact "$TASK_ARTIFACT" --thread-id "$ROOT_THREAD_ID" --turn-id "$ROOT_TURN_ID" \
+  --output "$CUTOFF_EVIDENCE"
+```
+
+These IDs must come from the canonical root request/continuation being processed. Resolve
+`CUTOFF_EVIDENCE` to a new absolute private evidence path with existing real parent directories.
+The recorder exclusively writes owner-only evidence using the current UTC time, has no timestamp
+argument, and prints its raw-byte SHA-256, path and exact `observed_at`. Copy that timestamp to
+`window.to`; use `{ "kind": "checkpoint", "path": "/absolute/cutoff.json", "sha256": "..." }`
+for `window.end`. Collection checks the hash, schema, purpose, task, admitted root turn and exact
+timestamp. Its sanitized output retains endpoint proofs without the private file path.
+
+This observes a present boundary; it cannot restore a missing historical observation. Never run
+it to fabricate a past cutoff, replace a frozen timestamp with now, or round a cutoff to the
+nearest native event. Preserve a historical mismatch as the precise validation blocker until
+an authentic original boundary source can be supported. Publication preserves the cutoff.
+
 ## Interpret and retain accounting evidence
 
 - Sum unique native `token_usage_record.usage` responses once, including identified compaction.
@@ -207,6 +232,27 @@ subset labels remain part of the compact presentation.
 Update the canonical report source and regenerate each selected deliverable format under the
 [delivery contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats).
 Generate PDF F skips PDF-only work; preserve historical PDFs without updating or claiming them.
+Use the [shared renderer](scripts/render_token_usage.py) for the saved successful collector JSON:
+
+```sh
+python3 -B skills/token-usage/scripts/render_token_usage.py \
+  --accounting "$ACCOUNTING_EVIDENCE" --format json \
+  --subject "$REPORT_SUBJECT" --scope "$VERIFIED_SCOPE" --completed "$COMPLETION_DATE"
+```
+
+The date is the verified investigation completion date in `YYYY-MM-DD` form. With metadata
+arguments, JSON contains `subheading` and `details`; put the former directly under the title and
+the latter at the end of the canonical report. Without metadata arguments the helper renders only
+details (`subheading: null`). Markdown output is also available. Reuse these same sections when
+regenerating selected formats, then apply the owning delivery and evidence checks.
+The renderer reconciles response/session totals and duration before rendering. A successful
+partial collection displays its recorded subtotal, keeping coverage diagnostics in supporting
+evidence. Empty telemetry remains unavailable. A failed collector diagnostic or malformed/
+conflicting accounting file is rejected with nonzero exit and sanitized stderr, never converted
+into a successful report with permanent null values. Save that failure separately; repair and
+recollect before rendering recovered usage. A schema check cannot authenticate an arbitrary
+hand-authored JSON file: retain the successful collector receipt and original evidence proofs.
+
 Render the collector's numeric fields and session/model rows from the saved accounting data;
 do not hard-code `unavailable` in a renderer after records have been recovered.
 Read the saved Markdown and, when selected, PDF back: the final section and any subheading must agree across

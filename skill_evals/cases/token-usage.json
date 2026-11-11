@@ -48,6 +48,19 @@
         "Keeps accounting cutoff separate from verified handoff and total delivery duration",
         "Reports only observed waits; leaves processing and unsupported phase timings unavailable"
       ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "The token manifest used a UserMessage event rather than the canonical user record. Finalization occurred after two explicit editor continuations; 18 child files exist, and the frozen cutoff has no exact native row. Repair the accounting workflow without changing the published report.",
+      "expected_output": "Uses canonical hashed user request proofs and an explicit verified continuation chain. Selects every evidenced child source and retains missing-source gaps. Preserves the historical cutoff and reports exact sanitized validation codes; never creates a retrospective endpoint. Renders saved successful collector values and session/model rows rather than literal unavailable fallback.",
+      "expectations": [
+        "Uses canonical user response_item proofs and explicitly verified continuation ancestry",
+        "Requires child lineage and exposes missing expected sources without summing snapshots",
+        "Preserves historical cutoffs and never fabricates historical checkpoint evidence",
+        "Keeps collection failures distinct from genuinely unavailable or partial telemetry",
+        "Renders numeric totals and session/model rows from saved validated collector data"
+      ]
     }
   ]
 }
