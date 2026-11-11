@@ -334,6 +334,37 @@ def missing_sources(manifest, sources, admitted, start, end):
     return gaps
 
 
+def prove_endpoint(sources, admitted, proof, expected, artifact, key):
+    if proof.get("kind") == "checkpoint":
+        require(key == "end", "checkpoint_only_supports_cutoff")
+        path = Path(proof["path"])
+        require(path.is_absolute() and path.is_file() and not path.is_symlink()
+                and not any(parent.is_symlink() for parent in path.parents), "unsafe_checkpoint")
+        require(path.stat().st_size <= 4096, "checkpoint_size_limit")
+        with path.open("rb") as stream:
+            raw = stream.read(4097)
+        require(len(raw) <= 4096, "checkpoint_size_limit")
+        require(hashlib.sha256(raw).hexdigest() == proof["sha256"], "checkpoint_hash_mismatch")
+        checkpoint = json.loads(raw, object_pairs_hook=unique_object)
+        require(checkpoint["schema"] == "investigation-accounting-cutoff/v1"
+                and checkpoint["purpose"] == "report-generation-cutoff", "invalid_checkpoint")
+        require(checkpoint["task_artifact"] == artifact, "checkpoint_wrong_task")
+        thread, turn = identity(checkpoint["thread_id"]), identity(checkpoint["turn_id"])
+        require((thread, turn) in admitted and sources[thread]["parent"] is None,
+                "checkpoint_turn_not_bound")
+        require(timestamp(checkpoint["observed_at"]) == expected, "window_end_timestamp_mismatch")
+        require(expected <= datetime.now(timezone.utc), "checkpoint_in_future")
+        return {"kind": "checkpoint", "sha256": proof["sha256"],
+                "thread_id": thread, "turn_id": turn, "observed_at": checkpoint["observed_at"]}
+    require(proof.get("kind", "native") == "native", "invalid_endpoint_kind")
+    source, record, turn = proved_record(sources, proof)
+    require((source["thread_id"], turn) in admitted, "window_endpoint_not_proven")
+    require(timestamp(record["timestamp"]) == expected,
+            "window_start_timestamp_mismatch" if key == "start" else "window_end_timestamp_mismatch")
+    return {"kind": "native", "thread_id": source["thread_id"], "turn_id": turn,
+            "source_line": proof["source_line"], "sha256": proof["sha256"]}
+
+
 def collect(manifest):
     require(manifest.get("schema") == "investigation-token-usage-bindings/v1", "invalid_manifest_schema")
     artifact = manifest["task_artifact"]
@@ -350,11 +381,8 @@ def collect(manifest):
     start, end = timestamp(window["from"]), timestamp(window["to"])
     require(start <= end, "invalid_window")
     admitted = bind_turns(sources, manifest["bindings"], artifact, end)
-    for key, expected in (("start", start), ("end", end)):
-        source, record, turn = proved_record(sources, window[key])
-        require((source["thread_id"], turn) in admitted, "window_endpoint_not_proven")
-        require(timestamp(record["timestamp"]) == expected,
-                "window_start_timestamp_mismatch" if key == "start" else "window_end_timestamp_mismatch")
+    endpoints = {key: prove_endpoint(sources, admitted, window[key], expected, artifact, key)
+                 for key, expected in (("start", start), ("end", end))}
     rows, excluded, seen = [], 0, {}
     gaps = missing_sources(manifest, sources, admitted, start, end)
     for thread, source in sources.items():
@@ -420,6 +448,7 @@ def collect(manifest):
                 for thread, turn in admitted if (thread, turn) not in observed_turns)
     return {"schema": "investigation-token-usage/v1", "task_artifact": artifact,
         "window": {"from": window["from"], "to": window["to"], "elapsed_seconds": (end - start).total_seconds(),
+                   "evidence": endpoints,
                    "semantics": "observed wall-clock interval; includes waits and gaps"},
         "usage": summary(rows), "root_usage": summary([row for row in rows if row["population"] == "root"]),
         "child_usage": summary([row for row in rows if row["population"] == "child"]),
