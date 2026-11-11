@@ -25,7 +25,27 @@ jobs:
         with:
           python-version: '3.14'
       - name: Install diagram test dependency
-        run: sudo apt-get update && sudo apt-get install -y graphviz
+        shell: bash
+        run: |
+          if command -v dot >/dev/null 2>&1; then
+            dot -V
+            exit 0
+          fi
+          # Use signed official archives over HTTPS, scoped to these APT commands.
+          cat > "$RUNNER_TEMP/ubuntu-https.list" <<'SOURCES'
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble main universe
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble-updates main universe
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://security.ubuntu.com/ubuntu noble-security main universe
+          SOURCES
+          apt_options=(
+            -o "Dir::Etc::sourcelist=$RUNNER_TEMP/ubuntu-https.list"
+            -o Dir::Etc::sourceparts=-
+            -o Acquire::Retries=1
+            -o Acquire::https::Timeout=20
+          )
+          sudo apt-get "${apt_options[@]}" update
+          sudo apt-get "${apt_options[@]}" install -y --no-install-recommends graphviz
+          dot -V
       - name: Install reference validation dependencies
         run: python3 -m pip install -r skills/report-evidence/scripts/requirements.txt
       - name: Verify the profile-manager chain end to end
