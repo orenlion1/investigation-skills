@@ -1,6 +1,8 @@
 import copy
 import importlib.util
 import json
+import subprocess
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -296,6 +298,139 @@ class TokenUsageTests(unittest.TestCase):
         result = collector.collect(self.updated_window_manifest())
         self.assertEqual(result['usage']['tokens']['total_tokens'], 22)
         self.assertEqual(result['coverage']['status'], 'partial')
+
+    def editor_chain_manifest(self):
+        self.records[2]['payload']['content'][0]['text'] = 'open task'
+        self.records.extend([
+            start('profile', second=11),
+            record('response_item', {'role': 'user', 'content': 'load additional profile example'}, 12),
+            start('draft', second=13),
+            record('response_item', {'role': 'user', 'content': 'open new draft, delete existing draft'}, 14),
+            record('event_msg', {'type': 'item_completed', 'turn_id': 'draft', 'item': {
+                'type': 'CommandExecution', 'status': 'completed', 'exit_code': 0,
+                'cwd': str(self.root), 'aggregated_output': 'Finalized: ' + str(self.root / TASK)}}, 15),
+            record('event_msg', {'type': 'task_complete', 'turn_id': 'draft'}, 20)])
+        manifest = self.manifest()
+        manifest['bindings'][0]['task_resolution'] = self.proof(10)
+        manifest['bindings'].extend([
+            {'thread_id': 'root', 'turn_id': 'profile', 'continuation_of': 'turn', 'proof': self.proof(7)},
+            {'thread_id': 'root', 'turn_id': 'draft', 'continuation_of': 'profile', 'proof': self.proof(9)}])
+        return manifest
+
+    def test_editor_resolution_reaches_original_request_through_verified_chain(self):
+        result = collector.collect(self.editor_chain_manifest())
+        self.assertEqual(result['usage']['tokens']['total_tokens'], 110)
+        self.assertEqual(result['coverage']['admitted_turns'], 3)
+
+    def test_editor_chain_rejects_missing_link_conflict_and_other_thread(self):
+        manifest = self.editor_chain_manifest()
+        manifest['bindings'].pop(1)
+        with self.assertRaisesRegex(ValueError, 'continuation_not_bound'):
+            collector.collect(manifest)
+        manifest = self.manifest()
+        manifest['bindings'][0]['task_resolution'] = self.proof(10)
+        with self.assertRaisesRegex(ValueError, 'task_resolution_wrong_turn'):
+            collector.collect(manifest)
+        manifest['bindings'][0]['task_resolution']['thread_id'] = 'other'
+        with self.assertRaisesRegex(ValueError, 'task_resolution_wrong_thread'):
+            collector.collect(manifest)
+
+    def test_missing_expected_child_source_is_a_gap_not_zero(self):
+        manifest = self.manifest()
+        manifest['expected_threads'] = ['root', 'missing-child']
+        result = collector.collect(manifest)
+        self.assertEqual(result['coverage']['status'], 'partial')
+        self.assertIn({'thread_id': 'missing-child', 'reason': 'expected_source_missing'},
+                      result['coverage']['gaps'])
+        self.assertIsNone(result['child_usage']['tokens']['total_tokens'])
+
+    def test_native_spawn_result_detects_omitted_child_source(self):
+        self.records[4:4] = [
+            record('response_item', {'type': 'function_call', 'name': 'spawn_agent',
+                                    'call_id': 'spawn-1', 'arguments': 'PRIVATE'}, 3),
+            record('response_item', {'type': 'function_call_output', 'call_id': 'spawn-1',
+                                    'output': json.dumps({'agent_id': 'omitted-child'})}, 4)]
+        result = collector.collect(self.manifest())
+        self.assertIn({'thread_id': 'omitted-child', 'reason': 'expected_source_missing'},
+                      result['coverage']['gaps'])
+        self.assertEqual(result['coverage']['status'], 'partial')
+        self.assertNotIn('PRIVATE', json.dumps(result))
+
+    def test_cli_reports_sanitized_exact_wrong_request_code(self):
+        manifest = self.shorthand_manifest()
+        self.records.insert(3, record('event_msg', {'type': 'item_completed', 'item': {
+            'type': 'UserMessage', 'text': 'PRIVATE /private/credential'}}, 1))
+        manifest = self.manifest()
+        manifest['bindings'][0]['proof'] = self.proof(4)
+        path = self.root / 'manifest.json'; path.write_text(json.dumps(manifest))
+        result = subprocess.run([sys.executable, str(SCRIPT), '--manifest', str(path)],
+                                text=True, capture_output=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(json.loads(result.stderr)['code'], 'user_request_required')
+        self.assertEqual(result.stdout, '')
+        self.assertNotIn('PRIVATE', result.stderr)
+        self.assertNotIn(str(self.root), result.stderr)
+
+    def test_cutoff_mismatch_has_precise_code_without_moving_cutoff(self):
+        manifest = self.manifest()
+        manifest['window']['to'] = '2026-10-16T10:00:10.007886Z'
+        with self.assertRaisesRegex(ValueError, 'window_end_timestamp_mismatch'):
+            collector.collect(manifest)
+        self.assertEqual(manifest['window']['to'], '2026-10-16T10:00:10.007886Z')
+
+    def test_all_continuations_and_eighteen_children_are_counted_once(self):
+        manifest = self.editor_chain_manifest()
+        for turn, second in (('profile', 12), ('draft', 16)):
+            row = response(turn=turn, response_id=turn, second=second)
+            row['payload']['root_turn_id'] = turn
+            self.records.append(row)
+        manifest['sources'] = [self.source(self.records)]
+        for number in range(18):
+            thread = 'child-' + str(number)
+            child = [record('session_meta', {'id': thread, 'parent_thread_id': 'root'}),
+                     start('child-turn', parent='draft', root='draft', second=15)]
+            row = response(thread, 'child-turn', 'child-response', 17)
+            row['payload']['root_turn_id'] = 'draft'
+            child.extend([row, copy.deepcopy(row)])
+            manifest['sources'].append(self.source(child, thread))
+        manifest['expected_threads'] = [item['thread_id'] for item in manifest['sources']]
+        result = collector.collect(manifest)
+        self.assertEqual(result['usage']['tokens']['total_tokens'], 21 * 110)
+        self.assertEqual(result['usage']['record_count'], 21)
+        self.assertEqual(result['child_usage']['record_count'], 18)
+        self.assertEqual(result['root_usage']['record_count'], 3)
+        self.assertEqual(result['coverage']['status'], 'observed')
+
+    def test_later_resolution_rejects_tampering_failure_and_conflicting_continuation(self):
+        original = copy.deepcopy(self.records)
+        for mutation in ('hash', 'failure', 'other-task', 'policy'):
+            with self.subTest(mutation=mutation):
+                self.records = copy.deepcopy(original)
+                manifest = self.editor_chain_manifest()
+                if mutation == 'hash':
+                    manifest['bindings'][0]['task_resolution']['sha256'] = 'fabricated'
+                elif mutation == 'failure':
+                    self.records[9]['payload']['item']['exit_code'] = 1
+                    manifest['sources'] = [self.source(self.records)]
+                    manifest['bindings'][0]['task_resolution'] = self.proof(10)
+                else:
+                    self.records[8]['payload']['content'] = ('run docs/tasks/TASK-other.md'
+                        if mutation == 'other-task' else '<INSTRUCTIONS> continue')
+                    manifest['sources'] = [self.source(self.records)]
+                    manifest['bindings'][2]['proof'] = self.proof(9)
+                with self.assertRaises(ValueError):
+                    collector.collect(manifest)
+
+    def test_cli_parse_errors_never_echo_raw_input(self):
+        path = self.root / 'private-manifest.json'
+        path.write_text('{"PRIVATE credential": invalid}')
+        result = subprocess.run([sys.executable, str(SCRIPT), '--manifest', str(path)],
+                                text=True, capture_output=True)
+        self.assertEqual(json.loads(result.stderr)['code'], 'invalid_local_evidence')
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout, '')
+        self.assertNotIn('PRIVATE', result.stderr)
+        self.assertNotIn(str(path), result.stderr)
 
     def updated_window_manifest(self):
         manifest = self.manifest()

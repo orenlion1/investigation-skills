@@ -23,9 +23,17 @@ MAX_SOURCES = 100
 IDENTIFIER = re.compile(r"[A-Za-z0-9_.-]{1,128}\Z")
 
 
+class EvidenceError(ValueError):
+    """Only fixed application codes may cross the public diagnostic boundary."""
+
+    def __init__(self, code):
+        self.code = code
+        super().__init__(code)
+
+
 def require(condition, reason):
     if not condition:
-        raise ValueError(reason)
+        raise EvidenceError(reason)
 
 
 def identity(value):
@@ -97,7 +105,7 @@ def read_source(selected):
                 gaps.append({"reason": "truncated_final_record", "source_line": number,
                              "after": records.get(number - 1, {}).get("timestamp")})
                 break
-            raise ValueError("malformed_source") from None
+            raise EvidenceError("malformed_source") from None
         require(isinstance(record, dict), "malformed_source")
         records[number] = record
     first = records.get(1, {})
@@ -157,7 +165,7 @@ def proved_record(sources, proof):
     return source, record, source["active"][number]
 
 
-def prove_task_resolution(sources, binding, artifact, end):
+def prove_task_resolution(sources, binding, artifact, end, continuations, proof_lines):
     """Bind shorthand to observed successful finalization, never assistant prose."""
     thread, turn = binding['thread_id'], binding['turn_id']
     proof = binding.get('task_resolution')
@@ -166,7 +174,13 @@ def prove_task_resolution(sources, binding, artifact, end):
     _, record, active = proved_record(sources, proof)
     payload = record.get('payload', {})
     item = payload.get('item', {})
-    require(active == turn and payload.get('turn_id') == turn, 'task_resolution_wrong_turn')
+    require(payload.get('turn_id') == active, 'task_resolution_wrong_turn')
+    resolved = (thread, active)
+    while resolved != (thread, turn) and resolved in continuations:
+        resolved = continuations[resolved]
+    require(resolved == (thread, turn), 'task_resolution_wrong_turn')
+    require(proof['source_line'] > proof_lines[(thread, active)],
+            'task_resolution_before_turn_request')
     require(record.get('type') == 'event_msg' and payload.get('type') == 'item_completed'
             and item.get('type') == 'CommandExecution' and item.get('status') == 'completed'
             and type(item.get('exit_code')) is int and item['exit_code'] == 0,
@@ -193,9 +207,11 @@ def prove_task_resolution(sources, binding, artifact, end):
 
 
 def bind_turns(sources, bindings, artifact, end):
-    admitted, proof_lines = {}, {}
+    admitted, proof_lines, continuations, resolutions = {}, {}, {}, []
+    require(isinstance(bindings, list) and bindings, "bindings_required")
     for binding in bindings:
         thread, turn = identity(binding["thread_id"]), identity(binding["turn_id"])
+        require(binding["proof"].get("thread_id", thread) == thread, "request_proof_wrong_thread")
         source, record, active = proved_record(sources, {**binding["proof"], "thread_id": thread})
         require(source["parent"] is None and active == turn, "root_turn_proof_mismatch")
         payload = record.get("payload", {})
@@ -206,6 +222,7 @@ def bind_turns(sources, bindings, artifact, end):
             item.get("text", "") for item in content if item.get("type") in ("text", "input_text"))
         require(not re.search(r"#\s*AGENTS\.md|<INSTRUCTIONS>|<environment_context>|<system>|<developer>",
                               text, re.I), "injected_policy_not_task_proof")
+        require(timestamp(record["timestamp"]) <= end, "request_after_cutoff")
         previous = binding.get("continuation_of")
         if previous is None:
             explicit = re.fullmatch(r"(?:run|edit task)\s+" + re.escape(artifact), text.strip())
@@ -217,17 +234,25 @@ def bind_turns(sources, bindings, artifact, end):
                 named_tasks = re.findall(r'(?:docs/tasks/)?TASK-[A-Za-z0-9_-]+\.md', text)
                 require(all(Path(item).name == Path(artifact).name for item in named_tasks),
                         'request_names_other_task')
-                prove_task_resolution(sources, binding, artifact, end)
+                resolutions.append(binding)
         else:
             require((thread, previous) in admitted and previous != turn, "continuation_not_bound")
             require(binding["proof"]["source_line"] > proof_lines[(thread, previous)],
                     "continuation_precedes_request")
+            prior = source["records"][proof_lines[(thread, previous)]]
+            require(timestamp(prior["timestamp"]) <= timestamp(record["timestamp"]),
+                    "continuation_timestamp_precedes_request")
+            continuations[(thread, turn)] = (thread, previous)
             other_tasks = re.findall(r"(?:docs/tasks/)?TASK-[A-Za-z0-9_-]+\.md", text)
             require(all(Path(item).name == Path(artifact).name for item in other_tasks),
                     "continuation_names_other_task")
         require((thread, turn) not in admitted, "duplicate_binding")
         admitted[(thread, turn)] = (thread, turn)
         proof_lines[(thread, turn)] = binding["proof"]["source_line"]
+    # A later editor-finalization turn is accepted only after every intervening
+    # canonical user binding has been checked. Independent roots cannot resolve it.
+    for binding in resolutions:
+        prove_task_resolution(sources, binding, artifact, end, continuations, proof_lines)
     changed = True
     while changed:
         changed = False
@@ -269,6 +294,46 @@ def counter_gaps(rows, baselines=()):
     return gaps
 
 
+def missing_sources(manifest, sources, admitted, start, end):
+    """Discover standard Codex spawn call/results without copying tool payloads."""
+    expected = manifest.get("expected_threads", [])
+    require(isinstance(expected, list) and len(expected) <= MAX_SOURCES, "invalid_expected_threads")
+    expected = {identity(thread) for thread in expected}
+    gaps = []
+    for thread, source in sources.items():
+        calls = {}
+        for number, record in source["records"].items():
+            turn = source["active"][number]
+            if (thread, turn) not in admitted or not start <= timestamp(record["timestamp"]) <= end:
+                continue
+            payload = record.get("payload", {})
+            if record.get("type") != "response_item" or not isinstance(payload, dict):
+                continue
+            if payload.get("type") == "function_call" and payload.get("name") in (
+                    "spawn_agent", "collaboration.spawn_agent"):
+                calls[payload.get("call_id")] = turn
+            elif payload.get("type") == "function_call_output" and payload.get("call_id") in calls:
+                require(calls.pop(payload["call_id"]) == turn, "spawn_result_wrong_turn")
+                try:
+                    output = json.loads(payload.get("output", ""), object_pairs_hook=unique_object)
+                except (ValueError, TypeError):
+                    output = None
+                child = output.get("agent_id") if isinstance(output, dict) else None
+                if child is None:
+                    gaps.append({"thread_id": thread, "turn_id": turn,
+                                 "source_line": number, "reason": "spawn_result_identity_unavailable"})
+                    continue
+                child = identity(child)
+                expected.add(child)
+                if child in sources:
+                    require(sources[child]["parent"] == thread, "spawn_child_parent_mismatch")
+        gaps.extend({"thread_id": thread, "turn_id": turn, "reason": "spawn_result_missing"}
+                    for turn in calls.values())
+    gaps.extend({"thread_id": thread, "reason": "expected_source_missing"}
+                for thread in sorted(expected - sources.keys()))
+    return gaps
+
+
 def collect(manifest):
     require(manifest.get("schema") == "investigation-token-usage-bindings/v1", "invalid_manifest_schema")
     artifact = manifest["task_artifact"]
@@ -287,9 +352,11 @@ def collect(manifest):
     admitted = bind_turns(sources, manifest["bindings"], artifact, end)
     for key, expected in (("start", start), ("end", end)):
         source, record, turn = proved_record(sources, window[key])
-        require((source["thread_id"], turn) in admitted and timestamp(record["timestamp"]) == expected,
-                "window_endpoint_not_proven")
-    rows, gaps, excluded, seen = [], [], 0, {}
+        require((source["thread_id"], turn) in admitted, "window_endpoint_not_proven")
+        require(timestamp(record["timestamp"]) == expected,
+                "window_start_timestamp_mismatch" if key == "start" else "window_end_timestamp_mismatch")
+    rows, excluded, seen = [], 0, {}
+    gaps = missing_sources(manifest, sources, admitted, start, end)
     for thread, source in sources.items():
         gaps.extend({"thread_id": thread, **gap} for gap in source["gaps"]
                     if gap.get("after") is None or timestamp(gap["after"]) <= end)
@@ -369,7 +436,8 @@ def collect(manifest):
                      "native_counter_baselines": [{key: row[key] for key in
                          ('thread_id', 'turn_id', 'source_line', 'record_sha256', 'observed_at')}
                          for row in baselines.values()],
-                     "child_discovery": "only explicitly supplied child sources are inspected",
+                     "child_discovery": "selected sources; standard spawn call/results and explicit expected_threads inventory",
+                     "source_inventory_complete": False,
                      "legacy_delta_count": sum(row["source_kind"] == "legacy_counter_delta" for row in rows)},
         "responses": rows}
 
@@ -382,8 +450,13 @@ def main(argv=None):
         path = Path(args.manifest)
         require(path.stat().st_size <= 2 * 1024 * 1024, "manifest_size_limit")
         result = collect(json.loads(path.read_text(), object_pairs_hook=unique_object))
+    except EvidenceError as error:
+        print(json.dumps({"schema": "investigation-token-usage-error/v1",
+                          "status": "failed", "code": error.code}), file=sys.stderr)
+        return 1
     except (OSError, ValueError, TypeError, KeyError, AttributeError):
-        print("Token usage unavailable: invalid, missing, or conflicting local evidence.", file=sys.stderr)
+        print(json.dumps({"schema": "investigation-token-usage-error/v1",
+                          "status": "failed", "code": "invalid_local_evidence"}), file=sys.stderr)
         return 1
     print(json.dumps(result, sort_keys=True, allow_nan=False))
     return 0
