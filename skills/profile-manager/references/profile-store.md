@@ -16,8 +16,7 @@ PROFILE__{PROFILE_NAME}__{FIELD}
   Profile names are lowercase kebab-case (`example`, `other-team`), so an upper-cased name
   can never contain a double underscore and the separator stays unambiguous.
 - `FIELD` is a field key derived from the task template, upper case with single underscores.
-- Values are written single-quoted (`PROFILE__EXAMPLE__REPO='example-service'`), so the file
-  stays safe to read with a dotenv parser or `set -a; . ./.env`.
+- Values are written single-quoted (`PROFILE__EXAMPLE__REPO='example-service'`), and read as data by the helper; never source `.env` as shell code.
 
 A key inside the `PROFILE__` prefix that does not split into exactly three non-empty parts
 is an error, not a key to ignore: the store fails closed rather than silently dropping an
@@ -94,9 +93,10 @@ line to standard error and exit `2`.
 | `ignore` | `.gitignore` | Ensure Git ignores the store, then verify it. |
 | `init` | `.env` | Create an empty owner-only store. |
 | `set --profile NAME --field FIELD=value` | `.env` | Merge fields; `--replace` discards unmentioned fields; an empty value clears one. |
+| `compose --profile ENV --profile APP --into NAME` | `.env` | Persist a combined snapshot; `--replace` replaces an existing target. |
 | `remove --profile NAME` | `.env` | Delete one profile's keys and marker. |
 | `remove-env` | `.env` | Delete the whole store; `--force` is required when it holds unmanaged keys. |
-| `load --profile NAME --task PATH` | task | Replace the task's `## Resources` body; `--replace` is required when it already supplies values. |
+| `load --profile NAME --task PATH` | task | Load effective Resources with user-field precedence; `--replace` permits rewriting an already-populated section. |
 
 ## Write guards
 
@@ -223,3 +223,72 @@ F retains verified Markdown, evidence and required graphs, skips PDF-only toolin
 and preserves older PDFs as historical. Record the choice with the saved report so later
 publication honors it without attaching stale companions. Configuration never authorizes
 an investigation or publication.
+
+
+## Repository values
+
+`REPO` remains a string in command JSON and `.env`: a legacy scalar repository or a JSON
+array of 1–16 unique nonempty repository strings. The entire field is bounded to 8192 UTF-8
+bytes and each entry to 512 characters. Schema metadata exposes both limits. Lists preserve
+order, reject duplicate entries, non-strings, malformed JSON, placeholders, credentials,
+controls, backticks, angle brackets and backslashes. URL credentials, queries and fragments are
+refused; the conventional `git` username in `ssh://git@host/path` is supported, as is
+legacy `git@host:owner/repo.git` syntax. Provider resolution and reachability belong to source investigation, not storage.
+Use explicit GitHub/Bitbucket URLs for mixed-provider lists; a short name needs a verified
+provider context before investigation.
+
+```dotenv
+PROFILE__APP_ALPHA__REPO='["org/service-a","org/shared-library"]'
+```
+
+Set replaces or clears this field just like a scalar. Show preserves its stored format;
+render/load emit a separate Repo bullet for every entry. Existing scalar profiles need no
+migration. All known-field readers validate manually edited arrays before returning them.
+
+## Profile composition
+
+`compose --profile prod-us --profile app-alpha --into prod-us-app-alpha` reads the ordered
+source profiles and persists a new named snapshot in the same ignored, untracked `.env`.
+It requires at least two unique sources and a distinct target. Names remain kebab-case;
+“Prod US” and “App Alpha” are display names. No source is modified and no TASK is loaded
+implicitly. Run the existing load command with the combined profile afterward.
+
+Merge stored fields only. REPO uses first-seen order and exact-string deduplication across
+profiles, then revalidates the union's limits; duplicates within one input array are errors.
+A one-entry result uses scalar form. Identical non-REPO values are compatible; differing
+values fail without a write and identify only the conflicting field. This includes endpoint
+JSON strings and stored PDF/history defaults, since the store has no provenance distinguishing
+implicit defaults from explicit values. Missing defaults are filled after merging. Align or
+clear a conflicting stored setting explicitly; composition never silently chooses a winner.
+Unknown source fields fail rather than disappearing. Validate dependencies and require an
+actual resource in the effective result before persistence.
+
+An existing target needs `--replace`, which replaces its whole field set instead of preserving
+stale fields. Sources remain unchanged, unrelated bytes (including CRLF line endings) remain
+unchanged, and the store stays owner-only. Dry-run validates and previews without filesystem
+writes. A store-size overflow fails before mutation. Atomic persistence is followed by a
+read-back of all profiles. Repeating replacement with the same inputs yields the same bytes.
+Refresh the snapshot explicitly after changing sources. Direct multi-profile TASK loading and
+shell environment export are outside this command's scope.
+
+
+## User configuration precedence
+
+User-specified values win over Profile Manager injection. For `load`, layer explicit repeated
+`--field FIELD=value` overrides above saved TASK Resources, above profile fields, above defaults.
+The existing guard requires `--replace` when Resources already contain actual values, but
+replacement now retains all explicit user fields rather than only Generate PDF. Preserve unknown
+settings such as `Fan-out: disabled`. Known scalar duplicates, malformed bullets and invalid
+values fail before writes; repeated repository bullets form one validated list. Subsequent loads
+treat saved task values as user configuration. Change them in the editor or use a newer explicit
+command field. TASK user fields do not modify the profile store.
+
+`compose` also accepts repeated `--field FIELD=value`. Validate all sources; resolve scalar
+conflicts only when the user supplies that field explicitly, then layer the override before
+missing defaults and effective dependency validation. An explicit REPO replaces the inherited
+union. Overrides must be nonempty, unique, schema-declared, validated values. They change only
+the composed target, never its sources. All other conflicting stored fields remain errors.
+
+Current explicit user instructions are the highest authority when the orchestrator prepares an
+investigation's effective resources; profile values cannot replace them. Reflect the chosen
+values in the shared resolved input before delegation, honoring all scope and authentication gates.

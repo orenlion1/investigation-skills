@@ -305,5 +305,250 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertIn('at least one FIELD=value', self.fails('set', '--profile', 'example'))
 
 
+    def test_repository_array_roundtrip_and_repeated_load(self):
+        self.ignore_and_init()
+        repositories = ['org/service-a', 'https://bitbucket.example/team/library']
+        value = json.dumps(repositories)
+        fields = self.ok('set', '--profile', 'app-alpha', '--field', 'REPO=' + value)['fields']
+        self.assertEqual(fields['REPO'], value)
+        self.assertEqual(self.ok('show', '--profile', 'app-alpha')['fields']['REPO'], value)
+        schema = {field['field']: field for field in self.ok('schema')['fields']}
+        self.assertEqual(schema['REPO']['type'], 'repository-or-array')
+        self.assertEqual(schema['REPO']['max_items'], 16)
+        before = self.store.read_bytes()
+        rendered = self.ok('render', '--profile', 'app-alpha')
+        self.assertEqual(rendered.count('- Repo (Bitbucket/Github):'), 2)
+        self.assertNotIn('`[', rendered)
+        task = self.root / 'TASK.md'
+        task.write_text('# Task Title: case\n\n## Resources\n\n## Other\nKeep me.\n')
+        self.ok('load', '--profile', 'app-alpha', '--task', str(task))
+        loaded = task.read_bytes()
+        self.assertIn('## Other\nKeep me.', task.read_text())
+        for repo in repositories:
+            self.assertIn('- Repo (Bitbucket/Github): `' + repo + '`', task.read_text())
+        self.assertIn('already supplies', self.fails('load', '--profile', 'app-alpha',
+                                                  '--task', str(task)))
+        self.ok('load', '--profile', 'app-alpha', '--task', str(task), '--replace')
+        self.assertEqual(loaded, task.read_bytes())
+        self.assertEqual(before, self.store.read_bytes())
+
+    def test_repository_array_validation_fails_without_writes_or_value_leaks(self):
+        self.ignore_and_init()
+        invalid = ['[\n\"a\"]', '[]', '[1]', '[null]', '[true]', '[{}]', '["a", "a"]',
+                   '["a",]', '["<repo>"]', '["a`b"]', '["a\\nb"]',
+                   json.dumps(['a' * 513]), json.dumps([chr(0xd800)]),
+                   json.dumps(['a' + chr(0x2028) + 'b']), json.dumps(['r' + str(i) for i in range(17)]),
+                   json.dumps(['r' + str(i) + 'x' * 510 for i in range(16)]),
+                   json.dumps(['xox' + 'b-1234567890-abcdefabcdef']),
+                   json.dumps(['https://' + 'name:private' + '@' + 'example.com/org/repo'])]
+        for value in invalid:
+            with self.subTest(value=value[:20]):
+                before = self.store.read_bytes()
+                error = self.fails('set', '--profile', 'app', '--field', 'REPO=' + value)
+                self.assertIn('invalid REPO', error)
+                self.assertNotIn(value, error)
+                self.assertEqual(before, self.store.read_bytes())
+
+    def test_repository_array_readers_validate_manual_values(self):
+        self.ignore_and_init()
+        self.store.write_text("PROFILE__APP__REPO='[1]'\n")
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n')
+        for args in [('show',), ('render',), ('load', '--task', str(task))]:
+            self.assertIn('invalid REPO', self.fails(args[0], '--profile', 'app', *args[1:]))
+        self.assertEqual(task.read_text(), '## Resources\n')
+
+    def test_repository_replacement_clearing_and_legacy_compatibility(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'app', '--field', 'REPO=["a","b"]')
+        self.ok('set', '--profile', 'app', '--field', 'REPO=legacy-service')
+        self.assertEqual(self.ok('show', '--profile', 'app')['fields']['REPO'], 'legacy-service')
+        self.assertIn('- Repo (Bitbucket/Github): `legacy-service`',
+                      self.ok('render', '--profile', 'app'))
+        self.ok('set', '--profile', 'app', '--field', 'GRAFANA_CONTEXT=ops', '--field', 'REPO=')
+        self.assertNotIn('REPO', self.ok('show', '--profile', 'app')['fields'])
+
+    def test_compose_persists_ordered_union_and_preserves_sources(self):
+        self.ignore_and_init()
+        self.store.write_text('# untouched\nUNMANAGED="keep me exactly"\n')
+        self.ok('set', '--profile', 'prod-us', '--field', 'AWS_ACCOUNT=ops-readonly',
+                '--field', 'AWS_REGION=us-east-1', '--field', 'REPO=org/shared')
+        self.ok('set', '--profile', 'app-alpha',
+                '--field', 'REPO=["org/service-a","org/shared","org/service-b"]')
+        before = self.store.read_bytes()
+        dry = self.ok('compose', '--profile', 'prod-us', '--profile', 'app-alpha',
+                      '--into', 'combined', '--dry-run')
+        self.assertEqual(before, self.store.read_bytes())
+        self.assertEqual(json.loads(dry['fields']['REPO']),
+                         ['org/shared', 'org/service-a', 'org/service-b'])
+        self.ok('compose', '--profile', 'prod-us', '--profile', 'app-alpha', '--into', 'combined')
+        self.assertTrue(self.store.read_bytes().startswith(before))
+        shown = self.ok('show', '--profile', 'combined')['fields']
+        self.assertEqual(shown['AWS_ACCOUNT'], 'ops-readonly')
+        self.assertEqual(shown['AWS_REGION'], 'us-east-1')
+        self.assertEqual(shown['GENERATE_PDF'], 'T')
+        self.assertEqual(oct(self.store.stat().st_mode & 0o777), '0o600')
+        target_before = self.store.read_bytes()
+        self.assertIn('already exists', self.fails('compose', '--profile', 'prod-us',
+                      '--profile', 'app-alpha', '--into', 'combined'))
+        self.assertEqual(self.store.read_bytes(), target_before)
+        self.ok('compose', '--profile', 'prod-us', '--profile', 'app-alpha',
+                '--into', 'combined', '--replace')
+        self.assertEqual(self.store.read_bytes(), target_before)
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n- Generate PDF: `F`\n')
+        self.ok('load', '--profile', 'combined', '--task', str(task))
+        self.assertEqual(task.read_text().count('- Repo (Bitbucket/Github):'), 3)
+        self.assertIn('- AWS region: `us-east-1`', task.read_text())
+        self.assertIn('- Generate PDF: `F`', task.read_text())
+
+    def test_compose_scalar_conflicts_are_atomic_and_sanitized(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'one', '--field', 'REPO=repo-a',
+                '--field', 'GRAFANA_CONTEXT=first-private-value')
+        self.ok('set', '--profile', 'two', '--field', 'REPO=repo-b',
+                '--field', 'GRAFANA_CONTEXT=second-private-value')
+        before = self.store.read_bytes()
+        error = self.fails('compose', '--profile', 'one', '--profile', 'two', '--into', 'out')
+        self.assertIn('conflicting field GRAFANA_CONTEXT', error)
+        self.assertNotIn('private-value', error)
+        self.assertEqual(before, self.store.read_bytes())
+
+    def test_compose_guards_sources_and_target_and_revalidates_union(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'one', '--field', 'REPO=a')
+        self.ok('set', '--profile', 'two', '--field', 'REPO=b')
+        before = self.store.read_bytes()
+        for sources, target in [(['one'], 'out'), (['one', 'one'], 'out'),
+                                (['one', 'two'], 'one'), (['one', 'missing'], 'out')]:
+            args = [item for name in sources for item in ('--profile', name)]
+            self.fails('compose', *args, '--into', target, '--replace')
+            self.assertEqual(before, self.store.read_bytes())
+        self.ok('set', '--profile', 'one',
+                '--field', 'REPO=' + json.dumps(['r' + str(i) for i in range(16)]))
+        before = self.store.read_bytes()
+        self.assertIn('invalid REPO', self.fails('compose', '--profile', 'one',
+                      '--profile', 'two', '--into', 'out'))
+        self.assertEqual(before, self.store.read_bytes())
+
+    def test_compose_defaults_unknown_fields_and_whole_target_replacement(self):
+        self.ignore_and_init()
+        self.store.write_text("PROFILE__ONE__REPO='a'\nPROFILE__TWO__REPO='b'\n"
+                              "PROFILE__TWO__GENERATE_PDF='F'\n")
+        self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out')
+        self.assertEqual(self.ok('show', '--profile', 'out')['fields']['GENERATE_PDF'], 'F')
+        self.ok('set', '--profile', 'out', '--field', 'SLACK_CHANNEL=#stale')
+        self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out', '--replace')
+        self.assertNotIn('SLACK_CHANNEL', self.ok('show', '--profile', 'out')['fields'])
+        with self.store.open('a') as stream:
+            stream.write("PROFILE__ONE__UNKNOWN='unknown'\n")
+        before = self.store.read_bytes()
+        self.assertIn('unknown fields', self.fails('compose', '--profile', 'one',
+                      '--profile', 'two', '--into', 'out', '--replace'))
+        self.assertEqual(before, self.store.read_bytes())
+
+
+    def test_compose_preserves_unmanaged_newline_bytes(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'one', '--field', 'REPO=a')
+        self.ok('set', '--profile', 'two', '--field', 'REPO=b')
+        prefix = b'# local settings\r\nUNMANAGED="unchanged"\r\n'
+        original = prefix + self.store.read_bytes()
+        self.store.write_bytes(original)
+        self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out')
+        self.assertTrue(self.store.read_bytes().startswith(original))
+        self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out', '--replace')
+        self.assertTrue(self.store.read_bytes().startswith(original))
+
+
+    def test_repository_ssh_identity_is_not_a_credential(self):
+        self.ignore_and_init()
+        for repo in ('git@example.com:org/repo.git', 'ssh://git@example.com/org/repo.git'):
+            self.ok('set', '--profile', 'app', '--field', 'REPO=' + repo)
+            self.assertEqual(self.ok('show', '--profile', 'app')['fields']['REPO'], repo)
+            self.assertIn('`' + repo + '`', self.ok('render', '--profile', 'app'))
+
+
+    def test_compose_replaces_manually_lowercase_target_keys(self):
+        self.ignore_and_init()
+        self.store.write_text("PROFILE__ONE__REPO='a'\nPROFILE__TWO__REPO='b'\n"
+                             "PROFILE__out__REPO='old'\nPROFILE__out__SLACK_CHANNEL='#stale'\n")
+        self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out', '--replace')
+        shown = self.ok('show', '--profile', 'out')['fields']
+        self.assertEqual(json.loads(shown['REPO']), ['a', 'b'])
+        self.assertNotIn('SLACK_CHANNEL', shown)
+        self.assertNotIn('PROFILE__out__', self.store.read_text())
+
+
+    def test_load_preserves_user_task_fields_above_injected_profile_values(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'env', '--field', 'REPO=profile-repo',
+                '--field', 'SLACK_CHANNEL=#profile', '--field', 'AWS_REGION=us-east-1')
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n- Slack channel: `#user`\n'
+                        '- AWS region: `eu-central-1`\n- Fan-out: disabled\n')
+        before = self.store.read_bytes()
+        self.ok('load', '--profile', 'env', '--task', str(task), '--replace')
+        self.assertIn('- Slack channel: `#user`', task.read_text())
+        self.assertIn('- AWS region: `eu-central-1`', task.read_text())
+        self.assertIn('- Repo (Bitbucket/Github): `profile-repo`', task.read_text())
+        self.assertIn('- Fan-out: disabled', task.read_text())
+        self.assertNotIn('`#profile`', task.read_text())
+        self.assertEqual(before, self.store.read_bytes())
+        first = task.read_bytes()
+        self.ok('load', '--profile', 'env', '--task', str(task), '--replace')
+        self.assertEqual(first, task.read_bytes())
+
+    def test_explicit_compose_and_load_fields_win_without_changing_sources(self):
+        self.ignore_and_init()
+        for name in ('one', 'two'):
+            self.ok('set', '--profile', name, '--field', 'REPO=' + name,
+                    '--field', 'SLACK_CHANNEL=#' + name)
+        before = self.store.read_bytes()
+        result = self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out',
+                         '--field', 'SLACK_CHANNEL=#user', '--field', 'REPO=chosen-repo')
+        self.assertEqual(result['fields']['SLACK_CHANNEL'], '#user')
+        self.assertEqual(result['fields']['REPO'], 'chosen-repo')
+        self.assertTrue(self.store.read_bytes().startswith(before))
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n- Slack channel: `#saved`\n- Generate PDF: `T`\n')
+        profile_before = self.store.read_bytes()
+        self.ok('load', '--profile', 'out', '--task', str(task), '--replace',
+                '--field', 'SLACK_CHANNEL=#latest', '--field', 'GENERATE_PDF=F')
+        self.assertIn('- Slack channel: `#latest`', task.read_text())
+        self.assertIn('- Generate PDF: `F`', task.read_text())
+        self.assertEqual(self.store.read_bytes(), profile_before)
+
+    def test_invalid_or_duplicate_user_task_fields_fail_before_mutation(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'env', '--field', 'REPO=profile-repo')
+        task = self.root / 'TASK.md'
+        for body in ('- Slack channel: `#one`\n- Slack channel: `#two`\n',
+                     '- Slack channel: malformed\n',
+                     '- Repo (Bitbucket/Github): `[1]`\n'):
+            task.write_text('## Resources\n' + body)
+            before = task.read_bytes()
+            self.fails('load', '--profile', 'env', '--task', str(task), '--replace')
+            self.assertEqual(task.read_bytes(), before)
+        task.write_text('## Resources\n')
+        self.assertIn('unknown field', self.fails('load', '--profile', 'env', '--task', str(task),
+                      '--field', 'UNKNOWN=anything'))
+        self.assertEqual(task.read_text(), '## Resources\n')
+
+
+    def test_near_byte_limit_repository_list_loads_repeatedly(self):
+        self.ignore_and_init()
+        entries = [str(i) + 'a' * (508 + (i < 3) - len(str(i))) for i in range(16)]
+        value = json.dumps(entries, separators=(',', ':'))
+        self.assertEqual(len(value.encode()), 8180)
+        self.ok('set', '--profile', 'app', '--field', 'REPO=' + value)
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n')
+        self.ok('load', '--profile', 'app', '--task', str(task))
+        before = task.read_bytes()
+        self.ok('load', '--profile', 'app', '--task', str(task), '--replace')
+        self.assertEqual(task.read_bytes(), before)
+
+
 if __name__ == '__main__':
     unittest.main()

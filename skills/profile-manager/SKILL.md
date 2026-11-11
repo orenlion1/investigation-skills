@@ -1,6 +1,6 @@
 ---
 name: profile-manager
-description: "Maintain the repository's local untracked .env resource-profile store: create or delete .env, add, update, remove and inspect a named profile, keep .env ignored by Git, load a profile into a task's Resources section, and derive the profile schema from the TASK template. Use when asked to add, remove or load an .env profile, to set up .env ignore rules, or to fill task Resources from a saved profile; credentials stay in their own credential stores."
+description: "Maintain the local untracked .env resource-profile store: create, inspect, compose or remove named profiles; store single or multiple repositories; load task Resources; derive the schema from the TASK template. Use when composing environmental/application profiles, managing .env profiles or ignore rules, or loading task Resources; credentials stay in their own stores."
 ---
 
 # Profile Manager
@@ -8,7 +8,7 @@ description: "Maintain the repository's local untracked .env resource-profile st
 ## Overview
 
 A resource profile is a named set of the values a task's Resources section takes: a
-repository, a Slack channel, an AWS profile, a Grafana context, an alert identity, a
+repository or repository list, a Slack channel, an AWS profile, a Grafana context, an alert identity, a
 publication parent page, or typed historical-search endpoints. This skill owns that store, its schema, and the ignore rules that
 keep it out of Git. Reach for it when a profile is created, changed, inspected, deleted, or
 loaded into a task; read the [store and schema contract](references/profile-store.md) for
@@ -112,8 +112,55 @@ outside the `PROFILE__` namespace is preserved and those key names are reported.
 
 ## Load a profile into a task
 
-`load` replaces the task's `## Resources` body with the profile's resolved bullets in
-template order, omitting unset resource fields and preserving an explicit task PDF choice, and reads the section back.
+`REPO` accepts the existing scalar or a JSON array of 1–16 unique strings (512 characters
+per entry, 8192 UTF-8 bytes total). Arrays render as repeated Repo bullets; never drop all
+but the first entry. All commands validate stored arrays before returning resources. Reads
+never migrate the store. See [repository values](references/profile-store.md#repository-values).
+
+## Compose environmental and application profiles
+
+Use ordered sources to persist a named combined snapshot in `.env`, then load it into a TASK:
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  compose --profile prod-us --profile app-alpha --into prod-us-app-alpha --dry-run
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  compose --profile prod-us --profile app-alpha --into prod-us-app-alpha
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  load --profile prod-us-app-alpha --task docs/tasks/TASK.md --dry-run
+```
+
+Display names “Prod US” and “App Alpha” use CLI identifiers `prod-us` and `app-alpha`.
+Supply at least two unique sources and a target distinct from them. Repository lists form an
+ordered union with exact duplicates removed; other stored fields must agree when overlapping.
+Conflicts fail before writes, naming the field without its values. This includes stored PDF
+and history defaults; align or clear conflicting source settings explicitly before retrying.
+Missing defaults apply after composition; unknown fields fail. Sources and unrelated `.env`
+bytes are preserved. An existing target requires `--replace`, which replaces its fields
+wholesale. A snapshot does not track later source edits; recompose explicitly to refresh it.
+Compose does not export shell variables, load a TASK, authenticate, or run an investigation.
+
+## User configuration takes precedence
+
+Explicit user configuration wins over injected profiles. Resolve current user instructions
+before investigation shared inputs; never reload a profile over a user-selected resource.
+For helper loading, the order is load `--field FIELD=value`, existing explicit TASK fields,
+selected profile fields, then defaults. This applies to Slack, repositories, AWS, Grafana,
+publication and dependent fields, not only PDF. Existing TASK values are treated as user
+configuration on later loads. Unknown task controls such as `Fan-out: disabled` are preserved.
+
+Compose/load accept repeated `--field` overrides, validated against the same schema. An
+explicit compose field resolves conflicts only for that field; others still fail. Explicit
+REPO replaces an inherited list. Sources remain unchanged. Load overrides change only TASK;
+compose overrides persist only in the named target. Empty/duplicate override assignments and
+invalid/duplicate known TASK settings fail before writing. The supplied-resource guard remains:
+use load `--replace` to permit rewriting an already-populated Resources section, while retaining
+user values. It never authorizes investigation, editor closure, or scope expansion.
+
+## Load resolved resources
+
+`load` writes effective Resources in template order after layering user fields above the
+profile, omitting unset fields and preserving unrecognized task controls, then reads them back.
 
 ```sh
 python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
@@ -128,7 +175,7 @@ artifact: change its resources through that editor route, at its actual path, an
 rename it.
 
 A task whose Resources section already carries real values is preserved unless `--replace`
-is passed, and those values are reported so the user can decide. A profile that resolves to
+is passed to permit a section rewrite; explicit user fields still take precedence. A profile that resolves to
 no actual resource is refused rather than written, because an executable task needs at least
 one.
 

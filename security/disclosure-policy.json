@@ -23,7 +23,10 @@
     "atlassian.github.io",
     "support.atlassian.com",
     "mcp.slack.com",
-    "docs.slack.dev"
+    "docs.slack.dev",
+    "archive.ubuntu.com",
+    "security.ubuntu.com",
+    "gitlab.com"
   ],
   "public_email_domains": [
     "users.noreply.github.com"

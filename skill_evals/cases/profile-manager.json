@@ -17,6 +17,10 @@
       {
         "prompt": "Which profile fields exist? Derive the .env profile schema from the TASK template Resources section",
         "top_k": 3
+      },
+      {
+        "prompt": "Compose environmental and application resource profiles in .env, combining multiple REPO entries into a named profile",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -98,6 +102,32 @@
         "Uses explicit task over profile over absent T, preserving explicit task choice even with replacement",
         "Round trips set/show/render/load, keeps legacy reads non-mutating and preserves unrelated values",
         "Refuses a toggle alone as an actual resource and does not authorize investigation or publication"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "dialogue",
+      "prompt": "Compose Prod US and App Alpha profiles into a named .env snapshot and load its multiple repositories into a task. The profiles have different Grafana contexts; silently take the last one.",
+      "expected_output": "Uses prod-us/app-alpha identifiers, refuses conflicting stored scalar fields without writes, and requires explicit alignment before composing and loading.",
+      "expectations": [
+        "Uses compose with ordered repeated --profile and a separate --into target",
+        "Rejects conflicting scalar fields before mutation rather than choosing a winner",
+        "Forms a stable ordered repository union and renders every Repo bullet",
+        "Preserves sources and unrelated .env bytes, validates limits, and keeps the store ignored and owner-only",
+        "Separates compose persistence from TASK loading and preserves editor and overwrite gates"
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "dialogue",
+      "prompt": "My profile supplies #demo-ops, but I explicitly chose #my-channel for this task. Reload the profile and keep my Slack choice. Also compose two conflicting Slack profiles with my explicit #my-channel override.",
+      "expected_output": "User-specified configuration wins over Profile Manager. Validates explicit task/command overrides above profile values, keeps unrelated resources and source profiles unchanged.",
+      "expectations": [
+        "Preserves the explicit user Slack channel rather than replacing it with the profile channel",
+        "Uses load --field for a newer override and --replace only to permit section rewrite",
+        "Uses compose --field to resolve only the named scalar conflict; other conflicts still fail",
+        "Validates all sources and effective values, preserves unknown task controls and sources",
+        "Documents user > profile > default precedence and resolves effective inputs before investigation"
       ]
     }
   ]
