@@ -96,7 +96,7 @@ line to standard error and exit `2`.
 | `compose --profile ENV --profile APP --into NAME` | `.env` | Persist a combined snapshot; `--replace` replaces an existing target. |
 | `remove --profile NAME` | `.env` | Delete one profile's keys and marker. |
 | `remove-env` | `.env` | Delete the whole store; `--force` is required when it holds unmanaged keys. |
-| `load --profile NAME --task PATH` | task | Replace the task's `## Resources` body; `--replace` is required when it already supplies values. |
+| `load --profile NAME --task PATH` | task | Load effective Resources with user-field precedence; `--replace` permits rewriting an already-populated section. |
 
 ## Write guards
 
@@ -270,3 +270,25 @@ writes. A store-size overflow fails before mutation. Atomic persistence is follo
 read-back of all profiles. Repeating replacement with the same inputs yields the same bytes.
 Refresh the snapshot explicitly after changing sources. Direct multi-profile TASK loading and
 shell environment export are outside this command's scope.
+
+
+## User configuration precedence
+
+User-specified values win over Profile Manager injection. For `load`, layer explicit repeated
+`--field FIELD=value` overrides above saved TASK Resources, above profile fields, above defaults.
+The existing guard requires `--replace` when Resources already contain actual values, but
+replacement now retains all explicit user fields rather than only Generate PDF. Preserve unknown
+settings such as `Fan-out: disabled`. Known scalar duplicates, malformed bullets and invalid
+values fail before writes; repeated repository bullets form one validated list. Subsequent loads
+treat saved task values as user configuration. Change them in the editor or use a newer explicit
+command field. TASK user fields do not modify the profile store.
+
+`compose` also accepts repeated `--field FIELD=value`. Validate all sources; resolve scalar
+conflicts only when the user supplies that field explicitly, then layer the override before
+missing defaults and effective dependency validation. An explicit REPO replaces the inherited
+union. Overrides must be nonempty, unique, schema-declared, validated values. They change only
+the composed target, never its sources. All other conflicting stored fields remain errors.
+
+Current explicit user instructions are the highest authority when the orchestrator prepares an
+investigation's effective resources; profile values cannot replace them. Reflect the chosen
+values in the shared resolved input before delegation, honoring all scope and authentication gates.

@@ -598,6 +598,7 @@ def command_compose(arguments, context):
     store = profiles(context['managed'])
     if target in store and not arguments.replace:
         raise ProfileError('target profile already exists; use --replace to replace it')
+    overrides = explicit_fields(arguments.field, context['schema'])
     values, repositories = {}, []
     for name in names:
         known, unknown = resolve_profile(store, context['schema'], name)
@@ -608,14 +609,15 @@ def command_compose(arguments, context):
                 for entry in repository_values(value):
                     if entry not in repositories:
                         repositories.append(entry)
-            elif field in values and values[field] != value:
+            elif field in values and values[field] != value and field not in overrides:
                 raise ProfileError('conflicting field ' + field + '; align source profiles first')
             else:
                 values[field] = value
-    if repositories:
+    if repositories and 'REPO' not in overrides:
         values['REPO'] = (repositories[0] if len(repositories) == 1
                           else json.dumps(repositories, separators=(',', ':'), ensure_ascii=False))
         check_field('REPO', values['REPO'])
+    values.update(overrides)
     # Defaults apply only after all stored source values have been reconciled.
     if values:
         for field, default in ((GENERATE_PDF, DEFAULT_GENERATE_PDF),
@@ -741,35 +743,86 @@ def command_load(arguments, context):
     lines = text.splitlines()
     start, end = section_bounds(lines, 'task')
     section = lines[start + 1:end]
-    if GENERATE_PDF in context['schema']['fields']:
-        overrides = [line for line in section if line.startswith('- Generate PDF:')]
-        if len(overrides) > 1:
-            raise ProfileError('duplicate Generate PDF setting in task Resources')
-        if overrides:
-            raw = overrides[0][len('- Generate PDF:'):].strip()
-            if not PLACEHOLDER.fullmatch(raw):
-                if not re.fullmatch(r'`[TF]`', raw):
-                    raise ProfileError('invalid GENERATE_PDF; expected T or F')
-                known[GENERATE_PDF] = check_field(GENERATE_PDF, raw[1:-1])
-        section = [line for line in section if not line.startswith('- Generate PDF:')]
+    task_values, preserved = task_fields(section, context['schema'])
+    known.update(task_values)
+    known.update(explicit_fields(arguments.field, context['schema']))
     bullets = render_section(context['schema'], known)
-    supplied = supplied_values(section)
+    supplied = supplied_values([line for line in section
+                                if not line.startswith('- Generate PDF:')])
     if supplied and not arguments.replace:
         raise ProfileError('task Resources already supplies ' + ', '.join(supplied) +
-                           '; re-run with --replace to overwrite it')
-    updated = lines[:start + 1] + [''] + bullets + ([''] if end < len(lines) else []) + lines[end:]
+                           '; re-run with --replace to rewrite while preserving user fields')
+    resources = bullets + [line for line in preserved if line.startswith('- ')]
+    updated = (lines[:start + 1] + [''] + bullets + preserved
+               + ([''] if end < len(lines) else []) + lines[end:])
     body = '\n'.join(updated) + ('\n' if text.endswith('\n') or not text else '')
     result = {'profile': arguments.profile, 'task': str(task_path), 'fields': known,
-              'unknown_fields': unknown, 'resources': bullets, 'replaced': bool(supplied),
+              'unknown_fields': unknown, 'resources': resources, 'replaced': bool(supplied),
               'dry_run': arguments.dry_run}
     if not arguments.dry_run:
         write_file(task_path, body)
         verified = read_text(task_path, 'task', MAX_TASK_BYTES).splitlines()
         start, end = section_bounds(verified, 'task')
-        if [line for line in verified[start + 1:end] if line.startswith('- ')] != bullets:
+        if [line for line in verified[start + 1:end] if line.startswith('- ')] != resources:
             raise ProfileError('task Resources did not read back as written: ' + str(task_path))
         result['verified'] = True
     return result
+
+
+def explicit_fields(assignments, schema):
+    """Validate the user's highest-priority layer without mutating any source."""
+    values = {}
+    for assignment in assignments:
+        if '=' not in assignment:
+            raise ProfileError('explicit field must be FIELD=value')
+        field, value = assignment.split('=', 1)
+        field = field.strip().upper()
+        if field not in schema['fields']:
+            raise ProfileError('unknown field ' + field + '; the schema comes from the template')
+        if field in values:
+            raise ProfileError('duplicate explicit field ' + field)
+        values[field] = check_field(field, value)
+    return values
+
+
+def task_fields(lines, schema):
+    """Collect explicit task fields; keep unrecognized settings such as Fan-out."""
+    definitions = {bullet['label']: bullet for bullet in schema['bullets']}
+    values, repositories, preserved, seen = {}, [], [], set()
+    for line in lines:
+        match = BULLET.fullmatch(EXAMPLES.sub('', line.rstrip()))
+        # A malformed known label must not be silently replaced by a profile.
+        label = line[2:].split(':', 1)[0].strip() if line.startswith('- ') else None
+        if label not in definitions:
+            if line.strip():
+                preserved.append(line)
+            continue
+        bullet = definitions[label]
+        primary = bullet['keys'][0]
+        if primary != 'REPO' and primary in seen:
+            raise ProfileError('duplicate ' + label + ' setting in task Resources')
+        seen.add(primary)
+        pattern = r'`([^`]*)`' + ''.join(
+            r'(?:; ' + re.escape(bullet['sublabels'][key]) + r' `([^`]*)`)?'
+            for key in bullet['keys'][1:])
+        parsed = re.fullmatch(pattern, match.group('rest')) if match else None
+        if not parsed:
+            if primary == GENERATE_PDF:
+                raise ProfileError('invalid GENERATE_PDF; expected T or F')
+            raise ProfileError('invalid task resource field ' + primary)
+        for key, value in zip(bullet['keys'], parsed.groups()):
+            if value is None or (value.startswith('<') and value.endswith('>')):
+                continue
+            check_field(key, value)
+            if key == 'REPO':
+                repositories.extend(repository_values(value))
+            else:
+                values[key] = value
+    if repositories:
+        values['REPO'] = (repositories[0] if len(repositories) == 1
+                          else json.dumps(repositories, separators=(',', ':'), ensure_ascii=False))
+        check_field('REPO', values['REPO'])
+    return values, preserved
 
 
 COMMANDS = {'schema': command_schema, 'list': command_list, 'show': command_show,
@@ -793,7 +846,7 @@ def build_parser():
             sub.add_argument('--profile', action='append', required=True,
                              help='source profile, repeated in merge order')
             sub.add_argument('--into', required=True, help='named destination profile in .env')
-        if command == 'set':
+        if command in {'set', 'compose', 'load'}:
             sub.add_argument('--field', action='append', default=[], metavar='FIELD=value')
         if command in {'set', 'load', 'compose'}:
             sub.add_argument('--replace', action='store_true',

@@ -480,5 +480,75 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertNotIn('PROFILE__out__', self.store.read_text())
 
 
+    def test_load_preserves_user_task_fields_above_injected_profile_values(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'env', '--field', 'REPO=profile-repo',
+                '--field', 'SLACK_CHANNEL=#profile', '--field', 'AWS_REGION=us-east-1')
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n- Slack channel: `#user`\n'
+                        '- AWS region: `eu-central-1`\n- Fan-out: disabled\n')
+        before = self.store.read_bytes()
+        self.ok('load', '--profile', 'env', '--task', str(task), '--replace')
+        self.assertIn('- Slack channel: `#user`', task.read_text())
+        self.assertIn('- AWS region: `eu-central-1`', task.read_text())
+        self.assertIn('- Repo (Bitbucket/Github): `profile-repo`', task.read_text())
+        self.assertIn('- Fan-out: disabled', task.read_text())
+        self.assertNotIn('`#profile`', task.read_text())
+        self.assertEqual(before, self.store.read_bytes())
+        first = task.read_bytes()
+        self.ok('load', '--profile', 'env', '--task', str(task), '--replace')
+        self.assertEqual(first, task.read_bytes())
+
+    def test_explicit_compose_and_load_fields_win_without_changing_sources(self):
+        self.ignore_and_init()
+        for name in ('one', 'two'):
+            self.ok('set', '--profile', name, '--field', 'REPO=' + name,
+                    '--field', 'SLACK_CHANNEL=#' + name)
+        before = self.store.read_bytes()
+        result = self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out',
+                         '--field', 'SLACK_CHANNEL=#user', '--field', 'REPO=chosen-repo')
+        self.assertEqual(result['fields']['SLACK_CHANNEL'], '#user')
+        self.assertEqual(result['fields']['REPO'], 'chosen-repo')
+        self.assertTrue(self.store.read_bytes().startswith(before))
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n- Slack channel: `#saved`\n- Generate PDF: `T`\n')
+        profile_before = self.store.read_bytes()
+        self.ok('load', '--profile', 'out', '--task', str(task), '--replace',
+                '--field', 'SLACK_CHANNEL=#latest', '--field', 'GENERATE_PDF=F')
+        self.assertIn('- Slack channel: `#latest`', task.read_text())
+        self.assertIn('- Generate PDF: `F`', task.read_text())
+        self.assertEqual(self.store.read_bytes(), profile_before)
+
+    def test_invalid_or_duplicate_user_task_fields_fail_before_mutation(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'env', '--field', 'REPO=profile-repo')
+        task = self.root / 'TASK.md'
+        for body in ('- Slack channel: `#one`\n- Slack channel: `#two`\n',
+                     '- Slack channel: malformed\n',
+                     '- Repo (Bitbucket/Github): `[1]`\n'):
+            task.write_text('## Resources\n' + body)
+            before = task.read_bytes()
+            self.fails('load', '--profile', 'env', '--task', str(task), '--replace')
+            self.assertEqual(task.read_bytes(), before)
+        task.write_text('## Resources\n')
+        self.assertIn('unknown field', self.fails('load', '--profile', 'env', '--task', str(task),
+                      '--field', 'UNKNOWN=anything'))
+        self.assertEqual(task.read_text(), '## Resources\n')
+
+
+    def test_near_byte_limit_repository_list_loads_repeatedly(self):
+        self.ignore_and_init()
+        entries = [str(i) + 'a' * (508 + (i < 3) - len(str(i))) for i in range(16)]
+        value = json.dumps(entries, separators=(',', ':'))
+        self.assertEqual(len(value.encode()), 8180)
+        self.ok('set', '--profile', 'app', '--field', 'REPO=' + value)
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n')
+        self.ok('load', '--profile', 'app', '--task', str(task))
+        before = task.read_bytes()
+        self.ok('load', '--profile', 'app', '--task', str(task), '--replace')
+        self.assertEqual(task.read_bytes(), before)
+
+
 if __name__ == '__main__':
     unittest.main()

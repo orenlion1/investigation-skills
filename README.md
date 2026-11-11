@@ -190,6 +190,32 @@ Profiles hold configuration; each integration still authenticates separately. Ne
 `.env` as shell code or commit it. Commands below use synthetic resources only; replace them
 with your actual resources for an investigation.
 
+#### Configuration precedence: user-specified values win
+
+**User-specified configuration always wins over Profile Manager values.** A profile supplies
+fallback resources, not an instruction to replace your chosen Slack channel or other settings.
+The effective order is explicit command overrides (`--field`), saved user TASK Resources,
+resolved profile fields, then absent-value defaults. Current user instructions also override
+injected values when preparing the investigation's effective Resources and shared briefs.
+
+For example, if the profile supplies `#demo-ops` but your TASK specifies `#my-channel`, loading
+with `--replace` keeps `#my-channel` while filling missing profile resources. The flag permits
+rewriting an already-populated Resources section; it does not override explicit user fields.
+A newer explicit command override can select `#latest-channel`:
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  load --profile prod-us-app-alpha --task docs/tasks/TASK.md --replace \
+  --field SLACK_CHANNEL='#latest-channel'
+```
+
+`compose ... --field SLACK_CHANNEL='#my-channel'` likewise resolves a conflict in that field
+using your supplied value. Other unresolved profile conflicts remain errors. An explicit REPO
+override replaces the profile repository list. Compose overrides affect only the combined
+snapshot; load overrides affect only the TASK. Source profiles remain unchanged. Existing TASK
+values are treated as user configuration on subsequent loads; edit them or supply `--field`
+to change them. Unknown task settings such as `Fan-out: disabled` are retained.
+
 “Prod US” (`prod-us`) is the environmental configuration. This example covers the local
 environmental profile's field names without copying its values: AWS_ACCOUNT, AWS_REGION,
 GRAFANA_CONTEXT, SLACK_CHANNEL, PUBLISH, REPO and RHYMING_ENDPOINTS. The helper also persists
@@ -264,8 +290,8 @@ compared as stored strings, not combined. Unknown source fields fail.
 
 Sources and unrelated `.env` bytes stay unchanged. An existing combined profile requires
 `compose ... --replace`, which replaces its complete field set; later source changes require
-explicit recomposition. `load ... --replace` separately controls overwriting supplied TASK
-resources and still preserves an explicit TASK PDF choice. Loading never closes the editor or
+explicit recomposition. `load ... --replace` permits rewriting supplied TASK
+Resources while retaining every explicit user field, including the TASK PDF choice. Loading never closes the editor or
 starts an investigation. Existing scalar profiles need no migration. See the
 [store contract](skills/profile-manager/references/profile-store.md#profile-composition).
 

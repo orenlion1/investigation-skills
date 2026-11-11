@@ -140,10 +140,27 @@ bytes are preserved. An existing target requires `--replace`, which replaces its
 wholesale. A snapshot does not track later source edits; recompose explicitly to refresh it.
 Compose does not export shell variables, load a TASK, authenticate, or run an investigation.
 
+## User configuration takes precedence
+
+Explicit user configuration wins over injected profiles. Resolve current user instructions
+before investigation shared inputs; never reload a profile over a user-selected resource.
+For helper loading, the order is load `--field FIELD=value`, existing explicit TASK fields,
+selected profile fields, then defaults. This applies to Slack, repositories, AWS, Grafana,
+publication and dependent fields, not only PDF. Existing TASK values are treated as user
+configuration on later loads. Unknown task controls such as `Fan-out: disabled` are preserved.
+
+Compose/load accept repeated `--field` overrides, validated against the same schema. An
+explicit compose field resolves conflicts only for that field; others still fail. Explicit
+REPO replaces an inherited list. Sources remain unchanged. Load overrides change only TASK;
+compose overrides persist only in the named target. Empty/duplicate override assignments and
+invalid/duplicate known TASK settings fail before writing. The supplied-resource guard remains:
+use load `--replace` to permit rewriting an already-populated Resources section, while retaining
+user values. It never authorizes investigation, editor closure, or scope expansion.
+
 ## Load resolved resources
 
-`load` replaces the task's `## Resources` body with the profile's resolved bullets in
-template order, omitting unset resource fields and preserving an explicit task PDF choice, and reads the section back.
+`load` writes effective Resources in template order after layering user fields above the
+profile, omitting unset fields and preserving unrecognized task controls, then reads them back.
 
 ```sh
 python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
@@ -158,7 +175,7 @@ artifact: change its resources through that editor route, at its actual path, an
 rename it.
 
 A task whose Resources section already carries real values is preserved unless `--replace`
-is passed, and those values are reported so the user can decide. A profile that resolves to
+is passed to permit a section rewrite; explicit user fields still take precedence. A profile that resolves to
 no actual resource is refused rather than written, because an executable task needs at least
 one.
 
