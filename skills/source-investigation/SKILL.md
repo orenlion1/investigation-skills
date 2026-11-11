@@ -25,9 +25,32 @@ Reuse verified setup and shared evidence; preserve this skill's required coverag
 - An execution path crosses repository or service boundaries and consumers must be traced.
 - A root cause, concrete fix proposal, or deployed-revision verification is required.
 
+## Resolve every configured repository
+
+Collect every Repo bullet in the effective Resources, including repeated entries rendered from
+REPO arrays and composed profiles. Resolve current explicit user configuration before inherited
+profile values; no consumer may select only the first repository or reinject a profile over a
+user-selected Slack channel or other setting.
+
+Record a repository ledger with each configured entry, provider, canonical identity, authorized
+provider-account/workspace scope, inspected revision, access outcome and evidence/gap. Resolve
+short names from verified context rather than guessing GitHub versus Bitbucket. Use existing
+approved GitHub tooling for GitHub and Rovo MCP for Bitbucket. Distinct provider scopes remain
+separate; access to one never implies access to another. Record aliases against one canonical
+inspection owner and preserve every input's coverage.
+
+With multiple configured repositories, route scheduling to
+[Per-Store Fan-Out](../per-store-fan-out/SKILL.md#repository-resolution-and-scheduling) in the
+orchestrating session, including same-provider-only tasks. That skill owns repository inspection
+units, briefs, the shared delegation machinery and the parent resource-to-owner map. When already
+running inside an assigned repository or store brief, inspect the assigned scope and return leads;
+do not recursively invoke scheduling or repeat another owner's repository work. A single
+repository retains inline source inspection. Honor disabled fan-out and carry any declared
+capability or access gap into the ledger and final report.
+
 ## Tracing Workflow
 
-- Resolve the authorized search scope from the supplied repository per the root policy grant,
+- Resolve the authorized search scope independently from each supplied repository per the root policy grant,
   honor any explicit narrower scope, keep searches relevant to the task, and record the
   repositories and search scope inspected.
 - Trace observed errors, alerts, and affected resources through the relevant execution paths
@@ -78,3 +101,6 @@ Reuse verified setup and shared evidence; preserve this skill's required coverag
 - [ ] The symptom, triggering conditions, causal path, fix, and validation connect.
 - [ ] Deployed-revision identity is verified or its absence disclosed.
 - [ ] Unresolved gaps are labeled with the evidence needed to close them.
+
+- [ ] All configured repository entries are covered by the ledger and parent ownership map,
+      including provider-specific access failures and aliases; explicit user overrides survive.
