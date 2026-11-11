@@ -44,7 +44,7 @@ jobs:
           #!/usr/bin/env bash
           set -euo pipefail
           graphviz_root="$(dirname "$(dirname "$0")")/graphviz-16.1.1"
-          export LD_LIBRARY_PATH="$graphviz_root/usr/lib:${LD_LIBRARY_PATH:-}"
+          export LD_LIBRARY_PATH="$graphviz_root/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           export GVBINDIR="$graphviz_root/usr/lib/graphviz"
           exec "$graphviz_root/usr/bin/dot" "$@"
           WRAPPER
