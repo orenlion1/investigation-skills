@@ -37,6 +37,19 @@
     "States that deployment provenance is unavailable and what evidence would confirm it",
     "Keeps the inspected-revision finding with commit-pinned citations"
    ]
+  },
+  {
+   "id": 2,
+   "kind": "dialogue",
+   "prompt": "The Resources section repeats Repo bullets for GitHub app-a and Bitbucket shared-b. Follow every repository, retain user overrides from composed profiles, and report what is inspected versus deployed.",
+   "expected_output": "Collects all repository entries and resolves each provider and scope; routes parent-owned scheduling through Per-Store Fan-Out, verifies source claims and preserves access/deployment gaps.",
+   "expectations": [
+    "Does not truncate repeated Repo bullets or assume the same provider for every entry",
+    "Routes multiple configured repositories to Per-Store Fan-Out in the parent and avoids recursive delegation",
+    "Preserves explicit user configuration above profile values",
+    "Reports access failures per repository and pins material source claims to inspected commits",
+    "Separates inspected revisions from unavailable deployed-revision provenance"
+   ]
   }
  ]
 }

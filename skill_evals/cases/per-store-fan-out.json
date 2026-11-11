@@ -17,6 +17,14 @@
       {
         "prompt": "Disable fan-out for this task and investigate the named stores inline instead of delegating to sub-agents",
         "top_k": 3
+      },
+      {
+        "prompt": "Use per-store fan-out to launch parallel inspection sub-agents for every configured repository, even when all repositories use Bitbucket",
+        "top_k": 3
+      },
+      {
+        "prompt": "Run per-repository parallel fan-out for multiple GitHub and Bitbucket repositories from composed resource profiles",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -102,6 +110,44 @@
         "Records authentication_status, tool_status, and resource_read_status separately in the store row",
         "Keeps interactive authentication in the parent and continues independent branches",
         "Honors no-login instructions and safeguards rather than changing providers or weakening controls"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "dialogue",
+      "prompt": "The task has three configured Bitbucket repositories and no other integration. Inspect only the first repository inline because this is one store.",
+      "expected_output": "The parent resolves every configured repository and delegates a separate read-only inspection per distinct repository through the shared contract, even with one provider.",
+      "expectations": [
+        "Triggers repository fan-out with multiple configured repositories even in a single store",
+        "Launches a distinct inspection for every resolved repository through shared-contract capacity waves",
+        "Keeps one parent-owned scheduling plan and avoids a redundant store code-inspection pass",
+        "Records every repository outcome including blocked or ambiguous entries without inventing a provider"
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "dialogue",
+      "prompt": "Composed profiles name GitHub app-a, Bitbucket library-b, Grafana and a Slack channel. The user explicitly chose #my-channel instead of profile #demo-ops. Bitbucket access fails. Have every store agent also inspect all repositories.",
+      "expected_output": "Resolves user precedence once, schedules repository inspection alongside store work from the parent, avoids duplicate repository inspection and continues unaffected work.",
+      "expectations": [
+        "Uses the explicit user Slack choice in identical shared inputs across briefs",
+        "Uses approved GitHub tooling for GitHub and Rovo MCP for Bitbucket, with separate provider scope",
+        "Assigns each repository exactly one inspection owner; store briefs exclude already delegated code inspection",
+        "Keeps the failed repository visible and continues independent repository and store branches",
+        "Parent verifies material evidence and commit-pinned source claims before reporting findings"
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "dialogue",
+      "prompt": "Two configured repositories need investigation. Explain the single-repository path, disabled delegation, capacity for only one delegated agent, and no native delegation capability.",
+      "expected_output": "Keeps the single-repository inline path, honors disabled parent delegation across repository work, and uses shared-contract degradation without confusing real sequential agents with missing agents.",
+      "expectations": [
+        "Single configured repository retains inline source investigation",
+        "Disabled parent fan-out disables repository delegation but not investigation",
+        "Limited capacity follows the shared contract while preserving every repository unit and brief",
+        "No native delegation is reported as unavailable with no fabricated agent identities",
+        "Each repository retains an observed outcome and evidence limitation"
       ]
     }
   ]

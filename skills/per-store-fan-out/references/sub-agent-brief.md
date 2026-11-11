@@ -20,6 +20,7 @@ in this catalog uses. This file owns only the store brief and the store conformi
 
 ## Resolved block (identical across all briefs in this run)
 - Environment: <environment>
+- Effective Resources: <complete parent-resolved resources, including every repository and explicit user overrides>
 - Time window: <start> .. <end>
 - Timezone: <IANA timezone>
 - Task questions: <the task's questions, verbatim>
@@ -45,7 +46,9 @@ Do not draw cross-store conclusions; do not mutate anything.
 
 ## Conformity checklist
 
-- One brief per resolved store; at most one Atlassian brief.
+- One ordinary brief per resolved store with remaining work; at most one ordinary
+  Atlassian brief. Repository briefs are separate parent-owned units under the
+  [repository workflow](../SKILL.md#repository-resolution-and-scheduling).
 - Resolved blocks byte-identical across briefs.
 - All branches launched before any result is awaited, or the degradation declared in
   the manifest and the report, under the [shared delegation contract](delegation-contract.md).
@@ -59,3 +62,7 @@ before initial prompts. The owner includes the matching request in its initial p
 the original investigation; consumers send no prompt and retain their own endpoint child identity.
 Assistant disabled means no prompt. A failed or already-sent owner is an explicit limitation,
 never permission to start a duplicate. History-only endpoint reads continue within scope.
+
+For composed profiles, use the parent's effective Resources after explicit user overrides.
+Never reload a profile in a store brief. Name the repositories excluded because another
+inspection owner already holds them; request cross-repository follow-ups through the parent.

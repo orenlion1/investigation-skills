@@ -301,11 +301,10 @@ When a task's Resources name more than one data store, the gather step fans
 out by default: one read-only sub-agent per named store, launched in parallel
 with the same resolved identity, environment, time window, timezone, and
 questions. You can disable it — by asking, or with `Fan-out: disabled` in the
-task's Resources — and the agent investigates inline instead. The default and
-its disable switch live in
-[Per-Store Investigation Fan-Out](AGENTS.md#per-store-investigation-fan-out);
-the [Per-Store Fan-Out skill](skills/per-store-fan-out/SKILL.md) owns the
-mechanics — store resolution, brief templates, launch and degradation, and the
+task's Resources — and the agent investigates inline instead. Scope and authority live in
+[Per-Store Fan-Out Policy](AGENTS.md#per-store-fan-out-policy);
+the [Per-Store Fan-Out skill](skills/per-store-fan-out/SKILL.md) owns activation, the
+disable switch and mechanics — store resolution, brief templates, launch and degradation, and the
 auditable fan-out manifest each run records.
 
 <picture>
@@ -328,6 +327,30 @@ illustrates the documented workflow, not an executed investigation.
 [Light SVG](diagrams/DIAGRAM-per-store-fan-out-light.svg) ·
 [Dark SVG](diagrams/DIAGRAM-per-store-fan-out-dark.svg) ·
 [Source notes and regeneration](diagrams/DIAGRAM-per-store-fan-out.md)
+
+#### Parallel inspection of multiple repositories
+
+Multiple configured repositories independently activate repository fan-out, even when all
+belong to the same provider and no other store is named. The parent resolves every Repo
+bullet, applies user configuration precedence once, and schedules a separate read-only
+inspection for each distinct repository alongside other named store work. Every brief gets
+the same effective environment, resources, window and questions. A user-selected Slack
+channel therefore stays selected across all branches.
+
+GitHub repositories use approved GitHub tooling; Bitbucket repositories use Rovo MCP. Short
+names need verified provider context. Aliases of the same repository share an inspection
+owner, with every configured entry recorded. Store briefs exclude already-assigned code
+inspection; Jira/Confluence work can remain in an ordinary Atlassian branch. The parent owns
+scheduling, capacity waves, cross-repository follow-ups and verification; repository agents
+do not recursively delegate or repeat another owner's inspection.
+
+A single repository keeps the inline source-investigation path. `Fan-out: disabled` disables
+repository delegation as well as store delegation, while preserving investigation coverage.
+The [shared contract](skills/per-store-fan-out/references/delegation-contract.md) governs limited
+capacity and unavailable delegation; manifests retain every repository outcome or access gap.
+One failure does not cancel independent work. The store diagram above shows the store layer;
+repository inspections are additional parent-owned units described in the
+[repository workflow](skills/per-store-fan-out/SKILL.md#repository-resolution-and-scheduling).
 
 ### Rhyming incident search
 
