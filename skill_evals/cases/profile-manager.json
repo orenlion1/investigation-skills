@@ -21,6 +21,10 @@
       {
         "prompt": "Compose environmental and application resource profiles in .env, combining multiple REPO entries into a named profile",
         "top_k": 3
+      },
+      {
+        "prompt": "Store multiple Slack channels as a SLACK_CHANNEL JSON array in Profile Manager and compose the .env profiles before loading repeated channel bullets",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -128,6 +132,19 @@
         "Uses compose --field to resolve only the named scalar conflict; other conflicts still fail",
         "Validates all sources and effective values, preserves unknown task controls and sources",
         "Documents user > profile > default precedence and resolves effective inputs before investigation"
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "dialogue",
+      "prompt": "Store multiple Slack channels in an application profile, compose it with the environment channel, then use my explicit channel list instead of the injected channels.",
+      "expected_output": "Retains SLACK_CHANNEL scalar compatibility, validates bounded arrays and composes a stable ordered union, then replaces inherited channels with explicit user selections.",
+      "expectations": [
+        "Accepts legacy scalar or validated 1\u201316-entry SLACK_CHANNEL arrays with shared per-item/field limits",
+        "Shows stored representation and renders/loads every channel bullet without read-time migration",
+        "Forms a stable first-seen channel union across profiles and revalidates limits",
+        "Explicit command or saved user TASK channel lists replace inherited channels rather than appending",
+        "Keeps sources/unmanaged .env bytes unchanged and does not authenticate, query or message Slack"
       ]
     }
   ]

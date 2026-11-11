@@ -66,3 +66,7 @@ never permission to start a duplicate. History-only endpoint reads continue with
 For composed profiles, use the parent's effective Resources after explicit user overrides.
 Never reload a profile in a store brief. Name the repositories excluded because another
 inspection owner already holds them; request cross-repository follow-ups through the parent.
+
+For multiple effective Slack channels, exclude reads assigned under the
+[channel workflow](../SKILL.md#channel-resolution-and-scheduling) from ordinary Slack work.
+Repository, channel and ordinary store briefs share the same parent-resolved Resources.

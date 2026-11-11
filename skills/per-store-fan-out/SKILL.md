@@ -1,6 +1,6 @@
 ---
 name: per-store-fan-out
-description: Fan out multi-store or multi-repository investigations with read-only inspection sub-agents, shared resolved inputs, bounded iteration and auditable manifests. Use when Resources name multiple stores or multiple repositories, when per-store or per-repository parallel fan-out is requested, or when delegation must be disabled or degraded.
+description: Fan out multi-store, multi-repository or multi-channel investigations with read-only inspection sub-agents, shared resolved inputs, bounded iteration and auditable manifests. Use when Resources name multiple stores, repositories or Slack channels, when per-store, per-repository or per-channel parallel fan-out is requested, or when delegation must be disabled or degraded.
 ---
 
 # Per-Store Fan-Out
@@ -29,11 +29,11 @@ Reuse verified setup and shared evidence; preserve this skill's required coverag
 
 ## When to Use
 
-Use when a running task's Resources name more than one data store or multiple repositories,
-including repositories on the same provider, or when the user asks to
+Use when a running task's Resources name more than one data store or multiple repositories or Slack channels,
+including repositories on the same provider or channels in the same workspace, or when the user asks to
 fan out, parallelize, or delegate per-store investigation, or when fan-out must be
 disabled (`Fan-out: disabled` or an equivalent instruction) or degraded because parallel
-delegation is unavailable. A single-store task with one repository stays inline. Fan-out
+delegation is unavailable. A single-store task with at most one repository and one Slack channel stays inline. Fan-out
 never widens scope: only named stores and configured repositories receive inspection units.
 
 ## Store Resolution
@@ -50,7 +50,8 @@ below, so several repositories do not create duplicate ordinary store agents:
 | Slack | slack-mcp | Named channels and threads |
 
 Two or more resolved stores trigger store fan-out. Multiple configured repositories
-independently trigger repository fan-out, even when all are on one provider. A single
+independently trigger repository fan-out, even when all are on one provider; multiple effective
+Slack channels independently trigger channel fan-out, even in one workspace. A single
 repository keeps its existing inline source-inspection path; other named stores still follow
 store fan-out. A repository plus its Jira ticket does not create two ordinary Atlassian units. A Grafana alert
 investigation nests the [Parallel Alert Investigation](../parallel-alert-investigation/SKILL.md)
@@ -97,10 +98,42 @@ the ordinary store manifest and the resource-to-owner map together cover every c
 without duplicate inspection. Keep authentication, tooling and actual reads distinct as for stores.
 Do not claim an inspection succeeded merely because its profile loaded or its provider authenticated.
 
+## Channel resolution and scheduling
+
+1. **Resolve the effective channel list in the parent.** Consume every repeated Slack channel
+   bullet from SLACK_CHANNEL scalar/array resources. Apply explicit user overrides before counting
+   channels; a user-selected single channel replaces an inherited list and retains the existing
+   inline or ordinary store owner. Freeze the same effective Resources block used by repository
+   and store briefs. Never reinject profile channels inside a branch.
+2. **Resolve each channel's workspace, canonical ID and access through Slack MCP.** Names, IDs
+   and URLs are identifiers, not credentials or authorization. Use verified workspace context;
+   unresolved names, ambiguous workspace matches, unsupported identifiers and inaccessible channels
+   retain individual gaps rather than guesses. Coalesce aliases of the same workspace/channel
+   identity and record every configured entry against one inspection owner. Interactive recovery
+   remains in the parent under the Slack MCP skill; do not broaden the workspace or time window.
+3. **Schedule a distinct read-only inspection for each resolved channel when multiple remain.**
+   The parent coordinates channel, repository, historical endpoint and ordinary store work under
+   [the shared delegation contract](references/delegation-contract.md), including its capacity and
+   degradation mechanics. Use the [channel brief](references/channel-brief.md) with the identical
+   shared block/output contract. Channel agents do not recursively delegate or read another owner's
+   channel. Remove already-assigned channel/thread queries from ordinary Slack briefs and omit an
+   empty ordinary Slack unit when channel inspections cover its entire workload.
+4. **Reconcile channel results in the parent.** Require message/thread references, read timestamps
+   and query/window scope. Continue independent channels when one fails. Route cross-channel
+   follow-ups through the parent to the existing owner within the same three-round bound; the
+   parent verifies material evidence before drawing cross-channel conclusions. Disabled parent
+   fan-out disables channel delegation as well; investigation continues under the shared contract.
+
+Use a separate linked channel manifest under the shared contract. Add only channel-owned fields:
+`channel`, `configured_entries`, `workspace`, `inspection_owner`, `outcome`, `store_manifest` and
+`repository_manifest` (omit unrelated links). Each resolved channel gets one row; each unresolved
+input retains a gap row. The parent ownership map covers all channel entries without duplicate
+reads, keeping authentication/tool availability separate from a successful channel query.
+
 ## Workflow
 
 1. **Resolve shared inputs and repository ownership in the main session.** Apply user
-   precedence and repository scheduling above. One environment, exact time window and
+   precedence, repository scheduling and channel scheduling above. One environment, exact time window and
    timezone, concrete object identities, and each store's authentication through its own
    skill. Assess authentication independently of connection/tool availability. When credentials
    need renewal and the owning skill permits sign-in, start that flow even if its tool or MCP
@@ -127,7 +160,7 @@ Do not claim an inspection succeeded merely because its profile loaded or its pr
    An unset field skips history search. Invalid configuration stops endpoint launches; failed
    providers block only their endpoints. Honor disabled parent fan-out by disabling nested
    endpoint delegation and recording that limitation. Ordinary inline store work may continue.
-3. **Write one brief per store** from the templates in
+3. **Write briefs for remaining store work** from the templates in
    [references/sub-agent-brief.md](references/sub-agent-brief.md). Every brief carries
    the identical effective resolved block and the output contract verbatim; only the store,
    integration skill, and store-specific questions differ.
@@ -204,3 +237,6 @@ steps rather than collapsing them into a single unavailable result.
   same-provider lists, with user overrides preserved in shared inputs.
 - Store briefs exclude code inspection already assigned to repository units; disabled and
   capacity-limited execution follow the shared contract without losing repository coverage.
+
+- Every effective Slack channel has one inspection owner or an explicit workspace/access gap;
+  user overrides are resolved before fan-out activation and remain identical across all briefs.

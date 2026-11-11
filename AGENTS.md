@@ -39,7 +39,7 @@ blocker rather than substituting direct reads.
 | gcx setup, Grafana authentication and connectivity, and read-only Grafana investigations | [Grafana CLI](skills/gcx-cli/SKILL.md) |
 | Slack MCP configuration, connectivity, and OAuth diagnosis | [Slack MCP](skills/slack-mcp/SKILL.md) |
 | Finding rhyming incidents and related prior investigations across configured historical endpoints | [Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) |
-| Multi-store or multi-repository fan-out: inspection briefs, launch, manifest, disabling fan-out | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) |
+| Multi-store, multi-repository or multi-channel fan-out: inspection briefs, launch, manifest, disabling fan-out | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) |
 | Grafana alert investigation: parallel Assistant and `investigate-alert` sub-agents | [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) |
 | `run release-it`, repository releases | [Release It](skills/release-it/SKILL.md) with [VERSIONING.md](VERSIONING.md) |
 

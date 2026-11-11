@@ -25,6 +25,14 @@
       {
         "prompt": "Run per-repository parallel fan-out for multiple GitHub and Bitbucket repositories from composed resource profiles",
         "top_k": 3
+      },
+      {
+        "prompt": "Run per-channel fan-out with one read-only inspection sub-agent for every configured Slack channel, even in a Slack-only task",
+        "top_k": 3
+      },
+      {
+        "prompt": "Schedule parallel Slack channel inspections alongside repository fan-out with shared effective Resources and no duplicate store reads",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -148,6 +156,43 @@
         "Limited capacity follows the shared contract while preserving every repository unit and brief",
         "No native delegation is reported as unavailable with no fabricated agent identities",
         "Each repository retains an observed outcome and evidence limitation"
+      ]
+    },
+    {
+      "id": 10,
+      "kind": "dialogue",
+      "prompt": "My profile contains three Slack channels but I explicitly chose only #my-channel for this task. Launch three channel inspection agents from the profile anyway.",
+      "expected_output": "Resolves user precedence before counting effective channels and retains the single-channel inline or ordinary owner path instead of reintroducing injected channels.",
+      "expectations": [
+        "Uses the explicit user single channel over the profile channel list",
+        "Selects delegation from effective Resources, not the raw profile cardinality",
+        "Does not launch agents for channels the user replaced",
+        "Preserves shared resolved inputs and source profile immutability"
+      ]
+    },
+    {
+      "id": 11,
+      "kind": "dialogue",
+      "prompt": "Inspect three configured Slack channels in parallel. One channel name is ambiguous across workspaces and one channel is denied. A Grafana store and two repository inspections also run. Have each Slack agent inspect all channels to avoid missing anything.",
+      "expected_output": "Parent owns workspace/channel resolution and one owner per resolved channel, records ambiguity/denial gaps, continues independent work and excludes duplicated ordinary Slack reads.",
+      "expectations": [
+        "Resolves each workspace/channel identity and access without guessing or broadening scope",
+        "Schedules one read-only unit per resolved channel with the shared contract and complete effective Resources",
+        "Records ambiguous or denied inputs explicitly and continues unaffected channel/repository/store work",
+        "Excludes already-owned channel/thread reads from ordinary Slack briefs and forbids recursive delegation",
+        "Parent verifies message/thread references and timestamps before cross-channel conclusions"
+      ]
+    },
+    {
+      "id": 12,
+      "kind": "dialogue",
+      "prompt": "Two Slack channels remain after explicit overrides. Disable fan-out; also explain what changes with one available native agent slot versus no native delegation.",
+      "expected_output": "Honors parent disable across channel work, retaining briefs/coverage and the shared contract distinctions for capacity-limited or unavailable execution.",
+      "expectations": [
+        "Disabled parent fan-out disables channel delegation while preserving investigation",
+        "Uses shared-contract capacity/degradation rules and does not fabricate agent identities",
+        "Keeps every channel outcome and shared window/scope visible",
+        "Never messages, acknowledges or publishes from channel inspection units"
       ]
     }
   ]

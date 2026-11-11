@@ -523,7 +523,8 @@ class ProfileStoreTests(unittest.TestCase):
         self.ignore_and_init()
         self.ok('set', '--profile', 'env', '--field', 'REPO=profile-repo')
         task = self.root / 'TASK.md'
-        for body in ('- Slack channel: `#one`\n- Slack channel: `#two`\n',
+        for body in ('- AWS region: `us-east-1`\n- AWS region: `eu-central-1`\n',
+                     '- Slack channel: `#one`\n- Slack channel: `#one`\n',
                      '- Slack channel: malformed\n',
                      '- Repo (Bitbucket/Github): `[1]`\n'):
             task.write_text('## Resources\n' + body)
@@ -548,6 +549,84 @@ class ProfileStoreTests(unittest.TestCase):
         before = task.read_bytes()
         self.ok('load', '--profile', 'app', '--task', str(task), '--replace')
         self.assertEqual(task.read_bytes(), before)
+
+
+    def test_slack_channel_array_roundtrip_and_repeated_load(self):
+        self.ignore_and_init()
+        value = '["#ops-alpha","C000000002"]'
+        self.ok('set', '--profile', 'channels', '--field', 'SLACK_CHANNEL=' + value)
+        schema = {field['field']: field for field in self.ok('schema')['fields']}
+        self.assertEqual(schema['SLACK_CHANNEL']['type'], 'channel-or-array')
+        self.assertEqual(self.ok('show', '--profile', 'channels')['fields']['SLACK_CHANNEL'], value)
+        before = self.store.read_bytes()
+        rendered = self.ok('render', '--profile', 'channels')
+        self.assertIn('- Slack channel: `#ops-alpha`\n- Slack channel: `C000000002`', rendered)
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n')
+        self.ok('load', '--profile', 'channels', '--task', str(task))
+        first = task.read_bytes()
+        self.ok('load', '--profile', 'channels', '--task', str(task), '--replace')
+        self.assertEqual(first, task.read_bytes())
+        self.assertEqual(before, self.store.read_bytes())
+        self.ok('set', '--profile', 'channels', '--field', 'SLACK_CHANNEL=#legacy')
+        self.assertIn('- Slack channel: `#legacy`', self.ok('render', '--profile', 'channels'))
+        self.ok('set', '--profile', 'channels', '--field', 'REPO=repo', '--field', 'SLACK_CHANNEL=')
+        self.assertNotIn('SLACK_CHANNEL', self.ok('show', '--profile', 'channels')['fields'])
+
+    def test_compose_channels_uses_ordered_union_and_user_list_replaces_it(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'env', '--field', 'SLACK_CHANNEL=#ops')
+        self.ok('set', '--profile', 'app', '--field', 'SLACK_CHANNEL=["#app","#ops"]')
+        self.ok('compose', '--profile', 'env', '--profile', 'app', '--into', 'out')
+        self.assertEqual(json.loads(self.ok('show', '--profile', 'out')['fields']['SLACK_CHANNEL']),
+                         ['#ops', '#app'])
+        self.ok('compose', '--profile', 'env', '--profile', 'app', '--into', 'chosen',
+                '--field', 'SLACK_CHANNEL=["#user-one","#user-two"]')
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n- Slack channel: `#saved-one`\n'
+                        '- Slack channel: `#saved-two`\n')
+        self.ok('load', '--profile', 'out', '--task', str(task), '--replace')
+        self.assertIn('`#saved-one`', task.read_text())
+        self.assertIn('`#saved-two`', task.read_text())
+        self.assertNotIn('`#ops`', task.read_text())
+        self.ok('load', '--profile', 'out', '--task', str(task), '--replace',
+                '--field', 'SLACK_CHANNEL=["#latest-one","#latest-two"]')
+        self.assertIn('`#latest-one`', task.read_text())
+        self.assertNotIn('`#saved-one`', task.read_text())
+        self.assertEqual(json.loads(self.ok('show', '--profile', 'chosen')['fields']['SLACK_CHANNEL']),
+                         ['#user-one', '#user-two'])
+
+    def test_slack_arrays_are_validated_before_any_write(self):
+        self.ignore_and_init()
+        bad = ['[]', '[1]', '[null]', '["#one","#one"]', '["<channel>"]', '["#bad`name"]',
+               json.dumps(['#' + str(i) for i in range(17)]),
+               json.dumps(['#' + 'x' * 512]), json.dumps([chr(0xd800)]),
+               json.dumps(['#' + str(i) + 'x' * 510 for i in range(16)])]
+        for value in bad:
+            before = self.store.read_bytes()
+            self.assertIn('invalid SLACK_CHANNEL', self.fails('set', '--profile', 'channels',
+                          '--field', 'SLACK_CHANNEL=' + value))
+            self.assertEqual(before, self.store.read_bytes())
+        self.store.write_text("PROFILE__BAD__SLACK_CHANNEL='[1]'\n")
+        self.assertIn('invalid SLACK_CHANNEL', self.fails('show', '--profile', 'bad'))
+        self.assertIn('invalid SLACK_CHANNEL', self.fails('render', '--profile', 'bad'))
+
+    def test_channel_union_limit_and_near_limit_repeated_loading(self):
+        self.ignore_and_init()
+        values = [str(i) + 'a' * (508 + (i < 3) - len(str(i))) for i in range(16)]
+        self.ok('set', '--profile', 'one', '--field', 'SLACK_CHANNEL=' +
+                json.dumps(values, separators=(',', ':')))
+        self.ok('set', '--profile', 'two', '--field', 'SLACK_CHANNEL=#extra')
+        before = self.store.read_bytes()
+        self.assertIn('invalid SLACK_CHANNEL', self.fails('compose', '--profile', 'one',
+                      '--profile', 'two', '--into', 'out'))
+        self.assertEqual(before, self.store.read_bytes())
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n')
+        self.ok('load', '--profile', 'one', '--task', str(task))
+        first = task.read_bytes()
+        self.ok('load', '--profile', 'one', '--task', str(task), '--replace')
+        self.assertEqual(first, task.read_bytes())
 
 
 if __name__ == '__main__':
