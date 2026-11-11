@@ -31,21 +31,28 @@ jobs:
             dot -V
             exit 0
           fi
-          # Use signed official archives over HTTPS, scoped to these APT commands.
-          cat > "$RUNNER_TEMP/ubuntu-https.list" <<'SOURCES'
-          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble main universe
-          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble-updates main universe
-          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://security.ubuntu.com/ubuntu noble-security main universe
-          SOURCES
-          apt_options=(
-            -o "Dir::Etc::sourcelist=$RUNNER_TEMP/ubuntu-https.list"
-            -o Dir::Etc::sourceparts=-
-            -o Acquire::Retries=1
-            -o Acquire::https::Timeout=20
-          )
-          sudo apt-get "${apt_options[@]}" update
-          sudo apt-get "${apt_options[@]}" install -y --no-install-recommends graphviz
-          dot -V
+          graphviz_root="$RUNNER_TEMP/graphviz-16.1.1"
+          package="$RUNNER_TEMP/graphviz-16.1.1.deb"
+          curl --fail --location --retry 2 --connect-timeout 20 --max-time 90 \
+            https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/16.1.1/ubuntu_24.04_graphviz-16.1.1-cmake.deb \
+            --output "$package"
+          printf '%s  %s\n' a662640725bc5375e6baafefcfb4444d62d174dc31eb0c35746f6cf1b9dd21fc "$package" | sha256sum --check -
+          dpkg-deb --extract "$package" "$graphviz_root"
+          mkdir -p "$RUNNER_TEMP/graphviz-bin"
+          # Scope plugin/library configuration to dot instead of the Python test runtime.
+          cat > "$RUNNER_TEMP/graphviz-bin/dot" <<'WRAPPER'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          graphviz_root="$(dirname "$(dirname "$0")")/graphviz-16.1.1"
+          export LD_LIBRARY_PATH="$graphviz_root/usr/lib:${LD_LIBRARY_PATH:-}"
+          export GVBINDIR="$graphviz_root/usr/lib/graphviz"
+          exec "$graphviz_root/usr/bin/dot" "$@"
+          WRAPPER
+          chmod +x "$RUNNER_TEMP/graphviz-bin/dot"
+          "$RUNNER_TEMP/graphviz-bin/dot" -V
+          printf 'digraph { a -> b }\n' | "$RUNNER_TEMP/graphviz-bin/dot" -Tsvg > "$RUNNER_TEMP/graphviz-smoke.svg"
+          grep -q '<svg' "$RUNNER_TEMP/graphviz-smoke.svg"
+          echo "$RUNNER_TEMP/graphviz-bin" >> "$GITHUB_PATH"
       - name: Install reference validation dependencies
         run: python3 -m pip install -r skills/report-evidence/scripts/requirements.txt
       - name: Verify the profile-manager chain end to end

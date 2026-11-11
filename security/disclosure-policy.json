@@ -25,7 +25,8 @@
     "mcp.slack.com",
     "docs.slack.dev",
     "archive.ubuntu.com",
-    "security.ubuntu.com"
+    "security.ubuntu.com",
+    "gitlab.com"
   ],
   "public_email_domains": [
     "users.noreply.github.com"
