@@ -84,7 +84,8 @@ also supply `task_resolution` on that binding: a proof object with `thread_id`,
 followed by inline requirements; a conflicting TASK filename in that message is rejected.
 Select the native
 `event_msg` / `item_completed` record for the successful finalization command in the same
-thread and turn, after the request and no later than the report cutoff. Its item must be a
+thread and either the request turn or an explicitly verified descendant continuation turn,
+after the request and no later than the report cutoff. Its item must be a
 completed `CommandExecution` with exit code zero, an absolute `cwd` (or local `file:` URI),
 and exactly one output line `Finalized: <absolute-task-path>` matching
 `<cwd>/<task_artifact>`. During task finalization, retain that output line after the saved
@@ -93,7 +94,7 @@ existing task, emit it after the editor/check barrier and saved-target identity/
 verification; this resolves the existing task and does not authorize a rename.
 For historical recordings only, a successful command whose entire output is the sole absolute
 TASK path (with an optional final newline) is also accepted. Extra output, a different path,
-or a failed, tampered, ambiguous, other-thread/turn, or out-of-window record is rejected.
+or a failed, tampered, ambiguous, other-thread, unbound-turn, or out-of-window record is rejected.
 An assistant message naming a path never substitutes for command evidence. Do not synthesize a past
 record or use assistant prose, a user message, a failed command, or a different task as proof.
 If this evidence is unavailable, preserve that limitation instead of assuming which task ran.
@@ -111,6 +112,19 @@ explicit attribution is the agent's responsibility: a hash proves source identit
 The helper verifies the hashed user record, turn, continuity link, and absence of a conflicting
 TASK filename. It never accepts injected AGENTS policy as a task request. List root bindings in
 continuation order; child turns are admitted from their native lineage without invented bindings.
+Resolution is checked only after every root binding is validated. A later resolution must follow
+`continuation_of` links back to the original shorthand request; an independent root, missing link,
+conflicting task, wrong-thread proof or assistant explanation never substitutes for that chain.
+Select the canonical `response_item` with `role: user`, not the adjacent `UserMessage`
+completion event. Never repair a failed hash by inventing a user record.
+
+Supply `expected_threads` as an explicit list of independently verified contributing thread IDs,
+including roots and children. The collector also detects omitted children from standard Codex
+native agent-spawn function calls and JSON results containing `agent_id`
+in admitted turns. Missing selected sources become `expected_source_missing` coverage gaps;
+unreadable selected files fail collection. Unresolved spawn results remain gaps. Other native
+spawn formats require explicit inventory verification; the helper does not scan session directories
+or prove that the supplied inventory is exhaustive. Every supplied child still needs native ancestry.
 
 ```sh
 python3 -B skills/token-usage/scripts/collect_token_usage.py --manifest "$TOKEN_USAGE_MANIFEST"
@@ -118,7 +132,13 @@ python3 -B skills/token-usage/scripts/collect_token_usage.py --manifest "$TOKEN_
 
 `TOKEN_USAGE_MANIFEST` is the absolute path of the private verified manifest. Capture output
 only to a resolved, authorized evidence destination. Source reads are bounded to 100 selected
-files, 64 MiB each. Malformed/conflicting evidence fails closed with a sanitized error; repair
+files, 64 MiB each. Malformed/conflicting evidence fails closed with a sanitized JSON diagnostic on stderr (exit 1,
+no accounting JSON on stdout), schema `investigation-token-usage-error/v1`, `status: failed`, and a
+fixed `code`. For example `user_request_required` identifies the wrong request record and
+`task_resolution_wrong_turn` an unbound resolution. `window_start_timestamp_mismatch` and
+`window_end_timestamp_mismatch` distinguish endpoint mismatch from missing turn proof.
+Structural/read failures use `invalid_local_evidence`; raw exceptions and private paths never
+enter diagnostics. Repair
 the selection or report unavailable evidence instead of relaxing validation.
 
 ## Interpret and retain accounting evidence
