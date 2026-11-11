@@ -15,6 +15,10 @@ At least one acceptance test is required.
 Each setting is optional. Specify at least one actual resource; omit or leave blank
 the settings that do not apply. Placeholders and examples do not count as resources.
 
+REPO profiles accept a single repository or a JSON array (up to 16 unique entries,
+512 characters each, 8 KiB total). Loading an array emits one Repo bullet per entry;
+keep every supplied repository in the saved Resources section.
+
 - Repo (Bitbucket/Github): `<enter repo name>` (example: `example-service`)
 - Slack channel: `<enter channel name or channel ID>` (examples: `#example-support` or `C0123456789`)
 - AWS account: `<enter AWS profile>` (example: `team-readonly`)

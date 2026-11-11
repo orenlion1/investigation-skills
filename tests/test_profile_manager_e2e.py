@@ -11,6 +11,8 @@ Resources section that the derived schema cannot express fails this test too.
 """
 import json
 import os
+import re
+import shlex
 from pathlib import Path
 import subprocess
 import sys
@@ -188,6 +190,31 @@ class EndToEndChainTests(unittest.TestCase):
         self.ok('remove', '--profile', 'investigation-skills')
         self.assertEqual(self.ok('list')['profiles'], [])
         self.assertTrue(self.ok('remove-env')['deleted'])
+
+
+    def test_readme_environment_application_and_composition_commands(self):
+        """Execute the actual documented synthetic commands and compare rendered output."""
+        readme = (ROOT / 'README.md').read_text()
+        example = readme.split('<!-- profile-composition-example:start -->')[1].split(
+            '<!-- profile-composition-example:end -->')[0]
+        self.task.write_text(TEMPLATE.read_text())
+        for block in re.findall(r'```sh\n(.*?)```', example, re.S):
+            for line in block.replace('\\\n', ' ').splitlines():
+                if not line.strip():
+                    continue
+                args = shlex.split(line)
+                self.assertEqual(args[:3], ['python3', '-B',
+                                           'skills/profile-manager/scripts/profile_env.py'])
+                self.assertEqual(args[3:5], ['--repository-root', '.'])
+                self.ok(*args[5:])
+        shown = self.ok('show', '--profile', 'prod-us-app-alpha')['fields']
+        self.assertEqual(len(json.loads(shown['REPO'])), 3)
+        self.assertEqual(shown['AWS_REGION'], 'us-east-1')
+        expected = readme.split('The effective task Resources are:')[1].split('```markdown\n')[1].split('```')[0]
+        loaded = self.task.read_text().split('## Resources')[1]
+        expected_bullets = [line for line in expected.splitlines() if line.startswith('- ')]
+        self.assertEqual([line for line in loaded.splitlines() if line.startswith('- ')], expected_bullets)
+        self.assertEqual(self.git('ls-files', '.env').stdout, '')
 
 
 if __name__ == '__main__':

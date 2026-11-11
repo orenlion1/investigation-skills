@@ -23,6 +23,8 @@ MAX_TASK_BYTES = 1_048_576
 MAX_VALUE_LENGTH = 512
 MAX_ENDPOINT_BYTES = 8192
 MAX_ENDPOINTS = 16
+MAX_REPOSITORY_BYTES = 8192
+MAX_REPOSITORIES = 16
 HISTORICAL_WINDOW = 'RHYMING_HISTORICAL_WINDOW_DAYS'
 DEFAULT_HISTORICAL_WINDOW_DAYS = '7'
 GENERATE_PDF = 'GENERATE_PDF'
@@ -151,6 +153,10 @@ def parse_template(text):
             max_bytes=MAX_ENDPOINT_BYTES, max_items=MAX_ENDPOINTS,
             required=['id', 'kind', 'target'],
             conditional={'grafana': ['context'], 'repository': ['provider']})
+    if 'REPO' in fields:
+        fields['REPO'].update(type='repository-or-array', max_items=MAX_REPOSITORIES,
+                              max_item_characters=MAX_VALUE_LENGTH,
+                              max_bytes=MAX_REPOSITORY_BYTES)
     if HISTORICAL_WINDOW in fields:
         fields[HISTORICAL_WINDOW].update(
             type='positive-integer-days', default=DEFAULT_HISTORICAL_WINDOW_DAYS,
@@ -269,6 +275,11 @@ def validate_rhyming_endpoints(value):
 
 
 def check_field(field, value):
+    if field == 'REPO':
+        if isinstance(value, str) and not value.startswith('['):
+            check_value(value)
+        repository_values(value)
+        return value
     if field == GENERATE_PDF:
         if value not in ('T', 'F'):
             raise ProfileError('invalid GENERATE_PDF; expected T or F')
@@ -282,6 +293,34 @@ def check_field(field, value):
         validate_rhyming_endpoints(value)
         return value
     return check_value(value)
+
+
+def repository_values(value):
+    """Normalize legacy scalars and JSON arrays without rewriting stored values."""
+    try:
+        if (not isinstance(value, str) or value != value.strip()
+                or len(value.encode('utf-8')) > MAX_REPOSITORY_BYTES
+                or any(ord(char) < 32 or ord(char) == 127 for char in value)):
+            raise ValueError()
+        entries = json.loads(value) if value.startswith('[') else [value]
+        if not isinstance(entries, list) or not 1 <= len(entries) <= MAX_REPOSITORIES:
+            raise ValueError()
+        seen = set()
+        for entry in entries:
+            check_value(entry)
+            entry.encode('utf-8')
+            if entry in seen or any(char in entry for char in '`<>\\\x85\u2028\u2029'):
+                raise ValueError()
+            if '://' in entry:
+                url = urlsplit(entry)
+                ssh_identity = url.scheme == 'ssh' and url.username == 'git'
+                if ((url.username is not None and not ssh_identity) or url.password is not None
+                        or url.query or url.fragment):
+                    raise ValueError()
+            seen.add(entry)
+        return entries
+    except (ValueError, TypeError, UnicodeError, RecursionError):
+        raise ProfileError('invalid REPO; expected a repository or a bounded unique JSON array') from None
 
 
 def assigned_keys(lines):
@@ -435,6 +474,10 @@ def render_section(schema, values):
             continue
         if primary not in (GENERATE_PDF, HISTORICAL_WINDOW):
             actual_resources = True
+        if primary == 'REPO':
+            bullets.extend('- ' + bullet['label'] + ': `' + entry + '`'
+                           for entry in repository_values(values[primary]))
+            continue
         text = '- ' + bullet['label'] + ': `' + values[primary] + '`'
         for key in bullet['keys'][1:]:
             if key in values:
@@ -543,6 +586,71 @@ def command_remove(arguments, context):
         _, written = parse_store(read_text(context['env_path'], 'profile store', MAX_ENV_BYTES))
         if name in profiles(written):
             raise ProfileError('profile remained in the store after removal: ' + name)
+    return result
+
+
+def command_compose(arguments, context):
+    """Persist a named snapshot from ordered sources, refusing scalar conflicts."""
+    names = [profile_name(name) for name in arguments.profile]
+    target = profile_name(arguments.into)
+    if len(names) < 2 or len(set(names)) != len(names) or target in names:
+        raise ProfileError('compose needs at least two unique sources and a separate target')
+    store = profiles(context['managed'])
+    if target in store and not arguments.replace:
+        raise ProfileError('target profile already exists; use --replace to replace it')
+    values, repositories = {}, []
+    for name in names:
+        known, unknown = resolve_profile(store, context['schema'], name)
+        if unknown:
+            raise ProfileError('source profile has unknown fields; verify the intended template')
+        for field, value in known.items():
+            if field == 'REPO':
+                for entry in repository_values(value):
+                    if entry not in repositories:
+                        repositories.append(entry)
+            elif field in values and values[field] != value:
+                raise ProfileError('conflicting field ' + field + '; align source profiles first')
+            else:
+                values[field] = value
+    if repositories:
+        values['REPO'] = (repositories[0] if len(repositories) == 1
+                          else json.dumps(repositories, separators=(',', ':'), ensure_ascii=False))
+        check_field('REPO', values['REPO'])
+    # Defaults apply only after all stored source values have been reconciled.
+    if values:
+        for field, default in ((GENERATE_PDF, DEFAULT_GENERATE_PDF),
+                               (HISTORICAL_WINDOW, DEFAULT_HISTORICAL_WINDOW_DAYS)):
+            if field in context['schema']['fields']:
+                values.setdefault(field, default)
+    render_section(context['schema'], values)
+    relative = require_ignored(context['root'], context['env_path'])
+    # Preserve original newline bytes outside the destination profile as well as values.
+    regular_file(context['env_path'], 'profile store', MAX_ENV_BYTES)
+    with context['env_path'].open(encoding='utf-8', newline='') as stream:
+        original = stream.read()
+    raw_lines = original.splitlines(keepends=True)
+    space = namespace(target)
+    owned = {index for index, (key, _) in context['managed'].items()
+             if profile_from_key(key)[0] == target}
+    block = ''.join(space + field + "='" + values[field] + "'\n" for field in sorted(values))
+    if owned:
+        body = ''.join((block if index == min(owned) else '')
+                       + (line if index not in owned else '')
+                       for index, line in enumerate(raw_lines))
+    else:
+        body = (original + ('\n' if original and not original.endswith('\n') else '')
+                + ('\n' if original else '') + MARKER + target + '\n' + block)
+    if len(body.encode('utf-8')) > MAX_ENV_BYTES:
+        raise ProfileError('composed store exceeds maximum bytes')
+    result = {'profile': target, 'sources': names, 'store': relative,
+              'fields': values, 'replaced': target in store, 'dry_run': arguments.dry_run}
+    if not arguments.dry_run:
+        result['mode'] = oct(write_file(context['env_path'], body, enforce=True))
+        _, written = parse_store(read_text(context['env_path'], 'profile store', MAX_ENV_BYTES))
+        expected = dict(store, **{target: values})
+        if profiles(written) != expected:
+            raise ProfileError('composed profile did not read back as written')
+        result['verified'] = True
     return result
 
 
@@ -667,7 +775,8 @@ def command_load(arguments, context):
 COMMANDS = {'schema': command_schema, 'list': command_list, 'show': command_show,
             'set': command_set, 'remove': command_remove, 'init': command_init,
             'remove-env': command_remove_env, 'ignore': command_ignore,
-            'render': command_render, 'load': command_load, 'endpoints': command_endpoints}
+            'render': command_render, 'load': command_load, 'endpoints': command_endpoints,
+            'compose': command_compose}
 
 
 def build_parser():
@@ -680,9 +789,13 @@ def build_parser():
         sub = subparsers.add_parser(command)
         if command in {'show', 'set', 'remove', 'render', 'load', 'endpoints'}:
             sub.add_argument('--profile', required=True)
+        if command == 'compose':
+            sub.add_argument('--profile', action='append', required=True,
+                             help='source profile, repeated in merge order')
+            sub.add_argument('--into', required=True, help='named destination profile in .env')
         if command == 'set':
             sub.add_argument('--field', action='append', default=[], metavar='FIELD=value')
-        if command in {'set', 'load'}:
+        if command in {'set', 'load', 'compose'}:
             sub.add_argument('--replace', action='store_true',
                              help='discard values this command would otherwise preserve')
         if command == 'load':

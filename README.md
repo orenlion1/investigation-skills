@@ -181,6 +181,94 @@ timeout, never counts as closure. In VS Code the waiting command is
 [editor contract](skills/open-edit-close-execute/references/open-edit-close-execute.md)
 covers other editors and how closure is confirmed when it cannot be tracked.
 
+### Resource profiles
+
+[Profile Manager](skills/profile-manager/SKILL.md) keeps resource identifiers in an ignored,
+owner-only `.env` store. It derives fields from `templates/TASK.md`, validates them before
+writes, and loads resolved Resources into an existing task draft before its editor opens.
+Profiles hold configuration; each integration still authenticates separately. Never source
+`.env` as shell code or commit it. Commands below use synthetic resources only; replace them
+with your actual resources for an investigation.
+
+“Prod US” (`prod-us`) is the environmental configuration. This example covers the local
+environmental profile's field names without copying its values: AWS_ACCOUNT, AWS_REGION,
+GRAFANA_CONTEXT, SLACK_CHANNEL, PUBLISH, REPO and RHYMING_ENDPOINTS. The helper also persists
+its PDF and historical-window defaults.
+
+<!-- profile-composition-example:start -->
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . ignore
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . init
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  set --profile prod-us \
+  --field AWS_ACCOUNT=demo-prod-us-readonly \
+  --field AWS_REGION=us-east-1 \
+  --field GRAFANA_CONTEXT=demo-prod-us \
+  --field SLACK_CHANNEL='#demo-ops' \
+  --field PUBLISH=https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations \
+  --field REPO=https://github.com/demo-org/shared-config \
+  --field 'RHYMING_ENDPOINTS=[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]'
+```
+
+“App Alpha” (`app-alpha`) supplies the application configuration: multiple repositories.
+`REPO` keeps its field name and accepts either the existing scalar or a JSON array of up to
+16 unique strings, 512 characters each and 8192 UTF-8 bytes total.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  set --profile app-alpha \
+  --field 'REPO=["https://github.com/demo-org/app-alpha","https://github.com/demo-org/app-alpha-lib"]'
+```
+
+Compose both profiles into a named snapshot in `.env`, then load that snapshot into the
+existing `docs/tasks/TASK.md` draft created by `open task`. `--dry-run` previews without writes.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  compose --profile prod-us --profile app-alpha --into prod-us-app-alpha --dry-run
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  compose --profile prod-us --profile app-alpha --into prod-us-app-alpha
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  render --profile prod-us-app-alpha
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  load --profile prod-us-app-alpha --task docs/tasks/TASK.md --dry-run
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  load --profile prod-us-app-alpha --task docs/tasks/TASK.md
+```
+<!-- profile-composition-example:end -->
+
+The effective task Resources are:
+
+```markdown
+## Resources
+
+- Repo (Bitbucket/Github): `https://github.com/demo-org/shared-config`
+- Repo (Bitbucket/Github): `https://github.com/demo-org/app-alpha`
+- Repo (Bitbucket/Github): `https://github.com/demo-org/app-alpha-lib`
+- Slack channel: `#demo-ops`
+- AWS account: `demo-prod-us-readonly`
+- AWS region: `us-east-1`
+- Grafana context: `demo-prod-us`
+- Publish: `https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations`
+- Rhyming endpoints: `[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]`
+- Rhyming historical window days: `7`
+- Generate PDF: `T`
+```
+
+Sources merge in command order. Repository entries form a first-seen ordered union with exact
+duplicates removed across sources. All other overlapping stored fields must match; conflicting
+values fail before writes and name the field. For example, different GRAFANA_CONTEXT values
+require explicit alignment of the source profiles before composition. Stored PDF/history defaults
+participate in conflict checks; absent defaults apply only after merging. Endpoint arrays are
+compared as stored strings, not combined. Unknown source fields fail.
+
+Sources and unrelated `.env` bytes stay unchanged. An existing combined profile requires
+`compose ... --replace`, which replaces its complete field set; later source changes require
+explicit recomposition. `load ... --replace` separately controls overwriting supplied TASK
+resources and still preserves an explicit TASK PDF choice. Loading never closes the editor or
+starts an investigation. Existing scalar profiles need no migration. See the
+[store contract](skills/profile-manager/references/profile-store.md#profile-composition).
+
 ### Per-store fan-out
 
 When a task's Resources name more than one data store, the gather step fans
