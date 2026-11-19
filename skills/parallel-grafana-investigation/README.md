@@ -10,6 +10,18 @@ This skill was generalized from `parallel-alert-investigation`. The name
 metrics, logs, traces, inventory, SLOs, Synthetic Monitoring and other resource reads.
 The runtime instructions live in [SKILL.md](SKILL.md); this README explains them.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../diagrams/DIAGRAM-parallel-alert-investigation-dark.png">
+  <img alt="Three shaded rows show the Grafana query setup, two parallel read-only agents, and evidence verification and reporting. The launch activity highlights parallel-grafana-investigation in orange." src="../../diagrams/DIAGRAM-parallel-alert-investigation-light.png">
+</picture>
+
+The launch activity highlights this skill in orange. Ovals are activities, boxes are
+agent calls, solid arrows are handoffs, and dashed arrows invoke agents. The request
+already authorizes read-only work; the visual pattern introduces no separate approval
+step. Assistant-disabled and degraded runs follow the rules below. This depicts the
+workflow, not evidence of an executed investigation. See the
+[diagram source and regeneration notes](../../diagrams/DIAGRAM-parallel-alert-investigation.md).
+
 ## How the work is divided
 
 The split is by investigation method. Both agents answer the same request within the
