@@ -25,6 +25,10 @@
       {
         "prompt": "Store multiple Slack channels as a SLACK_CHANNEL JSON array in Profile Manager and compose the .env profiles before loading repeated channel bullets",
         "top_k": 3
+      },
+      {
+        "prompt": "Save GRAFANA_ASSISTANT=disabled in my named resource profile and load its Grafana Assistant setting into the task",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -145,6 +149,19 @@
         "Forms a stable first-seen channel union across profiles and revalidates limits",
         "Explicit command or saved user TASK channel lists replace inherited channels rather than appending",
         "Keeps sources/unmanaged .env bytes unchanged and does not authenticate, query or message Slack"
+      ]
+    },
+    {
+      "id": 10,
+      "kind": "dialogue",
+      "prompt": "Set GRAFANA_ASSISTANT=disabled in an existing resource profile and compose it with a profile storing enabled. Load the result into a task that explicitly selects enabled. Do not query Grafana.",
+      "expected_output": "Derives the enum from the template schema, previews and reads back the requested field-only profile update, refuses unresolved scalar composition conflicts, and preserves the explicit task override over the saved profile. Sends no Assistant prompt or Grafana query.",
+      "expectations": [
+        "Schema exposes enabled/disabled with enabled default as configuration rather than an actual resource",
+        "Preserves omitted profile fields and unrelated unmanaged bytes; validates and reads back the update",
+        "Resolves composition conflicts only by explicit field selection or aligned sources",
+        "TASK value overrides the profile; load --field overrides the TASK; invalid or duplicate controls fail before writes",
+        "No live Grafana query or Assistant prompt is sent by profile management"
       ]
     }
   ]

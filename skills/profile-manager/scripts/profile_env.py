@@ -30,6 +30,10 @@ HISTORICAL_WINDOW = 'RHYMING_HISTORICAL_WINDOW_DAYS'
 DEFAULT_HISTORICAL_WINDOW_DAYS = '7'
 GENERATE_PDF = 'GENERATE_PDF'
 DEFAULT_GENERATE_PDF = 'T'
+GRAFANA_ASSISTANT = 'GRAFANA_ASSISTANT'
+DEFAULT_GRAFANA_ASSISTANT = 'enabled'
+CONTROL_DEFAULTS = {GENERATE_PDF: DEFAULT_GENERATE_PDF,
+                    GRAFANA_ASSISTANT: DEFAULT_GRAFANA_ASSISTANT}
 ENDPOINT_KINDS = ('grafana-investigations', 'grafana-assistant-conversations',
                   'grafana-assistant-search',
                   'confluence', 'slack', 'repository')
@@ -165,6 +169,9 @@ def parse_template(text):
             render_requires='RHYMING_ENDPOINTS')
     if GENERATE_PDF in fields:
         fields[GENERATE_PDF].update(type='T/F', default=DEFAULT_GENERATE_PDF, resource=False)
+    if GRAFANA_ASSISTANT in fields:
+        fields[GRAFANA_ASSISTANT].update(type='enum', enum=['enabled', 'disabled'],
+                                        default=DEFAULT_GRAFANA_ASSISTANT, resource=False)
     return {'schema': SCHEMA, 'fields': fields, 'bullets': bullets}
 
 
@@ -285,6 +292,10 @@ def check_field(field, value):
     if field == GENERATE_PDF:
         if value not in ('T', 'F'):
             raise ProfileError('invalid GENERATE_PDF; expected T or F')
+        return value
+    if field == GRAFANA_ASSISTANT:
+        if value not in ('enabled', 'disabled'):
+            raise ProfileError('invalid GRAFANA_ASSISTANT; expected enabled or disabled')
         return value
     if field == HISTORICAL_WINDOW:
         if (not isinstance(value, str) or len(value) > MAX_VALUE_LENGTH
@@ -458,8 +469,9 @@ def render_store(lines, managed, name, values):
 def render_section(schema, values):
     """Render the Resources section body from resolved values, omitting unset bullets."""
     values = dict(values)
-    if GENERATE_PDF in schema['fields']:
-        values.setdefault(GENERATE_PDF, DEFAULT_GENERATE_PDF)
+    for field, default in CONTROL_DEFAULTS.items():
+        if field in schema['fields']:
+            values.setdefault(field, default)
     actual_resources = False
     if 'RHYMING_ENDPOINTS' in values and HISTORICAL_WINDOW in schema['fields']:
         values.setdefault(HISTORICAL_WINDOW, DEFAULT_HISTORICAL_WINDOW_DAYS)
@@ -474,7 +486,7 @@ def render_section(schema, values):
             continue
         if primary == HISTORICAL_WINDOW and 'RHYMING_ENDPOINTS' not in values:
             continue
-        if primary not in (GENERATE_PDF, HISTORICAL_WINDOW):
+        if primary not in (*CONTROL_DEFAULTS, HISTORICAL_WINDOW):
             actual_resources = True
         if primary in LIST_FIELDS:
             bullets.extend('- ' + bullet['label'] + ': `' + entry + '`'
@@ -522,7 +534,10 @@ def command_show(arguments, context):
             'unknown_fields': unknown,
             'missing_fields': sorted(set(context['schema']['fields']) - set(known)),
             'effective_generate_pdf': known.get(GENERATE_PDF, DEFAULT_GENERATE_PDF)
-            if GENERATE_PDF in context['schema']['fields'] else None}
+            if GENERATE_PDF in context['schema']['fields'] else None,
+            'effective_grafana_assistant': known.get(GRAFANA_ASSISTANT,
+                                                    DEFAULT_GRAFANA_ASSISTANT)
+            if GRAFANA_ASSISTANT in context['schema']['fields'] else None}
 
 
 def command_set(arguments, context):
@@ -549,8 +564,9 @@ def command_set(arguments, context):
     if (values and HISTORICAL_WINDOW in schema['fields'] and HISTORICAL_WINDOW not in cleared
             and (not existing or 'RHYMING_ENDPOINTS' in values)):
         values.setdefault(HISTORICAL_WINDOW, DEFAULT_HISTORICAL_WINDOW_DAYS)
-    if values and GENERATE_PDF in schema['fields'] and GENERATE_PDF not in cleared:
-        values.setdefault(GENERATE_PDF, DEFAULT_GENERATE_PDF)
+    for field, default in CONTROL_DEFAULTS.items():
+        if values and field in schema['fields'] and field not in cleared:
+            values.setdefault(field, default)
     for field in list(values):
         if field not in schema['fields']:
             raise ProfileError('store holds unknown field ' + field + ' for profile ' + name)
@@ -623,7 +639,7 @@ def command_compose(arguments, context):
     values.update(overrides)
     # Defaults apply only after all stored source values have been reconciled.
     if values:
-        for field, default in ((GENERATE_PDF, DEFAULT_GENERATE_PDF),
+        for field, default in (*CONTROL_DEFAULTS.items(),
                                (HISTORICAL_WINDOW, DEFAULT_HISTORICAL_WINDOW_DAYS)):
             if field in context['schema']['fields']:
                 values.setdefault(field, default)
@@ -751,7 +767,7 @@ def command_load(arguments, context):
     known.update(explicit_fields(arguments.field, context['schema']))
     bullets = render_section(context['schema'], known)
     supplied = supplied_values([line for line in section
-                                if not line.startswith('- Generate PDF:')])
+                                if not line.startswith(('- Generate PDF:', '- Grafana Assistant:'))])
     if supplied and not arguments.replace:
         raise ProfileError('task Resources already supplies ' + ', '.join(supplied) +
                            '; re-run with --replace to rewrite while preserving user fields')
@@ -810,6 +826,9 @@ def task_fields(lines, schema):
             r'(?:; ' + re.escape(bullet['sublabels'][key]) + r' `([^`]*)`)?'
             for key in bullet['keys'][1:])
         parsed = re.fullmatch(pattern, match.group('rest')) if match else None
+        if parsed is None and primary == GRAFANA_ASSISTANT and match:
+            # The documented task control also permits the bare enabled/disabled form.
+            parsed = re.fullmatch(r'(enabled|disabled)', match.group('rest'))
         if not parsed:
             if primary == GENERATE_PDF:
                 raise ProfileError('invalid GENERATE_PDF; expected T or F')
