@@ -40,7 +40,7 @@ blocker rather than substituting direct reads.
 | Slack MCP configuration, connectivity, and OAuth diagnosis | [Slack MCP](skills/slack-mcp/SKILL.md) |
 | Finding rhyming incidents and related prior investigations across configured historical endpoints | [Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) |
 | Multi-store, multi-repository or multi-channel fan-out: inspection briefs, launch, manifest, disabling fan-out | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) |
-| Grafana alert investigation: parallel Assistant and `investigate-alert` sub-agents | [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) |
+| Any Grafana query: parallel Assistant and direct gcx sub-agents using relevant bundled skills | [Parallel Grafana Investigation](skills/parallel-grafana-investigation/SKILL.md) |
 | `run release-it`, repository releases | [Release It](skills/release-it/SKILL.md) with [VERSIONING.md](VERSIONING.md) |
 
 Routing notes:
@@ -77,15 +77,16 @@ mutations, messages, publication, and deployment still apply. The
 Grafana Assistant prompts are enabled by default and may incur additional fees beyond
 ordinary Grafana usage; the user may disable them, by instruction or with a
 `Grafana Assistant: disabled` line in the task's Resources — honor that for the stated scope
-without re-asking, and disabling the Assistant never disables the investigation. Alert
-investigations route to Parallel Alert Investigation, which owns the workflow and its
-authorization; other gcx investigations route to the Grafana CLI skill.
+without re-asking. All user-requested Grafana queries route to Parallel Grafana Investigation,
+which owns the two-agent workflow and its authorization. When Assistant is disabled, only gcx
+and relevant gcx agent skills run. Grafana CLI owns setup/authentication; internal commands
+never recursively launch the query workflow.
 
 ## Per-Store Fan-Out Policy
 
 Fan-out creates no scope or authority: only stores the task's Resources actually name get a
-sub-agent, AWS branches stay within the allowed Regions, Grafana alert investigations route
-to Parallel Alert Investigation nested inside the gcx branch, and sub-agents never mutate,
+sub-agent, AWS branches stay within the allowed Regions, all Grafana query requests route
+to Parallel Grafana Investigation nested inside the gcx branch, and sub-agents never mutate,
 acknowledge, message, or publish — those remain separately authorized. The Per-Store Fan-Out
 skill owns the workflow, including the fan-out default and how to disable it.
 

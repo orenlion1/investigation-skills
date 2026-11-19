@@ -1,0 +1,4 @@
+interface:
+  display_name: "Parallel Grafana Investigation"
+  short_description: "Query Grafana with parallel Assistant and direct gcx agents"
+  default_prompt: "Use $parallel-grafana-investigation for this Grafana query with parallel read-only Assistant and direct gcx agents, preserving the exact scope and any Assistant disable setting."

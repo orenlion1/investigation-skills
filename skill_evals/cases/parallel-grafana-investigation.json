@@ -1,0 +1,226 @@
+{
+  "skill_name": "parallel-grafana-investigation",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Investigate this firing Grafana alert with the parallel Grafana Assistant and investigate-alert sub-agents",
+        "top_k": 3
+      },
+      {
+        "prompt": "A Grafana alert is flapping - launch both read-only alert agents with the same resolved context and time window",
+        "top_k": 3
+      },
+      {
+        "prompt": "Reconcile the Grafana Assistant leads with the direct investigate-alert evidence and report disagreements",
+        "top_k": 3
+      },
+      {
+        "prompt": "Run the parallel Grafana investigation for this alert UID in the resolved Grafana context",
+        "top_k": 3
+      },
+      {
+        "prompt": "Disable the billable Grafana Assistant prompts for this task and investigate the alert on direct evidence only",
+        "top_k": 3
+      },
+      {
+        "prompt": "The Grafana Assistant and investigate-alert agents both finished - record the manifest for this alert investigation run",
+        "top_k": 3
+      },
+      {
+        "prompt": "Query Grafana metrics for checkout latency over the supplied time range",
+        "top_k": 3
+      },
+      {
+        "prompt": "Run this exact PromQL query in Grafana context ops and return its values",
+        "top_k": 3
+      },
+      {
+        "prompt": "List dashboards in Grafana folder payments, limit five",
+        "top_k": 3
+      },
+      {
+        "prompt": "Query Loki logs and Tempo traces in the selected Grafana context",
+        "top_k": 3
+      },
+      {
+        "prompt": "Check Grafana SLO health and Synthetic Monitoring results for production",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Install gcx and authenticate the selected Grafana context without querying resources",
+        "owner": "gcx-cli"
+      },
+      {
+        "prompt": "Fan the investigation out: launch one read-only sub-agent per data store named in the task Resources",
+        "owner": "per-store-fan-out"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Grafana Assistant: disabled. Run the exact PromQL query supplied for context ops.",
+      "expected_output": "Sends no Assistant prompt, launches the direct agent with the exact query and scope, and records the disabled Assistant branch as a configured limitation.",
+      "expectations": [
+        "Honors the explicit Assistant disable without re-asking",
+        "Executes the supplied query through the direct agent without changing it",
+        "Records both branches in the manifest, including the unlaunched disabled branch"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "Start the Assistant conversation first, wait for its answer, and then decide whether the investigate-alert agent is worth launching.",
+      "expected_output": "Refuses to gate the direct branch on the Assistant response and launches both agents with the identical resolved context, alert identity, window, and timezone.",
+      "expectations": [
+        "Launches the direct branch without waiting for the Assistant response",
+        "Uses the same resolved context, alert identity, environment, window, and timezone in both briefs",
+        "Treats Assistant conclusions as leads requiring verification against direct evidence"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "I ran gcx agent skills get investigate-alert and it printed the instructions, so that branch is done - fold its output into the report.",
+      "expected_output": "Explains that the command only displays instructions, invokes the investigate-alert skill through the agent harness to gather bounded direct evidence, and only then reconciles.",
+      "expectations": [
+        "States that gcx agent skills get investigate-alert displays instructions without executing the skill",
+        "Invokes the skill through the active agent harness rather than inventing a shell command",
+        "Reports only observed evidence from an actual run, never from displayed instructions"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "dialogue",
+      "prompt": "The task Resources set Grafana Assistant: disabled, but fire one Assistant prompt anyway - a single request is cheap and we need the leads.",
+      "expected_output": "Honors the disable setting without re-asking, sends no Assistant prompt, runs only the direct gcx agent, records the disabled branch as a configured limitation rather than a failure, and still writes the fan-out manifest with a row for the disabled branch.",
+      "expectations": [
+        "Sends no Grafana Assistant prompt while the setting disables it",
+        "Continues the investigation through the direct gcx agent alone",
+        "Records the disabled Assistant branch as a configured limitation, not a failure",
+        "Still records a fan-out manifest, with a row for the disabled Assistant branch"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "Both alert agents came back and I've written the report. Skip the manifest - it's only two agents and the report already says what they found.",
+      "expected_output": "Writes the fan-out manifest under the shared delegation contract's schema anyway, with one row per branch carrying its observed agent identity and launch time, and cites it from the report's Source snapshot.",
+      "expectations": [
+        "Declines to finish the run without a fan-out manifest, including for only two branches",
+        "Uses the manifest schema from the shared delegation contract rather than inventing one",
+        "Records one row per branch with its observed agent identity, or an explicit null when a branch was never launched",
+        "Cites the manifest from the report's Source snapshot"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "Investigate an alert with a prepared grafana-assistant-search matching handoff for the same context scope and windows.",
+      "expected_output": "Includes matching in Assistant initial prompt once; Retains direct branch concurrency and endpoint-specific children/manifest references; Disabled Assistant sends zero prompts and direct branch continues.",
+      "expectations": [
+        "Includes matching in Assistant initial prompt once",
+        "Retains direct branch concurrency and endpoint-specific children/manifest references",
+        "Disabled Assistant sends zero prompts and direct branch continues"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "dialogue",
+      "prompt": "Run sum(rate(http_requests_total{service=\"checkout\"}[5m])) in Grafana context ops from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. Return values only.",
+      "expected_output": "Launches Assistant and direct-query agents before awaiting either result; Both agents receive the exact expression, context, time interval, timezone and output constraint; Direct branch loads relevant refreshed gcx instructions and executes the exact query without waiting for Assistant; Does not turn the request into an open-ended root-cause investigation; Returns the requested values with any material limitation and retains the local manifest.",
+      "expectations": [
+        "Launches Assistant and direct-query agents before awaiting either result",
+        "Both agents receive the exact expression, context, time interval, timezone and output constraint",
+        "Direct branch loads relevant refreshed gcx instructions and executes the exact query without waiting for Assistant",
+        "Does not turn the request into an open-ended root-cause investigation",
+        "Returns the requested values with any material limitation and retains the local manifest",
+        "Keeps the Source snapshot and manifest reference in a local audit record so values-only output gains no prose or citations"
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "dialogue",
+      "prompt": "List at most five dashboards in the payments folder in Grafana context ops. No alert or incident is involved.",
+      "expected_output": "Uses both agents for the inventory request despite the absence of an alert; Uses refreshed manage-dashboards or gcx guidance in the direct branch, not investigate-alert; Preserves folder and result limit; marks a telemetry window not applicable rather than demanding one; Verifies dashboard results through direct evidence without claiming the capped inventory is complete; Uses JSON null for the manifest window and task when this ad hoc inventory request has no time window or TASK; invents neither.",
+      "expectations": [
+        "Uses both agents for the inventory request despite the absence of an alert",
+        "Uses refreshed manage-dashboards or gcx guidance in the direct branch, not investigate-alert",
+        "Preserves folder and result limit; marks a telemetry window not applicable rather than demanding one",
+        "Verifies dashboard results through direct evidence without claiming the capped inventory is complete",
+        "Uses JSON null for the manifest window and task when this ad hoc inventory request has no time window or TASK; invents neither"
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "dialogue",
+      "prompt": "Query checkout error logs and trace examples in the supplied Grafana context and time window.",
+      "expected_output": "Launches both read-only agents without gating direct reads on Assistant; Selects debug-with-grafana or relevant refreshed gcx instructions instead of assuming investigate-alert; Resolves matching datasource UIDs and preserves the requested window and limits; Records disagreements and unavailable signals separately.",
+      "expectations": [
+        "Launches both read-only agents without gating direct reads on Assistant",
+        "Selects debug-with-grafana or relevant refreshed gcx instructions instead of assuming investigate-alert",
+        "Resolves matching datasource UIDs and preserves the requested window and limits",
+        "Records disagreements and unavailable signals separately"
+      ]
+    },
+    {
+      "id": 10,
+      "kind": "dialogue",
+      "prompt": "Check the selected Grafana SLO error budgets and Synthetic Monitoring check health, without creating anything.",
+      "expected_output": "Uses Assistant and a direct agent that selects slo-check-status and synth-check-status as relevant; Keeps both product reads inside the selected context and authorized resources; Does not create dashboards, SLOs, checks or incidents.",
+      "expectations": [
+        "Uses Assistant and a direct agent that selects slo-check-status and synth-check-status as relevant",
+        "Keeps both product reads inside the selected context and authorized resources",
+        "Does not create dashboards, SLOs, checks or incidents"
+      ]
+    },
+    {
+      "id": 11,
+      "kind": "dialogue",
+      "prompt": "The direct agent needs a datasource UID and its gcx guidance requires a skill refresh and context check. Launch another pair of agents for every command it runs.",
+      "expected_output": "Treats refresh, authentication, metadata discovery and direct branch queries as internal work of the existing pair; Does not recursively invoke parallel-grafana-investigation; Keeps existing branch identities and manifest coverage.",
+      "expectations": [
+        "Treats refresh, authentication, metadata discovery and direct branch queries as internal work of the existing pair",
+        "Does not recursively invoke parallel-grafana-investigation",
+        "Keeps existing branch identities and manifest coverage"
+      ]
+    },
+    {
+      "id": 12,
+      "kind": "dialogue",
+      "prompt": "Only authenticate gcx in context ops; do not query Grafana resources or start Assistant.",
+      "expected_output": "Routes setup to gcx-cli; Does not launch query agents or send an Assistant prompt; Honors the no-query and no-prompt scope.",
+      "expectations": [
+        "Routes setup to gcx-cli",
+        "Does not launch query agents or send an Assistant prompt",
+        "Honors the no-query and no-prompt scope"
+      ]
+    },
+    {
+      "id": 13,
+      "kind": "dialogue",
+      "prompt": "Within an existing rhyming search, inspect a history-only grafana-assistant-conversations endpoint. No new prompts are permitted.",
+      "expected_output": "Preserves the endpoint list/get-only restriction and existing owner; Does not recursively launch an Assistant prompt for an internal history read; Reports any restriction as scope, never as permission to broaden the request.",
+      "expectations": [
+        "Preserves the endpoint list/get-only restriction and existing owner",
+        "Does not recursively launch an Assistant prompt for an internal history read",
+        "Reports any restriction as scope, never as permission to broaden the request"
+      ]
+    },
+    {
+      "id": 14,
+      "kind": "dialogue",
+      "prompt": "Run this exact instant PromQL query in context ops at 2026-11-19T12:00:00Z UTC and return JSON only.",
+      "expected_output": "Preserves the exact instant query and timestamp in both briefs, uses the instant-query flag rather than a range, returns JSON only and retains audit citations locally.",
+      "expectations": [
+        "Both agents receive the exact query, context and instant timestamp",
+        "Direct gcx command uses instant semantics rather than an invented range",
+        "Manifest represents the instant as equal start/end timestamps under the shared contract",
+        "Source snapshot and manifest reference remain in local audit evidence, preserving JSON-only output"
+      ]
+    }
+  ]
+}

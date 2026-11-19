@@ -26,7 +26,8 @@
     "docs.slack.dev",
     "archive.ubuntu.com",
     "security.ubuntu.com",
-    "gitlab.com"
+    "gitlab.com",
+    "learn.chatgpt.com"
   ],
   "public_email_domains": [
     "users.noreply.github.com"
@@ -42,7 +43,8 @@
       "4c9478cc37332a77db737c5aa3dd581bb12fa97d7cdb89b6783f0d4f7f866133",
       "5d8a92439716087528cfadb6c624dc9c785c409e2fd517c99b88f7f3a3501c75",
       "22c7fe728c2d08fe797a2e08ee1bb452d0147618b4e7f78aa937223e931ef12c",
-      "24f8d623013a16586e745da1f41c6173d04590fce59e2fe62c7f72c3f32d0305"
+      "24f8d623013a16586e745da1f41c6173d04590fce59e2fe62c7f72c3f32d0305",
+      "305de7ec7b40c5d4470876f9e96a9a41666b51954a35502cc02a2e4e7570d850"
     ],
     "diagrams/DIAGRAM-investigation-skill-routing-light.png": [
       "4f1d162214ef09e038eebe5d1ab6aed5a6625d19af36c65ce6c93f6b1c5f5831",
@@ -50,7 +52,8 @@
       "858046c839a665977ebf8a7ed1d2db443ca19ef8e8797362f8a8e0146095c426",
       "4bd5258829c5c14160c953c3e9a3ef31627312f346487e5b566520f494175b83",
       "4e71b91d16fe63868e1098ea57e0236419efb02539829456b0213021318618e7",
-      "709ec7946ab0b2dc08987a1a96fa799f7cd5c197ec0a42d0298dd02acaeefe04"
+      "709ec7946ab0b2dc08987a1a96fa799f7cd5c197ec0a42d0298dd02acaeefe04",
+      "e4cbf26f5c7c483214494b4a037a80adfaebac3a9e2c84d6d561f2b4dfd45180"
     ],
     "diagrams/DIAGRAM-investigation-workflow-dark.png": [
       "6da3e55a306e7f15f8fc24b5e9461967670eac1147987ce8124f7e3af764ee76",
@@ -65,12 +68,14 @@
     "diagrams/DIAGRAM-parallel-alert-investigation-light.png": [
       "fd47de2304d9faa718c95bd86a622cee8eb592ad5754b6deb3a5ec137504914d",
       "08d793c43ed81702e74ed858affab1cd20ef5db018326c16683e38823d723a74",
-      "cce88df354f0ebd4d02e1c7291b1d97d6e18895540686620087a42bcf7c30fdf"
+      "cce88df354f0ebd4d02e1c7291b1d97d6e18895540686620087a42bcf7c30fdf",
+      "53a28fe742407d8a45f3c01b64ffdb3631d3f3180ee9b96840ebe5258d86c90b"
     ],
     "diagrams/DIAGRAM-parallel-alert-investigation-dark.png": [
       "62beec522d2704c6eae74099b7ab446c8547cb834aca0513b7a721e19677d73c",
       "a4fd088e977d819c1db142601aa7a47ed622a36e7a272e48a1413e06693b0c33",
-      "da1b4e9feffeb59892dcc0d3cf39d76ebdcb29aae2313808e49172164f4b8612"
+      "da1b4e9feffeb59892dcc0d3cf39d76ebdcb29aae2313808e49172164f4b8612",
+      "18a29754e7db573df8abf68b8a4b881717fdd5e9887b9a96c123fdb6878749b2"
     ],
     "diagrams/DIAGRAM-per-store-fan-out-dark.png": [
       "65bcead7a034f0ef129b2bcbe761f8f41281f552da9092358661ba20b6f8cf8f",

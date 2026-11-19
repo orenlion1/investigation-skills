@@ -4,7 +4,7 @@
   "callers": [
     "skills/per-store-fan-out",
     "skills/rhyming-incident-search",
-    "skills/parallel-alert-investigation"
+    "skills/parallel-grafana-investigation"
   ],
   "owned_concepts": [
     {
@@ -40,7 +40,7 @@
   "exemptions": [
     {
       "path": "skills/gcx-cli",
-      "reason": "Routes alert investigations to parallel-alert-investigation, which owns the two-branch workflow and its authorization rule; gcx-cli supplies only the gcx mechanics and neither launches nor briefs the delegated agents, so it owns no delegation machinery."
+      "reason": "Routes Grafana query requests to parallel-grafana-investigation, which owns the two-branch workflow and its authorization rule; gcx-cli supplies only the gcx mechanics and neither launches nor briefs the delegated agents, so it owns no delegation machinery."
     },
     {
       "path": "skills/token-usage",
@@ -49,7 +49,7 @@
   ],
   "caller_no_bound": [
     {
-      "path": "skills/parallel-alert-investigation",
+      "path": "skills/parallel-grafana-investigation",
       "reason": "Two fixed investigation branches; no caller-owned follow-up rounds or budget."
     }
   ]

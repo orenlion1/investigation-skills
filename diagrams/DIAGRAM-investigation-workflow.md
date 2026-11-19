@@ -30,11 +30,10 @@ the same modes in the same words. Dashed arrows mean invocation or routing; peer
 placement does not establish ordering between skills. Only the integrations
 needed by the task are invoked. Investigate routes through the orchestration
 skills: Per-Store Fan-Out delegates a multi-store task to one read-only
-sub-agent per store (the default, user-disableable), and Parallel Alert
-Investigation runs a Grafana alert's Assistant and `investigate-alert`
-sub-agents — nested inside the fan-out's Grafana branch when both apply. Those
-orchestration skills invoke the resource skills; a single-store task without an
-alert invokes its resource skill directly, a path the drawing folds into the
+sub-agent per store (the default, user-disableable), and Parallel Grafana
+Investigation runs Assistant and direct gcx sub-agents for every Grafana query — nested inside the fan-out's Grafana branch when both apply. Those
+orchestration skills invoke the resource skills; other single-store tasks
+invoke their resource skill directly, a path the drawing folds into the
 same column. Edit-only and initialization-only requests limit
 the continuation. Execution and reporting retain the user's authorization and
 the repository's required gates.
