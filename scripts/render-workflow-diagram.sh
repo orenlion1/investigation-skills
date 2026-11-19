@@ -44,6 +44,15 @@ for theme in light dark; do
         -Efontcolor='#a5f3fc')
     fi
   fi
+  themed_source=$(python3 -c '
+from pathlib import Path
+import sys
+source = Path(sys.argv[1]).read_text()
+# Keep the skill-name emphasis readable on both reference-style node fills.
+if sys.argv[2] == "dark":
+    source = source.replace("#9a3412", "#ffb366")
+print(source, end="")
+' "$source_path" "$theme")
   for format in svg png; do
     output_path="$(resolve_path --extension "$format" --suffix "$theme")"
     [[ ! -L "$output_path" ]] || { printf 'Refusing symlink output: %s\n' "$output_path" >&2; exit 1; }
@@ -51,7 +60,7 @@ for theme in light dark; do
       -Nfontcolor="$text_color" -Ncolor="$outline" \
       -Ecolor="$arrow" -Efontcolor="$action" \
       ${theme_options[@]+"${theme_options[@]}"} \
-      -T"$format" "$source_path" -o "$output_path"
+      -T"$format" -o "$output_path" <<< "$themed_source"
     printf 'Rendered %s\n' "${output_path#"$repository_root/"}"
   done
 done

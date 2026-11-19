@@ -10,8 +10,8 @@ digraph ParallelGrafanaInvestigation {
   subgraph cluster_setup {
     label="Grafana query setup"; labeljust=l; style=filled;
     request [shape=oval, label="Grafana query\nrequest"];
-    resolve [shape=oval, label="Resolve shared inputs\nand prompt ownership"];
-    launch [shape=oval, label="Launch both agents"];
+    resolve [shape=oval, label="Resolve shared inputs\nand authentication"];
+    launch [shape=oval, label=<Launch both agents<BR/><FONT COLOR="#9a3412"><B>parallel-grafana-investigation</B></FONT>>];
     { rank=same; request; resolve; launch; }
     request -> resolve -> launch [weight=100];
   }

@@ -453,10 +453,11 @@ See the [skill README](skills/parallel-grafana-investigation/README.md) for deta
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-parallel-alert-investigation-dark.png">
-  <img alt="A Grafana query request resolves shared inputs and authentication, launches Grafana Assistant and direct gcx queries in parallel, then reconciles their results, verifies claims, and produces a report." src="diagrams/DIAGRAM-parallel-alert-investigation-light.png">
+  <img alt="Three shaded rows show request, shared-input resolution and authentication, parallel Assistant and direct gcx agents, then reconciliation, verification and reporting. The launch step highlights parallel-grafana-investigation in orange." src="diagrams/DIAGRAM-parallel-alert-investigation-light.png">
 </picture>
 
-**Figure 4 — Parallel Grafana investigation.** Both agents launch — before
+**Figure 4 — Parallel Grafana investigation.** The orange skill name identifies the
+launch owner within the three-row visual pattern. Both agents launch — before
 either result is awaited — with the same resolved Grafana context, request, resource scope, filters, limits and applicable
 environment, exact time window and timezone. Solid arrows are handoffs; dashed arrows are invocation;
 ovals are activities and boxes are the two agent calls. Assistant conclusions
