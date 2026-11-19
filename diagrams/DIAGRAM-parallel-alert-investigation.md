@@ -2,7 +2,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="DIAGRAM-parallel-alert-investigation-dark.png">
-  <img src="DIAGRAM-parallel-alert-investigation-light.png" alt="A Grafana query request resolves shared inputs and authentication, launches Grafana Assistant and direct gcx queries in parallel, then reconciles their results, verifies claims, and produces a report.">
+  <img src="DIAGRAM-parallel-alert-investigation-light.png" alt="Three shaded rows show request, shared-input resolution and authentication, parallel Assistant and direct gcx agents, then reconciliation, verification and reporting. The launch step highlights parallel-grafana-investigation in orange.">
 </picture>
 
 The two agents receive the same resolved Grafana context, request, resources, filters, limits, applicable
@@ -10,6 +10,10 @@ environment/window/timezone and read-only scope. Both launch
 before either result is awaited; the direct investigation proceeds independently
 of the Assistant response. Solid arrows show handoffs; dashed arrows show
 invocation. Ovals identify activities and boxes identify the two agent calls.
+The three shaded rows match the supplied visual reference; the launch activity highlights
+`parallel-grafana-investigation` in orange. The main path remains request → resolve inputs
+and authentication → launch, with no separate plan-approval step. Prompt ownership is
+resolved with the shared inputs before launch.
 
 Assistant conclusions are investigation leads. Retain its prompt, response and
 conversation identifiers, references, and limitations. The other agent invokes
