@@ -24,6 +24,7 @@ or Slack channel bullet per entry; keep every supplied resource in the saved sec
 - AWS account: `<enter AWS profile>` (example: `team-readonly`)
 - AWS region: `<enter AWS Region>`
 - Grafana context: `<enter gcx profile>` (example: `example`)
+- Grafana Assistant: `<enabled or disabled>`
 - Alert: `<Alert name>`; UID `<Enter UID>`
 - Publish: `<Parent page>` (example: Confluence page "Investigations")
 - Rhyming endpoints: `<JSON endpoint array>`

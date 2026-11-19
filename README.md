@@ -219,7 +219,7 @@ to change them. Unknown task settings such as `Fan-out: disabled` are retained.
 “Prod US” (`prod-us`) is the environmental configuration. This example covers the local
 environmental profile's field names without copying its values: AWS_ACCOUNT, AWS_REGION,
 GRAFANA_CONTEXT, SLACK_CHANNEL, PUBLISH, REPO and RHYMING_ENDPOINTS. The helper also persists
-its PDF and historical-window defaults.
+its PDF, Grafana Assistant and historical-window defaults.
 
 <!-- profile-composition-example:start -->
 ```sh
@@ -280,6 +280,7 @@ The effective task Resources are:
 - AWS account: `demo-prod-us-readonly`
 - AWS region: `us-east-1`
 - Grafana context: `demo-prod-us`
+- Grafana Assistant: `enabled`
 - Publish: `https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations`
 - Rhyming endpoints: `[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]`
 - Rhyming historical window days: `7`
@@ -449,7 +450,18 @@ default. Disable it by instruction or `Grafana Assistant: disabled` in task Reso
 only gcx and relevant gcx agent skills then run, through the direct agent, with no Assistant
 prompt. Record the disabled branch as a configured limitation. Setup-only work stays with
 Grafana CLI; internal commands and historical endpoint reads never recursively launch pairs.
-See the [skill README](skills/parallel-grafana-investigation/README.md) for details.
+The profile schema also supports `GRAFANA_ASSISTANT=enabled|disabled` (default `enabled`).
+Save a default with Profile Manager, for example:
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  set --profile team --field GRAFANA_ASSISTANT=disabled
+```
+
+The named profile must already supply an actual resource; this setting alone adds no
+Grafana scope. An explicit TASK value overrides the profile, and a load `--field` override
+has highest priority. See the [skill README](skills/parallel-grafana-investigation/README.md)
+for workflow details.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-parallel-alert-investigation-dark.png">

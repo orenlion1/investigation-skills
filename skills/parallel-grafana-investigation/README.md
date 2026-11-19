@@ -116,6 +116,13 @@ enabled by default. Disable it by instruction, or place this line in task Resour
 Grafana Assistant: disabled
 ```
 
+You can also save this choice in an existing resource profile with
+`--field GRAFANA_ASSISTANT=disabled` through
+[Profile Manager](../profile-manager/SKILL.md#grafana-assistant). Its schema accepts exact
+`enabled`/`disabled`, defaults to `enabled`, and loads the Resources bullet above.
+Explicit TASK settings override the profile; load-command field overrides take highest
+priority. The setting alone adds no Grafana resource or query authorization.
+
 **When disabled, only gcx and the relevant gcx agent skills are invoked for Grafana
 query work.** Only the direct gcx agent runs. No Assistant prompt is sent, directly or
 indirectly through bundled guidance. Honor the setting for its stated scope without

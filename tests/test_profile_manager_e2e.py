@@ -69,7 +69,7 @@ class EndToEndChainTests(unittest.TestCase):
         with self.subTest('schema comes from the task template'):
             fields = {field['field'] for field in self.ok('schema')['fields']}
             self.assertEqual(fields, {'REPO', 'SLACK_CHANNEL', 'AWS_ACCOUNT', 'AWS_REGION',
-                                      'GRAFANA_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH', 'RHYMING_ENDPOINTS', 'RHYMING_HISTORICAL_WINDOW_DAYS', 'GENERATE_PDF'})
+                                      'GRAFANA_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH', 'RHYMING_ENDPOINTS', 'RHYMING_HISTORICAL_WINDOW_DAYS', 'GENERATE_PDF', 'GRAFANA_ASSISTANT'})
 
         with self.subTest('no store is written while Git does not ignore it'):
             self.assertIn('not ignored by Git',
@@ -100,7 +100,7 @@ class EndToEndChainTests(unittest.TestCase):
                             '--field', 'ALERT=Checkout latency',
                             '--field', 'ALERT_UID=ab12cd34')
             self.assertEqual(added['added'],
-                             ['ALERT', 'ALERT_UID', 'GENERATE_PDF', 'REPO', 'RHYMING_HISTORICAL_WINDOW_DAYS', 'SLACK_CHANNEL'])
+                             ['ALERT', 'ALERT_UID', 'GENERATE_PDF', 'GRAFANA_ASSISTANT', 'REPO', 'RHYMING_HISTORICAL_WINDOW_DAYS', 'SLACK_CHANNEL'])
             contents = self.store.read_text(encoding='utf-8')
             self.assertIn("PROFILE__PAYMENTS__REPO='payments-service'", contents)
             self.assertIn(UNMANAGED, contents)
@@ -134,6 +134,7 @@ class EndToEndChainTests(unittest.TestCase):
             self.assertIn('## Resources\n\n'
                           '- Repo (Bitbucket/Github): `payments-service`\n'
                           '- Slack channel: `#payments-oncall`\n'
+                          '- Grafana Assistant: `enabled`\n'
                           '- Alert: `Checkout latency`; UID `ab12cd34`\n', body)
             self.assertNotIn('<enter repo name>', body)
             self.assertNotIn('- AWS account:', body)

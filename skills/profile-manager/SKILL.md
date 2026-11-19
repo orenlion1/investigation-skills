@@ -298,3 +298,34 @@ python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
 Profile operations never query Slack. The parent resolves actual workspace/channel identities
 and cardinality after user overrides, then routes multiple channels to
 [Per-Store Fan-Out](../per-store-fan-out/SKILL.md#channel-resolution-and-scheduling).
+
+## Grafana Assistant
+
+`GRAFANA_ASSISTANT` derives from the template's **Grafana Assistant** bullet. Only exact
+`enabled` or `disabled` is valid; absent values default to `enabled`. New or updated
+nonempty profiles persist a missing default, except when explicitly cleared with an empty
+`set` value. Legacy read-only operations resolve the default without rewriting the store.
+`show` distinguishes stored fields from `effective_grafana_assistant`; custom templates
+without the field do not acquire it. This is configuration, never an actual resource or
+permission to query Grafana.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field GRAFANA_ASSISTANT=disabled
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
+```
+
+The profile must already contain or be supplied with an actual resource. Omitted fields
+remain unchanged. Composition treats conflicting stored settings as scalar conflicts;
+resolve one explicitly with `--field GRAFANA_ASSISTANT=disabled` or align the sources.
+The target changes while source profiles and unmanaged store bytes remain unchanged.
+
+Load uses command `--field` overrides above explicit TASK values, above profile values,
+above the default. It accepts both `- Grafana Assistant: disabled` and the backticked
+value form, and renders the canonical backticked form. A setting alone does not trigger
+the supplied-resource overwrite guard. Invalid or duplicate TASK settings fail before
+writes; repeated loads with the same effective inputs and `--replace` are byte-stable.
+Invalid stored settings also fail before an override can mask them.
+
+Grafana Assistant incurs additional cost. `disabled` means zero prompts, including
+indirect prompts from bundled guidance: Grafana work uses only gcx and relevant gcx agent
+skills. Profile commands themselves never prompt Assistant or query Grafana.
