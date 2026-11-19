@@ -38,7 +38,7 @@
     "negative": [
       {
         "prompt": "Authenticate gcx against the selected Grafana context and run a bounded metrics query",
-        "owner": "gcx-cli"
+        "owner": "parallel-grafana-investigation"
       },
       {
         "prompt": "Load the saved example profile into the Resources section of my task draft",

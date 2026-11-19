@@ -33,7 +33,8 @@ Use when a running task's Resources name more than one data store or multiple re
 including repositories on the same provider or channels in the same workspace, or when the user asks to
 fan out, parallelize, or delegate per-store investigation, or when fan-out must be
 disabled (`Fan-out: disabled` or an equivalent instruction) or degraded because parallel
-delegation is unavailable. A single-store task with at most one repository and one Slack channel stays inline. Fan-out
+delegation is unavailable. A single-store task with at most one repository and one Slack channel stays inline at the store
+level; Grafana queries still use their nested two-agent workflow unless delegation is disabled. Fan-out
 never widens scope: only named stores and configured repositories receive inspection units.
 
 ## Store Resolution
@@ -53,9 +54,11 @@ Two or more resolved stores trigger store fan-out. Multiple configured repositor
 independently trigger repository fan-out, even when all are on one provider; multiple effective
 Slack channels independently trigger channel fan-out, even in one workspace. A single
 repository keeps its existing inline source-inspection path; other named stores still follow
-store fan-out. A repository plus its Jira ticket does not create two ordinary Atlassian units. A Grafana alert
-investigation nests the [Parallel Alert Investigation](../parallel-alert-investigation/SKILL.md)
-workflow inside the Grafana branch; the request itself carries that authorization.
+store fan-out. A repository plus its Jira ticket does not create two ordinary Atlassian units. Every Grafana query
+request nests the [Parallel Grafana Investigation](../parallel-grafana-investigation/SKILL.md)
+workflow inside the Grafana branch; the request itself carries that authorization. This includes
+exact queries and inventory. Carry parent delegation and Assistant disable settings into the nested
+workflow; internal commands and historical endpoint reads do not recursively launch more pairs.
 
 ## Repository resolution and scheduling
 

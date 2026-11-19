@@ -11,7 +11,7 @@
         "top_k": 3
       },
       {
-        "prompt": "Use gcx for read-only Grafana troubleshooting of this alert through scoped queries",
+        "prompt": "Prepare and refresh all official gcx agent skills for Codex without querying Grafana resources",
         "top_k": 3
       }
     ],
@@ -23,6 +23,10 @@
       {
         "prompt": "Check my Slack MCP connection and diagnose the OAuth permission error",
         "owner": "slack-mcp"
+      },
+      {
+        "prompt": "Query Grafana metrics for checkout latency over the supplied time range",
+        "owner": "parallel-grafana-investigation"
       }
     ]
   },

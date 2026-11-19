@@ -40,7 +40,7 @@ and names them in its own file; it never restates the keys below.
 
 ```json
 {
-  "task": "<task path>",
+  "task": "<task path, or null for an ad hoc request without a TASK>",
   "launch_mode": "parallel | sequential | unavailable | disabled",
   "degradation_reason": "<empty unless sequential, unavailable, or disabled>",
   "environment": "<environment>",
@@ -57,6 +57,14 @@ and names them in its own file; it never restates the keys below.
   "returned_to_user": ""
 }
 ```
+
+For an ad hoc request without a TASK, `task` is JSON null rather than an invented path.
+For a non-temporal request, `window` is JSON null; temporal requests retain the exact resolved
+interval and timezone object shown above. Carry that same not-applicable state in the shared
+briefs. For an instant query, record its timestamp as equal start/end values and preserve
+instant-query semantics in the briefs and executed query, rather than inventing a range.
+Never fabricate a TASK or a telemetry window merely to complete a manifest. These
+nullable values do not waive the manifest or any branch-accounting requirements.
 
 A branch that was never launched carries null identity and null timestamps. Null is not
 zero-duration work, and a fabricated identifier is worse than an admitted gap. Every unit the

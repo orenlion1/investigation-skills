@@ -1,6 +1,6 @@
 ---
 name: gcx-cli
-description: "Install gcx when missing, prepare and refresh its official skills for Claude or Codex, authenticate a selected Grafana context with browser sign-in when needed, and investigate root causes through scoped queries. Use when handling gcx setup, connectivity, expired sessions, and read-only Grafana troubleshooting."
+description: "Install gcx, prepare and refresh its official skills for Claude or Codex, and authenticate a selected Grafana context with browser sign-in when needed. Use when handling gcx setup, connectivity and expired sessions. Supplies command and query mechanics to parallel-grafana-investigation, which owns all user-requested Grafana resource queries."
 ---
 <!-- source: self; self-authored: self; managed-by: https://github.com/orenlion1/dotfiles; sync-from: https://github.com/orenlion1/dotfiles; dotfiles-sync-date: 2026-08-30; dotfiles-sync-commit: 42a3e852aa9d6786e9e7f27e3fc77790fea09ffd -->
 
@@ -17,7 +17,7 @@ Example agent requests:
 ```text
 Use $gcx-cli with context example to authenticate; open sign-in if needed and wait.
 Use $gcx-cli with context example to investigate memory alerts for <service>
-between <start> and <end> UTC through the parallel alert investigation.
+between <start> and <end> UTC through the parallel Grafana investigation.
 ```
 
 The context names are examples, not defaults. Resolve the actual configured context before
@@ -30,9 +30,11 @@ Reuse verified setup and shared evidence; preserve this skill's required coverag
 
 ## When to Use
 
-Use for gcx authentication and connectivity, datasource discovery, PromQL, LogQL, TraceQL, and
-dashboard or alert inventory. Task-specific dashboard authoring, incident handling, and Grafana
-Assistant workflows retain their own scope; connecting does not authorize those mutations.
+Use for gcx installation, bundle preparation, authentication, connectivity and command mechanics.
+Route every user-requested Grafana resource query, including exact expressions and inventory, to
+[Parallel Grafana Investigation](../parallel-grafana-investigation/SKILL.md). Internal setup probes
+and commands within its existing branches do not re-enter orchestration. Task-specific authoring
+and incident handling retain their own scope; connecting does not authorize mutations.
 
 ## Ensure gcx is installed
 
@@ -241,47 +243,35 @@ A successful listing proves inventory access, not successful Prometheus, Loki, o
 An empty listing is a successful empty response, not a retrieved datasource. Stop after this
 probe for a connectivity-only request; proceed into telemetry queries only when requested.
 
-## Start a root-cause investigation
+## Route Grafana query requests
 
-An alert investigation request routes to the
-[Parallel Alert Investigation](../parallel-alert-investigation/SKILL.md) skill, which owns the
-two-branch workflow, its authorization rule, shared resolved inputs,
-reconciliation, and verification. Within that workflow this skill supplies the gcx mechanics:
-the required setup, refresh, context resolution, authentication, and the
-`gcx assistant prompt` Assistant branch with explicit `--context` and a fresh conversation.
-`gcx agent skills get investigate-alert` only displays the official skill's instructions; it
-does not run an investigation. The parallel alert workflow replaces the sequential entry point
-below. Changes, acknowledgments, messages, and publication need separate authority.
+Every user-requested Grafana resource query routes to
+[Parallel Grafana Investigation](../parallel-grafana-investigation/SKILL.md), including alerts,
+non-alert troubleshooting, exact expressions, telemetry reads, health checks and inventory.
+That skill owns both parallel branches, shared request scope, manifest, reconciliation,
+Assistant cost controls and verification. This skill supplies setup, bundle refresh, context,
+authentication and gcx command mechanics. Setup-only requests stop after the authorized checks;
+a resource read explicitly requested after setup enters that workflow. Internal setup probes,
+metadata discovery and branch queries never recursively launch another pair.
 
-Before an initial Assistant prompt, accept the parent's prepared rhyming handoff under
-[Assistant matching](../rhyming-incident-search/references/assistant-search.md) when an explicit
-`grafana-assistant-search` endpoint is configured. A compatible unsent branch owns the combined
-initial prompt; preserve both the original problem and matching request. Consumers send no
-additional prompt. Retain the shared execution receipt and initial-inclusion evidence; do not
-change the endpoint context or broaden scope. Disabled Assistant sends no prompt.
-
-For other authorized problem investigations, resolve the symptoms, affected resources, environment, exact time
-window and timezone, and questions to answer. After local help, context resolution,
-authentication, and any bounded connectivity probes, start with `gcx assistant prompt` before
-ad hoc datasource, dashboard, alert, metrics, logs, or traces investigation, as required by
-repository policy. Check installed help first and use the same explicitly resolved context:
+The workflow's Assistant branch uses `gcx assistant prompt` with explicit `--context` and a fresh
+conversation. Inspect installed help before choosing flags. An example after scope resolution:
 
 ```bash
 gcx assistant prompt --help
-GCX_PROBLEM='<problem, resources, environment, time window/timezone, questions, read-only scope>'
+GCX_PROBLEM='<exact request, expression/resources, applicable window/timezone, limits, output, read-only scope>'
 gcx assistant prompt "$GCX_PROBLEM" --context "$GCX_CONTEXT" \
   --json --no-stream --timeout 300
 ```
 
-Use a fresh conversation for a new investigation. Use `--continue` or a verified `--context-id`
-only for the same investigation. Each prompt consumes billable Assistant tokens; avoid duplicate
-starts and unnecessary retries. Retain the prompt, available conversation/response identifiers,
-observation time, links, and limitations. If Assistant is unavailable or denied, record the
-sanitized failure and continue authorized direct reads in the same context.
-
-Treat Assistant conclusions and suggested queries as leads. Verify material claims with bounded
-direct queries against actual datasource and resource identifiers. Authentication-only requests
-stop after connectivity verification and do not start Assistant conversations.
+Only that designated branch sends the prompt, including any compatible prepared matching handoff
+under [Assistant matching](../rhyming-incident-search/references/assistant-search.md).
+The direct branch uses relevant bundled gcx skills and dedicated reads concurrently; it never
+starts another Assistant prompt. `gcx agent skills get <name>` displays instructions rather
+than executing them. Honor disabled Assistant with zero prompts and direct gcx work only.
+Retain prompt/response identifiers, references and limitations; treat conclusions as leads.
+If Assistant fails, record the sanitized blocker and continue authorized direct reads without
+switching context. Changes, acknowledgments, messages and publication need separate authority.
 
 ## Query Grafana
 

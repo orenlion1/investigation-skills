@@ -24,13 +24,13 @@ agent. Ovals identify activities; boxes identify the invoked historical-search s
 Fan-out is the default for tasks whose Resources name more than one store and
 may be disabled by the user. Only named stores get an agent; the orchestrating
 session alone relates, verifies, and reports, treating agent output as leads.
-A Grafana alert investigation nests the parallel alert workflow — including
-its authorization gate — inside the Grafana branch. This illustrates the
+Every Grafana query request nests the parallel Grafana workflow inside the Grafana
+branch, including non-alert telemetry and inventory reads. This illustrates the
 documented workflow, not an executed investigation; sub-agents never mutate,
 acknowledge, message, or publish.
 
 Source: [Per-Store Investigation Fan-Out](../AGENTS.md#per-store-investigation-fan-out).
-Visual reference: [Parallel alert investigation](DIAGRAM-parallel-alert-investigation.dot).
+Visual reference: [Parallel Grafana investigation](DIAGRAM-parallel-alert-investigation.dot).
 
 Editable [Graphviz source](DIAGRAM-per-store-fan-out.dot),
 [adaptive SVG](DIAGRAM-per-store-fan-out.svg), and explicit

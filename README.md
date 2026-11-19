@@ -154,15 +154,15 @@ page configured in the task.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-skill-routing-dark.png">
-  <img alt="Initialize in Open and Edit mode invokes the naming, editor, and profile skills; Investigate in Close and Execute mode routes to the orchestration skills, Per-Store Fan-Out, Parallel Alert Investigation, and Rhyming Incident Search, which invoke the resource skills including Source Investigation; Report invokes the naming, token usage, report evidence, diagramming, and AWS architecture diagram skills; Publish invokes Publish It, Release It, and Rovo Dev MCP, which deliver the artifact to a repository or content system where the next lifecycle step picks it up." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
+  <img alt="Initialize in Open and Edit mode invokes the naming, editor, and profile skills; Investigate in Close and Execute mode routes to the orchestration skills, Per-Store Fan-Out, Parallel Grafana Investigation, and Rhyming Incident Search, which invoke the resource skills including Source Investigation; Report invokes the naming, token usage, report evidence, diagramming, and AWS architecture diagram skills; Publish invokes Publish It, Release It, and Rovo Dev MCP, which deliver the artifact to a repository or content system where the next lifecycle step picks it up." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
 </picture>
 
 **Figure 2 — Skill routing.** The same lifecycle expanded into the skill that
 owns each step, with each activity labelled by the editor mode it runs in, so
 both views share one vocabulary. Investigate routes through the orchestration
-skills — Per-Store Fan-Out for multi-store tasks, Parallel Alert Investigation
-for Grafana alerts — which invoke the resource skills; a single-store task
-without an alert invokes its resource skill directly. Dashed arrows mean
+skills — Per-Store Fan-Out for multi-store tasks, Parallel Grafana Investigation
+for all Grafana queries — which invoke the resource skills; a single-store Grafana query still uses both agents, while other single-store tasks
+invoke their resource skill directly. Dashed arrows mean
 invocation or routing; the solid arrow is delivery — Publish hands the artifact
 to a repository or content system, where the next lifecycle step picks it up.
 Peer placement implies no ordering, and listing a skill does not make its
@@ -434,38 +434,37 @@ handoffs and dashed arrows show invocation. This depicts the skill contract, not
 [Dark SVG](diagrams/DIAGRAM-rhyming-incident-search-dark.svg) ·
 [Source notes and regeneration](diagrams/DIAGRAM-rhyming-incident-search.md)
 
-### Alert investigations
+### Grafana queries and investigations
 
-Grafana alert investigations **inherit their authorization from the request
-itself**: asking to investigate the alert is what authorizes the parallel
-read-only plan, so the agent resolves the shared inputs and launches both
-agents without pausing for separate approval. Missing context — alert
-identity, environment, time window, timezone, scope — is asked for, never
-guessed through live discovery. The policy's
-[entry point](AGENTS.md#grafana-investigation-entry-point) owns the route and
-the inherited authorization; the
-[Parallel Alert Investigation skill](skills/parallel-alert-investigation/SKILL.md)
-owns the two-agent workflow.
+Every user-requested Grafana query **inherits authorization from the request itself**:
+exact expressions, metrics/logs/traces, inventory, alerts, SLOs and other health reads all
+use the [Parallel Grafana Investigation skill](skills/parallel-grafana-investigation/SKILL.md).
+It launches Assistant and direct gcx agents concurrently without a separate plan-approval
+pause. Both share the selected context, exact request, filters, limits, output requirements,
+and applicable environment/window/timezone. Inventory does not require invented alert or
+incident details. The direct agent selects relevant refreshed bundled gcx skills.
 
-Grafana Assistant prompts are enabled by default and may incur additional
-fees. Disable them — by asking, or with `Grafana Assistant: disabled` in the
-task's Resources — and the investigation continues on direct evidence alone,
-recording the disabled branch as a configured limitation.
+Grafana Assistant incurs additional cost beyond ordinary Grafana usage and is enabled by
+default. Disable it by instruction or `Grafana Assistant: disabled` in task Resources:
+only gcx and relevant gcx agent skills then run, through the direct agent, with no Assistant
+prompt. Record the disabled branch as a configured limitation. Setup-only work stays with
+Grafana CLI; internal commands and historical endpoint reads never recursively launch pairs.
+See the [skill README](skills/parallel-grafana-investigation/README.md) for details.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-parallel-alert-investigation-dark.png">
-  <img alt="An alert investigation request resolves shared inputs and authentication, launches Grafana Assistant and direct alert investigation in parallel, then reconciles their results, verifies claims, and produces a report." src="diagrams/DIAGRAM-parallel-alert-investigation-light.png">
+  <img alt="A Grafana query request resolves shared inputs and authentication, launches Grafana Assistant and direct gcx queries in parallel, then reconciles their results, verifies claims, and produces a report." src="diagrams/DIAGRAM-parallel-alert-investigation-light.png">
 </picture>
 
-**Figure 4 — Parallel alert investigation.** Both agents launch — before
-either result is awaited — with the same resolved Grafana context, alert
-identity, environment, exact time window and timezone, and read-only scope. Solid arrows are handoffs; dashed arrows are invocation;
+**Figure 4 — Parallel Grafana investigation.** Both agents launch — before
+either result is awaited — with the same resolved Grafana context, request, resource scope, filters, limits and applicable
+environment, exact time window and timezone. Solid arrows are handoffs; dashed arrows are invocation;
 ovals are activities and boxes are the two agent calls. Assistant conclusions
 are investigation leads: material claims are verified against bounded direct
 evidence, and disagreements, gaps, and limitations go into the report. The
 figure illustrates the documented workflow, not an executed investigation.
 
-[Editable alert diagram](diagrams/DIAGRAM-parallel-alert-investigation.dot) ·
+[Editable query diagram](diagrams/DIAGRAM-parallel-alert-investigation.dot) ·
 [Light SVG](diagrams/DIAGRAM-parallel-alert-investigation-light.svg) ·
 [Dark SVG](diagrams/DIAGRAM-parallel-alert-investigation-dark.svg) ·
 [Source notes and regeneration](diagrams/DIAGRAM-parallel-alert-investigation.md)
@@ -555,7 +554,7 @@ Republish a revised report rather than editing the page away from its evidence.
 | [Profile Manager](skills/profile-manager/SKILL.md) | Maintain local `.env` resource profiles and load one into a task's Resources. |
 | [Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) | Find related prior incidents through one read-only agent per configured historical endpoint. |
 | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) | Fan a multi-store investigation out into per-store read-only sub-agents and fold their evidence in. |
-| [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) | Investigate a Grafana alert with parallel Assistant and `investigate-alert` sub-agents, then reconcile and verify. |
+| [Parallel Grafana Investigation](skills/parallel-grafana-investigation/SKILL.md) | Handle any Grafana query with parallel Assistant and direct gcx sub-agents using relevant bundled skills, then reconcile and verify. |
 | [Release It](skills/release-it/SKILL.md) | Prepare and verify protected GitHub releases. |
 | [Publish It](skills/publish-it/SKILL.md) | Publish tasks and reports to Confluence with diagrams, evidence and verified downloads. |
 | [Token Usage](skills/token-usage/SKILL.md) | Derive scoped report duration and token totals from local conversation records. |
@@ -619,7 +618,7 @@ link rather than a summary:
 | Per-store investigation fan-out | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) |
 | Shared sub-agent delegation machinery | [Shared Delegation Contract](skills/per-store-fan-out/references/delegation-contract.md) |
 | Grafana investigations and authentication | [Grafana CLI](skills/gcx-cli/SKILL.md) |
-| Parallel alert sub-agent workflow | [Parallel Alert Investigation](skills/parallel-alert-investigation/SKILL.md) |
+| Parallel Grafana query workflow | [Parallel Grafana Investigation](skills/parallel-grafana-investigation/SKILL.md) |
 | Skill and eval quality gate | [Skill Quality Gate](AGENTS.md#skill-quality-gate) |
 | Root and docs drift contract | [policy/root-contract.json](policy/root-contract.json) |
 | Publication security and disclosure | [SECURITY.md](SECURITY.md) |
