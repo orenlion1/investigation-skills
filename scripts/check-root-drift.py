@@ -2,8 +2,10 @@
 """Fail closed when workflow content accretes in the root routing files.
 
 Enforces policy/root-contract.json: AGENTS.md and CLAUDE.md stay byte-identical,
-within the line budget, contain only allowlisted level-two sections, and their
-routing table reaches every directory under skills/. Self-auditing: the run fails
+within the line budget, open with one title and the verbatim ownership clause and
+nothing else, contain only allowlisted level-two sections, and their routing table
+reaches every directory under skills/ and names no skill that is missing.
+Self-auditing: the run fails
 when it checked fewer sections or skills than the policy declares, so an empty
 scan can never pass silently.
 """
@@ -17,6 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 HEADING = re.compile(r'^## (.+?)\s*$', re.MULTILINE)
+TITLE = re.compile(r'^# \S')
 ROUTING_LINK = re.compile(r'\]\(skills/([a-z0-9]+(?:-[a-z0-9]+)*)/SKILL\.md\)')
 
 
@@ -28,11 +31,12 @@ def read_regular(path: Path) -> str:
 
 def load_policy(path: Path) -> dict:
     policy = json.loads(read_regular(path))
-    required_keys = {'schema', 'files', 'max_lines', 'allowed_sections', 'required_sections',
-                     'routing_section', 'skills_dir', 'minimum', 'docs'}
+    required_keys = {'schema', 'files', 'max_lines', 'ownership_clause', 'allowed_sections',
+                     'required_sections', 'routing_section', 'skills_dir', 'minimum', 'docs'}
     if not isinstance(policy, dict) or not required_keys <= set(policy):
-        raise ValueError('policy must declare schema, files, max_lines, allowed_sections, '
-                         'required_sections, routing_section, skills_dir, minimum, docs')
+        raise ValueError('policy must declare schema, files, max_lines, ownership_clause, '
+                         'allowed_sections, required_sections, routing_section, skills_dir, '
+                         'minimum, docs')
     if policy['schema'] != 'root-contract/v1':
         raise ValueError(f'unsupported policy schema: {policy["schema"]!r}')
     if (not isinstance(policy['files'], list) or len(policy['files']) < 2
@@ -40,6 +44,9 @@ def load_policy(path: Path) -> dict:
         raise ValueError('policy files must list at least two root files')
     if not isinstance(policy['max_lines'], int) or policy['max_lines'] < 1:
         raise ValueError('policy max_lines must be a positive integer')
+    clause = policy['ownership_clause']
+    if not isinstance(clause, str) or not clause or clause != ' '.join(clause.split()):
+        raise ValueError('policy ownership_clause must be a nonempty single-spaced sentence run')
     for key in ('allowed_sections', 'required_sections'):
         if (not isinstance(policy[key], list) or not policy[key]
                 or not all(isinstance(s, str) and s for s in policy[key])):
@@ -51,6 +58,26 @@ def load_policy(path: Path) -> dict:
             or not all(isinstance(minimum[k], int) and minimum[k] >= 1 for k in minimum)):
         raise ValueError('policy minimum must declare positive integer sections and skills')
     return policy
+
+
+def check_preamble(text: str, name: str, clause: str) -> list[str]:
+    """The text above the first section is one title plus the ownership clause, verbatim.
+
+    Line wrapping is free; wording is not. Anything extra is unowned content that the
+    section allowlist cannot see, so it fails too.
+    """
+    match = HEADING.search(text)
+    lines = (text[:match.start()] if match else text).splitlines()
+    if not lines or not TITLE.match(lines[0]):
+        return [f'{name} must open with a single level-one title']
+    body = ' '.join(' '.join(lines[1:]).split())
+    if body == clause:
+        return []
+    if clause in body:
+        return [f'{name} has content beside the ownership clause above the first section '
+                f'(policy belongs in an allowlisted section, workflow in a skill)']
+    return [f'{name} must carry the ownership clause verbatim above the first section: '
+            f'{clause}']
 
 
 def check(repository: Path, policy: dict) -> list[str]:
@@ -75,6 +102,8 @@ def check(repository: Path, policy: dict) -> list[str]:
     if line_count > policy['max_lines']:
         errors.append(f'{first_name} has {line_count} lines; budget is {policy["max_lines"]}')
 
+    errors.extend(check_preamble(first, first_name, policy['ownership_clause']))
+
     sections = HEADING.findall(first)
     allowed = set(policy['allowed_sections'])
     for section in sections:
@@ -97,6 +126,9 @@ def check(repository: Path, policy: dict) -> list[str]:
     for skill in skills:
         if skill not in routed:
             errors.append(f'skill has no routing-table row: skills/{skill}')
+    for skill in sorted(routed):
+        if not (skills_dir / skill / 'SKILL.md').is_file():
+            errors.append(f'routing row names a skill with no SKILL.md: skills/{skill}')
     if len(skills) < policy['minimum']['skills']:
         errors.append(f'checked only {len(skills)} skills; policy declares at least '
                       f'{policy["minimum"]["skills"]}')
@@ -120,7 +152,8 @@ def main() -> int:
     if errors:
         return 1
     print(f'root contract: {len(policy["files"])} file(s), line budget '
-          f'{policy["max_lines"]}, sections and routing coverage verified — PASSED')
+          f'{policy["max_lines"]}, ownership clause, sections and routing coverage '
+          f'verified — PASSED')
     return 0
 
 

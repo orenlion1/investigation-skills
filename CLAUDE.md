@@ -1,8 +1,9 @@
 # Repository Policy
 
-This file routes requests to their owning skills. Each routed skill owns its workflow,
-guidance, and verification; follow the skill rather than restating or overriding it here.
-Sections below add only repository-owned policy that no skill covers.
+This document routes requests to their owners. Each owner holds its workflow, guidance,
+and verification; follow the owner rather than restating or overriding it here. Everything
+else here is policy that no owner covers, and where such a policy limits an owner, the limit
+holds.
 
 ## Required Dependencies
 

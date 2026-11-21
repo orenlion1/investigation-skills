@@ -16,7 +16,12 @@ def load_checker():
     return module
 
 
+CLAUSE = 'This document routes requests to their owners. The limit holds.'
+
 ROOT_TEXT = """# Repository Policy
+
+This document routes requests to their owners.
+The limit holds.
 
 ## Routing
 
@@ -34,6 +39,7 @@ POLICY = {
     'schema': 'root-contract/v1',
     'files': ['AGENTS.md', 'CLAUDE.md'],
     'max_lines': 20,
+    'ownership_clause': CLAUSE,
     'allowed_sections': ['Routing', 'Skill Quality Gate'],
     'required_sections': ['Routing', 'Skill Quality Gate'],
     'routing_section': 'Routing',
@@ -58,6 +64,7 @@ class RootDriftFixture(unittest.TestCase):
         self.root = Path(self.tempdir.name)
         for skill in ('alpha', 'beta'):
             (self.root / 'skills' / skill).mkdir(parents=True)
+            (self.root / 'skills' / skill / 'SKILL.md').write_text('# skill\n', encoding='utf-8')
         self.write_roots(ROOT_TEXT)
         (self.root / 'policy').mkdir()
         self.policy_path = self.root / 'policy' / 'root-contract.json'
@@ -100,6 +107,43 @@ class RootDriftFixture(unittest.TestCase):
         self.write_roots(ROOT_TEXT.replace('## Skill Quality Gate\n\nRun the gate.\n', ''))
         errors = self.run_check()
         self.assertTrue(any('required section missing' in e for e in errors), errors)
+
+    def test_reworded_ownership_clause_fails(self):
+        self.write_roots(ROOT_TEXT.replace('The limit holds.', 'The owner wins.'))
+        errors = self.run_check()
+        self.assertTrue(any('ownership clause verbatim' in e for e in errors), errors)
+
+    def test_missing_ownership_clause_fails(self):
+        self.write_roots(ROOT_TEXT.replace(
+            'This document routes requests to their owners.\nThe limit holds.\n\n', ''))
+        errors = self.run_check()
+        self.assertTrue(any('ownership clause verbatim' in e for e in errors), errors)
+
+    def test_rewrapped_ownership_clause_passes(self):
+        self.write_roots(ROOT_TEXT.replace('owners.\nThe limit', 'owners. The\nlimit'))
+        self.assertEqual(self.run_check(), [])
+
+    def test_content_beside_ownership_clause_fails(self):
+        self.write_roots(ROOT_TEXT.replace('## Routing', 'Always run step one first.\n\n## Routing'))
+        errors = self.run_check()
+        self.assertTrue(any('beside the ownership clause' in e for e in errors), errors)
+
+    def test_missing_title_fails(self):
+        self.write_roots(ROOT_TEXT.replace('# Repository Policy\n\n', ''))
+        errors = self.run_check()
+        self.assertTrue(any('level-one title' in e for e in errors), errors)
+
+    def test_routing_row_for_missing_skill_fails(self):
+        self.write_roots(ROOT_TEXT.replace(
+            '| Beta work |', '| Ghost work | [Ghost](skills/ghost/SKILL.md) |\n| Beta work |'))
+        errors = self.run_check()
+        self.assertTrue(any('skills/ghost' in e and 'no SKILL.md' in e for e in errors), errors)
+
+    def test_policy_without_ownership_clause_is_rejected(self):
+        policy = {k: v for k, v in POLICY.items() if k != 'ownership_clause'}
+        self.policy_path.write_text(json.dumps(policy), encoding='utf-8')
+        with self.assertRaises(ValueError):
+            self.checker.load_policy(self.policy_path)
 
     def test_self_audit_fails_below_declared_minimums(self):
         policy = dict(POLICY)

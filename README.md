@@ -609,8 +609,9 @@ Two gates enforce the model in the required CI jobs: the
 [Skill Quality Gate](AGENTS.md#skill-quality-gate) exercises every skill's structure,
 routing (80% rank-one threshold), and behavioral evals, and the drift checks
 (`scripts/check-root-drift.py`, `scripts/check-docs-drift.py`) fail closed when workflow
-content accretes in the root files, a skill loses its routing row, the root files diverge
-or outgrow their budget, or README/diagram assets drift. New workflow content therefore
+content accretes in the root files, the ownership clause that opens them is reworded or
+gains company, a skill loses its routing row or a row names a missing skill, the root files
+diverge or outgrow their budget, or README/diagram assets drift. New workflow content therefore
 belongs in a skill (with an eval case), never in the routing files.
 
 ## Where the rules live
