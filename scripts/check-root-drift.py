@@ -4,7 +4,8 @@
 Enforces policy/root-contract.json: AGENTS.md and CLAUDE.md stay byte-identical,
 within the line budget, open with one title and the verbatim ownership clause and
 nothing else, contain only allowlisted level-two sections, and their routing table
-reaches every directory under skills/ and names no skill that is missing.
+reaches every directory under skills/ and names no skill that is missing. Every
+Markdown link in the repository that targets a root-file section must resolve.
 Self-auditing: the run fails
 when it checked fewer sections or skills than the policy declares, so an empty
 scan can never pass silently.
@@ -20,6 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HEADING = re.compile(r'^## (.+?)\s*$', re.MULTILINE)
 TITLE = re.compile(r'^# \S')
+ANY_HEADING = re.compile(r'^#{1,6} (.+?)\s*$', re.MULTILINE)
 ROUTING_LINK = re.compile(r'\]\(skills/([a-z0-9]+(?:-[a-z0-9]+)*)/SKILL\.md\)')
 
 
@@ -80,6 +82,34 @@ def check_preamble(text: str, name: str, clause: str) -> list[str]:
             f'{clause}']
 
 
+def slug(heading: str) -> str:
+    """GitHub's heading anchor: lowercase, punctuation dropped, spaces to hyphens."""
+    kept = ''.join(ch for ch in heading.lower() if ch.isalnum() or ch in ' -_')
+    return kept.replace(' ', '-')
+
+
+def check_anchors(repository: Path, names: list[str], text: str) -> list[str]:
+    """A section that moved to its owning skill must not keep inbound links."""
+    anchors = {slug(heading) for heading in ANY_HEADING.findall(text)}
+    link = re.compile(r'\]\((?:\.{1,2}/)*(' + '|'.join(re.escape(n) for n in names)
+                      + r')#([^)\s]+)\)')
+    errors = []
+    for path in sorted(repository.rglob('*.md')):
+        relative = path.relative_to(repository)
+        if any(part.startswith('.') for part in relative.parts) or path.is_symlink():
+            continue
+        try:
+            content = read_regular(path)
+        except (OSError, ValueError) as error:
+            errors.append(str(error))
+            continue
+        for name, anchor in link.findall(content):
+            if anchor not in anchors:
+                errors.append(f'{relative} links to a section the root files do not have: '
+                              f'{name}#{anchor}')
+    return errors
+
+
 def check(repository: Path, policy: dict) -> list[str]:
     errors: list[str] = []
     files = [repository / name for name in policy['files']]
@@ -103,6 +133,7 @@ def check(repository: Path, policy: dict) -> list[str]:
         errors.append(f'{first_name} has {line_count} lines; budget is {policy["max_lines"]}')
 
     errors.extend(check_preamble(first, first_name, policy['ownership_clause']))
+    errors.extend(check_anchors(repository, policy['files'], first))
 
     sections = HEADING.findall(first)
     allowed = set(policy['allowed_sections'])

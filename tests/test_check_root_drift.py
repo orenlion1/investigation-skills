@@ -139,6 +139,16 @@ class RootDriftFixture(unittest.TestCase):
         errors = self.run_check()
         self.assertTrue(any('skills/ghost' in e and 'no SKILL.md' in e for e in errors), errors)
 
+    def test_link_to_missing_root_section_fails(self):
+        (self.root / 'docs').mkdir()
+        (self.root / 'docs' / 'note.md').write_text(
+            'See [gate](../AGENTS.md#skill-quality-gate) and '
+            '[gone](../CLAUDE.md#templated-tasks).\n', encoding='utf-8')
+        errors = self.run_check()
+        self.assertEqual([e for e in errors if 'links to a section' in e],
+                         ['docs/note.md links to a section the root files do not have: '
+                          'CLAUDE.md#templated-tasks'])
+
     def test_policy_without_ownership_clause_is_rejected(self):
         policy = {k: v for k, v in POLICY.items() if k != 'ownership_clause'}
         self.policy_path.write_text(json.dumps(policy), encoding='utf-8')
