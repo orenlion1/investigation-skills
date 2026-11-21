@@ -27,7 +27,8 @@
     "archive.ubuntu.com",
     "security.ubuntu.com",
     "gitlab.com",
-    "learn.chatgpt.com"
+    "learn.chatgpt.com",
+    "claude.ai"
   ],
   "public_email_domains": [
     "users.noreply.github.com"
