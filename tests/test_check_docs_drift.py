@@ -28,6 +28,8 @@ The model.
 
 ROOT_TEXT = """# Repository Policy
 
+This document routes requests to their owners.
+
 ## Routing
 
 | Request | Owning skill |
@@ -39,6 +41,7 @@ DOCS_POLICY = {
     'schema': 'root-contract/v1',
     'files': ['AGENTS.md', 'CLAUDE.md'],
     'max_lines': 20,
+    'ownership_clause': 'This document routes requests to their owners.',
     'allowed_sections': ['Routing'],
     'required_sections': ['Routing'],
     'routing_section': 'Routing',

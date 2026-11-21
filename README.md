@@ -592,9 +592,11 @@ it loads only when that skill is selected.
 ## Skill philosophy
 
 This catalog treats each capability like a code module — "skill as code". The root
-[AGENTS.md](AGENTS.md)/[CLAUDE.md](CLAUDE.md) files only route requests to their owning
-skills: each skill owns its workflow, guidance, and verification, and the root files never
-restate or override it. That gives every capability exactly one owner, a clear interface
+[AGENTS.md](AGENTS.md)/[CLAUDE.md](CLAUDE.md) files open with one ownership clause: they
+route requests to their owners, each owning skill holds its workflow, guidance, and
+verification, and the root files never restate or override it. Whatever else the root files
+carry is policy that no skill covers, and where such a policy limits a skill, the limit
+holds. That gives every capability exactly one owner, a clear interface
 (its routing trigger — the `description` the router matches), and its own tests (the eval
 case in `skill_evals/cases/<name>.json`), so a developer can see and refine capabilities the
 way they would modules.
@@ -603,15 +605,17 @@ Repository-owned policy is limited to what no skill covers: required dependencie
 CodeGraph, the routing table and its trimmed notes, the source-investigation authorization
 grant, Grafana billing/disable facts, the fan-out scope/authority rule, the shared
 delegation contract, the quality gate, and the sync rule — exactly the section allowlist
-that [policy/root-contract.json](policy/root-contract.json) declares.
+that [policy/root-contract.json](policy/root-contract.json) declares beside the verbatim
+ownership clause.
 
 Two gates enforce the model in the required CI jobs: the
 [Skill Quality Gate](AGENTS.md#skill-quality-gate) exercises every skill's structure,
 routing (80% rank-one threshold), and behavioral evals, and the drift checks
 (`scripts/check-root-drift.py`, `scripts/check-docs-drift.py`) fail closed when workflow
 content accretes in the root files, the ownership clause that opens them is reworded or
-gains company, a skill loses its routing row or a row names a missing skill, the root files
-diverge or outgrow their budget, or README/diagram assets drift. New workflow content therefore
+gains company, a skill loses its routing row or a row names a missing skill, a link
+anywhere in the repository points at a root-file section that no longer exists, the root
+files diverge or outgrow their budget, or README/diagram assets drift. New workflow content therefore
 belongs in a skill (with an eval case), never in the routing files.
 
 ## Where the rules live

@@ -48,6 +48,6 @@ and the single solid arrow is a delivery rather than an invocation: the artifact
 lands in a repository or content system so the next lifecycle step can pick it
 up. Delivery still requires separate publication authorization.
 
-The workflow is defined by [Templated Tasks](../AGENTS.md#templated-tasks), the
+The workflow is defined by [Open/Edit/Close/Execute](../skills/open-edit-close-execute/SKILL.md), the
 [editor contract](../skills/open-edit-close-execute/references/open-edit-close-execute.md),
 and the linked skill entrypoints in the [README](../README.md#skills).

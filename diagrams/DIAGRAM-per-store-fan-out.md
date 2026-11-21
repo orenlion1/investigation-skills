@@ -29,7 +29,8 @@ branch, including non-alert telemetry and inventory reads. This illustrates the
 documented workflow, not an executed investigation; sub-agents never mutate,
 acknowledge, message, or publish.
 
-Source: [Per-Store Investigation Fan-Out](../AGENTS.md#per-store-investigation-fan-out).
+Source: [Per-Store Fan-Out](../skills/per-store-fan-out/SKILL.md), within the
+[Per-Store Fan-Out Policy](../AGENTS.md#per-store-fan-out-policy).
 Visual reference: [Parallel Grafana investigation](DIAGRAM-parallel-alert-investigation.dot).
 
 Editable [Graphviz source](DIAGRAM-per-store-fan-out.dot),
