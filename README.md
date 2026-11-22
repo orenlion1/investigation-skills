@@ -230,8 +230,10 @@ load profile: Prod US
 - Publish: `https://github.com/<org>/investigation-reports`
 ```
 
-A repository URL can also name a branch and directory, such as
-`https://github.com/<org>/investigation-reports/tree/main/reports`.
+Give a repository destination the branch and directory to publish into, such
+as `https://github.com/<org>/investigation-reports/tree/main/reports`. Without a
+directory, the agent uses the location that repository documents for reports,
+and asks you if there is none.
 
 ### Publish
 
@@ -245,6 +247,10 @@ publish it --task docs/tasks/TASK-example.md
 the task and reports a result for each. Destinations are independent: if one
 fails, the others still publish.
 
+- **No destination, no guess.** If the task has no `Publish:` line, nothing is
+  published. The agent asks you to either supply a destination, which it adds
+  to the task's Resources, or add it to your profile and reload the profile so
+  the question does not come up again.
 - **One-off changes.** Edit the `Publish:` lines in a single task, or name
   destinations in the request with `--parent <Confluence page URL>` or
   `--repo <repository URL>`. Either replaces the profile's list for that

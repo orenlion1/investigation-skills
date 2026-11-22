@@ -17,7 +17,9 @@ Resolve and record, before any write:
   `/src/<branch>/…` on Bitbucket), otherwise the repository's default branch read from the
   provider.
 - **Directory.** The directory named in the entry, otherwise the destination repository's
-  documented location for investigation reports, otherwise `investigations/`.
+  documented location for investigation reports. There is no fallback directory: when neither
+  exists, the destination is incomplete and [Publish It](../SKILL.md#destinations) returns its
+  missing-destination feedback instead of choosing a location.
 - **Visibility and access.** Read the repository's visibility and confirm, with one bounded
   read, that the current identity can push a branch and open a pull request.
 

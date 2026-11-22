@@ -51,9 +51,25 @@ Resolve the effective destination list before any write:
 2. Otherwise use every `Publish:` bullet in the verified saved task's Resources, in order. A
    profile loaded through [Profile Manager](../profile-manager/SKILL.md) renders one bullet per
    stored destination; read the saved task, never the profile store.
-3. A request may narrow the saved list ("Confluence only", "skip the repository"). With no
-   destination from either source, ask for one. Do not reuse a previous investigation's site,
-   parent or repository as a default.
+3. A request may narrow the saved list ("Confluence only", "skip the repository").
+
+There is no default destination. Do not reuse a previous investigation's site, parent or
+repository, read the profile store, or invent a location. When neither the request nor the saved
+task's Resources names a destination, write nothing and tell the requester that no publish
+destination is configured, offering both ways forward:
+
+- **Supply one now.** Append the supplied destination as a `- Publish:` bullet under the saved
+  task's Resources, one bullet per destination, leaving every other line unchanged; read the
+  task back, then publish from the saved task. Record that the task changed, as for any task
+  edit before publication.
+- **Configure it once.** Add the destination to the profile through
+  [Profile Manager](../profile-manager/SKILL.md) and reload the profile into the task, so later
+  publications of tasks that load the profile do not stop here.
+
+Give the same feedback for a repository destination that names no directory and whose
+repository documents no location for investigation reports: the destination is incomplete, and
+the requester either supplies the directory, which replaces that task bullet, or updates the
+profile and reloads it. Other complete destinations in the list still publish.
 
 Classify each entry, deduplicating aliases of the same page or repository:
 
@@ -163,6 +179,7 @@ what was published and attached, verification results, and any gaps.
 - "Rerun the investigation so the numbers look fresh." Publication never reruns the investigation or refreshes its evidence window and token-accounting cutoff.
 - "The page link is proof enough." Read the published page back and verify content, attachments, and media.
 - "One destination succeeded, so it is published." Every destination in the effective list gets its own outcome; report the ones that failed or were skipped.
+- "No destination is configured, so pick a sensible one." There is no default: tell the requester, then append the supplied destination to the task's Resources or have the profile updated and reloaded.
 - "Push straight to main; it is only documentation." A repository destination receives a publication branch and a pull request; merging stays separately authorized.
 - "Skip the original files; the page summarizes them." The original report and available parent TASK ship as downloadable supporting evidence.
 
@@ -170,7 +187,7 @@ what was published and attached, verification results, and any gaps.
 
 - Regenerated or re-dated historical evidence during publication.
 - Missing original TASK/report downloads on the published page.
-- An unresolved or guessed destination, or a saved `Publish:` bullet silently dropped.
+- An unresolved, guessed or defaulted destination or repository directory, or a saved `Publish:` bullet silently dropped.
 - A direct push to a default or protected branch, a force push, or a merged publication pull request.
 - Atlassian authentication handled outside Rovo Dev MCP.
 
