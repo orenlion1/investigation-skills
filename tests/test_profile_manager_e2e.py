@@ -131,8 +131,7 @@ class EndToEndChainTests(unittest.TestCase):
             loaded = self.ok('load', '--profile', 'payments', '--task', 'docs/tasks/TASK.md')
             self.assertTrue(loaded['verified'])
             body = self.task.read_text(encoding='utf-8')
-            self.assertIn('## Resources\n\n'
-                          '- Repo (Bitbucket/Github): `payments-service`\n'
+            self.assertIn('- Repo (Bitbucket/Github): `payments-service`\n'
                           '- Slack channel: `#payments-oncall`\n'
                           '- Grafana Assistant: `enabled`\n'
                           '- Alert: `Checkout latency`; UID `ab12cd34`\n', body)

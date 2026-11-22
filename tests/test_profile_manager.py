@@ -611,14 +611,41 @@ class ProfileStoreTests(unittest.TestCase):
         loaded = self.ok('load', '--profile', 'example', '--task', 'docs/tasks/TASK.md')
         self.assertTrue(loaded['verified'])
         body = task.read_text(encoding='utf-8')
-        self.assertIn('## Resources\n\n- Repo (Bitbucket/Github): `example-service`\n'
+        self.assertIn('- Repo (Bitbucket/Github): `example-service`\n'
                       '- Slack channel: `#example-support`\n', body)
+        self.assertEqual([line for line in body.splitlines() if not line.startswith('- ')],
+                         [line for line in original.splitlines() if not line.startswith('- ')])
         self.assertNotIn('<enter repo name>', body)
         self.assertIn('## Acceptance Tests', body)
         self.assertIn('already supplies example-service',
                       self.fails('load', '--profile', 'example', '--task', 'docs/tasks/TASK.md'))
         self.assertTrue(self.ok('load', '--profile', 'example', '--task',
                                 'docs/tasks/TASK.md', '--replace')['replaced'])
+
+    def test_load_preserves_resource_layout_and_is_repeatable(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'example', '--field', 'REPO=service-a',
+                '--field', 'SLACK_CHANNEL=["#ops-a","#ops-b"]')
+        task = self.root / 'TASK.md'
+        original = ('# Task Title: layout\n\n## Resources\n\n'
+                    'Each setting is optional.\n\n'
+                    '- Repo (Bitbucket/Github): `<enter repo name>`\n'
+                    '\n<!-- Keep channel guidance here. -->\n'
+                    '- Slack channel: `<enter channel>`\n'
+                    '- Owner: platform\n\n'
+                    '<!-- Keep this footer. -->\n\n## Notes\n\nKeep me.\n')
+        task.write_text(original)
+        self.ok('load', '--profile', 'example', '--task', 'TASK.md')
+        loaded = task.read_text()
+        self.assertIn('## Resources\n\nEach setting is optional.\n\n'
+                      '- Repo (Bitbucket/Github): `service-a`\n'
+                      '\n<!-- Keep channel guidance here. -->\n'
+                      '- Slack channel: `#ops-a`\n'
+                      '- Slack channel: `#ops-b`\n', loaded)
+        self.assertIn('- Owner: platform\n\n<!-- Keep this footer. -->'
+                      '\n\n## Notes\n\nKeep me.\n', loaded)
+        self.ok('load', '--profile', 'example', '--task', 'TASK.md', '--replace')
+        self.assertEqual(task.read_text(), loaded)
 
     def test_load_requires_an_actual_resource_and_an_existing_section(self):
         self.ignore_and_init()
