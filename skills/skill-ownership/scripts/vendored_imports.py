@@ -12,7 +12,8 @@ import re
 import sys
 from urllib.parse import urlsplit
 
-ROOT = Path(__file__).resolve().parents[1]
+# The carried skill-ownership copy is pinned by policy/skill-ownership-pin.json, not here.
+CARRIED_SKILL = 'skills/skill-ownership'
 VERSION = re.compile(r'[0-9]+\.[0-9]+\.[0-9]+')
 
 
@@ -92,7 +93,7 @@ def check(root):
         if directory.is_symlink() or not directory.is_dir():
             raise ValueError(f'{directory}: expected a regular skill directory')
         version = declared_version(directory / 'SKILL.md')
-        if version is not None:
+        if version is not None and 'skills/' + directory.name != CARRIED_SKILL:
             discovered['skills/' + directory.name] = version
     errors = []
     for skill, version in discovered.items():
@@ -110,7 +111,7 @@ def check(root):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--repository', type=Path, default=ROOT)
+    parser.add_argument('--repository', type=Path, default=Path.cwd())
     args = parser.parse_args()
     try:
         count = check(args.repository)

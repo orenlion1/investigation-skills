@@ -15,7 +15,7 @@ import re
 import sys
 
 
-DEFAULT_POLICY = Path(__file__).resolve().parents[1] / 'policy/delegation-contract.json'
+POLICY_RELATIVE = 'policy/delegation-contract.json'
 MAX_BYTES = 2 * 1024 * 1024
 REQUIRED_KEYS = ('version', 'contract', 'callers', 'owned_concepts', 'caller_owned_tokens',
                  'contract_forbidden_numeric', 'caller_bounds', 'caller_no_bound',
@@ -268,12 +268,12 @@ def check_registry(root, policy, failures):
                 break
 
 
-def audit(root, policy_path=DEFAULT_POLICY):
+def audit(root, policy_path=None):
     """Run every rule and report how much was actually checked."""
     root = Path(root).resolve()
     failures = []
     try:
-        policy = load_policy(policy_path)
+        policy = load_policy(policy_path or root / POLICY_RELATIVE)
     except PolicyError as error:
         return Report([Failure('R7', str(error))], 0, 0)
 
@@ -307,15 +307,14 @@ def audit(root, policy_path=DEFAULT_POLICY):
     return Report(failures, concepts_checked, callers_checked)
 
 
-def run(root, policy_path=DEFAULT_POLICY):
+def run(root, policy_path=None):
     return audit(root, policy_path).failures
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--repository', default=str(DEFAULT_POLICY.parents[1]),
-                        help='repository root to check')
-    parser.add_argument('--policy', default=str(DEFAULT_POLICY), help='policy file to apply')
+    parser.add_argument('--repository', default='.', help='repository root to check')
+    parser.add_argument('--policy', default=None, help='policy file to apply')
     arguments = parser.parse_args(argv)
     report = audit(arguments.repository, arguments.policy)
     for failure in report.failures:

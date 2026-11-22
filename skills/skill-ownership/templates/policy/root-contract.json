@@ -1,0 +1,23 @@
+{
+  "schema": "root-contract/v1",
+  "files": [
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
+  "max_lines": 180,
+  "ownership_clause": "This document routes requests to their owners. Each owner holds its workflow, guidance, and verification; follow the owner rather than restating or overriding it here. Everything else here is policy that no owner covers, and where such a policy limits an owner, the limit holds.",
+  "allowed_sections": [
+    "Routing",
+    "Policy Synchronization"
+  ],
+  "required_sections": [
+    "Routing",
+    "Policy Synchronization"
+  ],
+  "routing_section": "Routing",
+  "skills_dir": "skills",
+  "minimum": {
+    "sections": 2,
+    "skills": 1
+  }
+}

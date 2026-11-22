@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "contract": "skills/example-owner/references/delegation-contract.md",
+  "callers": [
+    "skills/example-caller"
+  ],
+  "owned_concepts": [
+    {
+      "id": "launch-mode-vocabulary",
+      "pattern": "\\blaunch_mode\\b"
+    }
+  ],
+  "caller_owned_tokens": [
+    "ExampleService"
+  ],
+  "contract_forbidden_numeric": "\\b(?:\\d+|one|two|three)\\s+(?:round|rounds)\\b",
+  "caller_bounds": {
+    "skills/example-caller": "two rounds"
+  },
+  "delegation_signature": "\\bsub-agents?\\b",
+  "required_caller_sentinel": "Delegating skills in this catalog share one delegation contract.",
+  "exemptions": [],
+  "caller_no_bound": []
+}

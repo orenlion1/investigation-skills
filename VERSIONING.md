@@ -6,7 +6,7 @@ Individual imported skill versions identify their upstream contracts and are not
 by a repository release. There is no generated plugin distribution or native host installer.
 
 `policy/vendored-imports.json` records each imported skill's upstream repository,
-immutable commit, and declared contract version. `scripts/check-vendored-imports.py`
+immutable commit, and declared contract version. The carried `vendored-imports` check
 runs in `scripts/check.sh` without network access or sibling checkouts. Every catalog
 skill with `metadata.version` must have exactly one pin; every pin must match a
 present skill and its declared version. Missing, unreadable or malformed pins fail
