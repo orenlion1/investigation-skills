@@ -1,42 +1,81 @@
 ---
 name: publish-it
-description: Publish an existing task and/or report to Confluence with original files as downloadable supporting evidence, diagrams, PDF and cited assets. Use when handling publish it or publish-it requests with a TASK path, report path, or both; resolve related artifacts, package them and verify the published page. This does not run an investigation or publish a software release.
+description: Publish an existing task and/or report to one or more destinations - Confluence pages and GitHub or Bitbucket repositories - with original files as downloadable supporting evidence, diagrams, PDF and cited assets. Use when handling publish it or publish-it requests with a TASK path, report path, or both; resolve related artifacts and every Publish destination, package once, publish to each page or repository pull request and verify each result. This does not run an investigation or publish a software release.
 ---
 
 # Publish It
 
 ## Overview
 
-Package existing investigation artifacts and publish them to the caller's Confluence destination.
-This skill owns artifact selection, page composition, uploads, media references, publication and
-read-back. Use [Rovo Dev MCP](../rovo-dev-mcp/SKILL.md) for authentication, scoped grants,
-tool discovery and transport; keep publishing decisions here.
+Package existing investigation artifacts once and publish them to every destination the caller
+selected: Confluence pages, repositories in GitHub or Bitbucket, or both. This skill owns
+destination resolution, artifact selection, page composition, uploads, media references,
+repository branches and pull requests, publication and read-back. Use
+[Rovo Dev MCP](../rovo-dev-mcp/SKILL.md) for Atlassian authentication, scoped grants, tool
+discovery and transport, and approved GitHub tooling with existing access for GitHub; keep
+publishing decisions here.
 
 ## When to Use
 
 - `publish it` or `publish-it` requests with a saved TASK path, report path, or both.
-- Authorized Confluence publication of an existing investigation task or report.
-- Packaging companion artifacts, diagrams, and PDFs for a published page.
+- Authorized publication of an existing investigation task or report to a Confluence page.
+- Authorized publication of the same artifacts to a GitHub or Bitbucket repository.
+- Publishing one investigation to several destinations named in its task or the request.
+- Packaging companion artifacts, diagrams, and PDFs for a published page or repository.
 
 ## Arguments
 
-Accept `task` and/or `report` as explicit local file paths, plus the Confluence destination.
+Accept `task` and/or `report` as explicit local file paths, plus zero or more destinations.
 These are arguments to the agent's skill invocation, not an installed shell command:
 
 ```text
+publish it --task docs/tasks/TASK-example.md
 publish it --task docs/tasks/TASK-example.md --parent <Confluence parent URL>
-publish it --report docs/reports/REPORT-example.md --parent <Confluence parent URL>
+publish it --report docs/reports/REPORT-example.md --repo <repository URL>
+publish it --task <TASK path> --parent <Confluence parent URL> --repo <repository URL>
 publish it --task <TASK path> --report <report path> --page <existing Confluence page URL>
 ```
 
 `task` identifies the parent TASK document; `parent` identifies the Confluence page that will
-contain a new child report page. `page` selects an existing report page to update. Do not confuse
-these identities. Accept equivalent natural-language arguments and a destination supplied by
-the user or verified saved task. Resolve ambiguous or conflicting inputs before dependent writes.
-At least one task or report is required. Do not reuse a previous investigation's site or parent
-as a default. An explicit publish request authorizes the selected page and its supporting uploads;
-it does not authorize investigation execution, messages, tickets, source control, releases, changes
-to production resources, or changes to other pages. Existing authorization needs no repeat prompt.
+contain a new child report page. `page` selects an existing report page to update. `repo`
+identifies a repository that will receive the artifacts through a pull request. Do not confuse
+these identities. `parent` and `repo` may repeat. Accept equivalent natural-language arguments.
+At least one task or report is required.
+
+## Destinations
+
+Resolve the effective destination list before any write:
+
+1. Destinations in the current request (`--parent`, `--page`, `--repo`, or their
+   natural-language equivalents) replace the saved list for this publication.
+2. Otherwise use every `Publish:` bullet in the verified saved task's Resources, in order. A
+   profile loaded through [Profile Manager](../profile-manager/SKILL.md) renders one bullet per
+   stored destination; read the saved task, never the profile store.
+3. A request may narrow the saved list ("Confluence only", "skip the repository"). With no
+   destination from either source, ask for one. Do not reuse a previous investigation's site,
+   parent or repository as a default.
+
+Classify each entry, deduplicating aliases of the same page or repository:
+
+| Entry | Destination kind | Procedure |
+| --- | --- | --- |
+| Confluence page URL, page ID, or page title | Page: a new child of that parent, or an update when `page` selects an existing report page | [Confluence publication](references/confluence-publication.md) |
+| GitHub or Bitbucket repository URL, optionally with a branch and directory, or a short name with verified provider context | Repository: a publication branch and pull request | [Repository publication](references/repository-publication.md) |
+
+Resolve an entry that fits neither kind, or both, with the user before dependent writes; never
+guess a provider, site or repository from a bare name.
+
+An explicit publish request authorizes each destination in the effective list: for a page, that
+page and its supporting uploads; for a repository, one publication branch, its commits and one
+pull request in that repository. It does not authorize investigation execution, messages,
+tickets, releases, merging or approving the pull request, pushing to a default or protected
+branch, other source-control changes, changes to production resources, or changes to other pages
+or repositories. Existing authorization needs no repeat prompt.
+
+Build the package and run the reference preflight once, then publish to each destination in
+list order. Destinations are independent: a failed or blocked destination neither cancels nor
+rolls back the others, and no destination's success stands in for another's. Record every
+destination's outcome in the publication manifest and return one result per destination.
 
 ## Resolve and package
 
@@ -75,7 +114,8 @@ to production resources, or changes to other pages. Existing authorization needs
 
 ## Required reference preflight
 
-Before **any publication write**, including attachment preparation/uploads and draft creation,
+Before **any publication write** to any destination, including attachment preparation/uploads,
+draft creation, branch pushes and pull requests,
 apply [Report Evidence reference completeness](../report-evidence/references/reference-completeness.md).
 Check the selected Markdown/PDF and composed HTML from the same source revision; require zero
 unresolved material occurrences and reviewed source-derived targets. A valid existing-link list,
@@ -90,8 +130,13 @@ anchor-landing and preview results. A browser capability or authentication gap s
 
 ## Publish and verify
 
-Read [the Confluence publication procedure](references/confluence-publication.md) before external
-writes. Verify the destination and duplicates, compose the report as the page body, attach the
+Read the procedure for each destination kind in the effective list before external writes:
+[Confluence publication](references/confluence-publication.md) for pages and
+[repository publication](references/repository-publication.md) for repositories. The rest of
+this section states the page requirements; the repository procedure states its own equivalents
+and shares the same package, preflight and evidence rules.
+
+For a page, verify the destination and duplicates, compose the report as the page body, attach the
 original report and parent task as supporting evidence, and include their clearly labeled download
 cards. Include the matching PDF only when selected, and the inventoried diagrams/evidence. For a PDF-only report,
 inspect it with suitable tooling, attach the original and publish a faithful readable summary or
@@ -110,23 +155,28 @@ for resumption instead of creating duplicates. Update an owned local task or pub
 only within scope. After a task changes, update its attachment and reverify its hash, or explicitly
 identify the attached saved snapshot. Do not silently invalidate a verified download.
 
-Return the page URL, what was published and attached, verification results, and any gaps.
+Return, for each destination, the page URL or the pull request URL with its branch and commit,
+what was published and attached, verification results, and any gaps.
 
 ## Common Rationalizations
 
 - "Rerun the investigation so the numbers look fresh." Publication never reruns the investigation or refreshes its evidence window and token-accounting cutoff.
 - "The page link is proof enough." Read the published page back and verify content, attachments, and media.
+- "One destination succeeded, so it is published." Every destination in the effective list gets its own outcome; report the ones that failed or were skipped.
+- "Push straight to main; it is only documentation." A repository destination receives a publication branch and a pull request; merging stays separately authorized.
 - "Skip the original files; the page summarizes them." The original report and available parent TASK ship as downloadable supporting evidence.
 
 ## Red Flags
 
 - Regenerated or re-dated historical evidence during publication.
 - Missing original TASK/report downloads on the published page.
-- An unresolved or guessed Confluence destination.
-- Authentication handled outside Rovo Dev MCP.
+- An unresolved or guessed destination, or a saved `Publish:` bullet silently dropped.
+- A direct push to a default or protected branch, a force push, or a merged publication pull request.
+- Atlassian authentication handled outside Rovo Dev MCP.
 
 ## Verification
 
-- The published page was read back and matches the packaged artifacts.
+- Each published page was read back and matches the packaged artifacts.
 - Attachments download and cited media render, including diagram themes.
-- The destination, permissions, and page identity match the authorized request.
+- Each repository pull request was read back: the pushed commit holds the packaged files with matching hashes, and the pull request is open and unmerged.
+- Every destination in the effective list has a recorded outcome, and each destination, its permissions, and its page or repository identity match the authorized request.

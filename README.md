@@ -1,711 +1,329 @@
 # Investigation Skills
 
-A root cause is rarely visible in one place. The latency spike and the logs
-are in Grafana, the resources that were throttled underneath them are in AWS,
-the deploy that preceded them is in a pull request, and the first customer
-symptom is a Slack thread. Reading each store is easy; relating them is the
-work — and when that work happens in a chat session, the conclusion survives
-and the reasoning that produced it does not.
+A root cause is rarely visible in one place. The latency spike and the logs are
+in Grafana, the throttled resources are in AWS, the deploy that preceded them is
+in a pull request, and the first customer symptom is a Slack thread. Reading
+each store is easy; relating them is the work — and when that work happens in a
+chat session, the conclusion survives and the reasoning behind it does not.
 
-This repository keeps it. Describe the problem once in a task file; your coding
-agent queries the resources in scope, draws the relationships between their
-signals, narrows to a cause and a resolution, and writes the result up as a
-report in which every material claim is pinned to the evidence behind it.
-Publishing that report is what turns one person's investigation into something
-the next lifecycle step — and the rest of the team — can build on.
+This repository keeps the reasoning. Describe the problem once in a task file;
+your coding agent queries the resources in scope, relates their signals on one
+timeline, narrows to a cause and a resolution, and writes a report in which
+every material claim is pinned to its evidence. Publishing that report turns one
+person's investigation into something the rest of the team can build on.
 
-The workflow is agent-driven. Anything shown as `text` below is something you
-say to your coding agent while this repository is open — not a shell command.
-The agent follows the repository [policy](AGENTS.md) and the [skills](#skills)
-it routes to.
+**You talk to the agent; the agent runs the tools.** Anything shown as `text`
+below is a request you make to your coding agent while this repository is open —
+not a shell command. The agent follows the repository [policy](AGENTS.md) and
+the [skills](#skills) it routes to.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-workflow-dark.png">
+  <img alt="Open and edit an investigation task, save and close the task editor to start execution, investigate using aws-mcp, gcx-cli, slack-mcp, and rovo-dev-mcp as needed, produce Markdown and PDF reports, then Publish to the configured destinations." src="diagrams/DIAGRAM-investigation-workflow-light.png">
+</picture>
+
+**Figure 1 — Lifecycle.** Solid arrows are handoffs; dashed arrows are the
+integrations the investigation calls as the task requires, in no fixed order.
+([source](diagrams/DIAGRAM-investigation-workflow.dot))
 
 ## Why use it
 
 - **One entry point.** `open task` produces a structured draft; saving and
   closing the editor runs it. No per-investigation prompt engineering.
 - **Correlation, not just collection.** Metrics, logs, traces, AWS resource
-  state, code, tickets, and conversation are pulled onto one time window, so the
-  relationships between signals — not just the signals — are what you reason
-  about.
-- **The systems you already use.** AWS, Grafana, Slack, Bitbucket, Jira, and
-  Confluence are reached through scoped read-only skills — only the ones your
-  task actually names.
-- **Access is part of the job, not a prerequisite.** Each skill owns its own
-  sign-in and diagnoses its own failures, so an investigation does not stall on
-  an expired session or a profile that was never set up correctly.
+  state, code, tickets, and conversation are aligned on one time window.
+- **The systems you already use.** AWS, Grafana, Slack, Bitbucket, GitHub, Jira,
+  and Confluence, through read-only skills — only the ones your task names.
+- **Access is part of the job.** Each skill owns its sign-in and diagnoses its
+  own failures, so an expired session does not stall the investigation.
 - **Evidence you can audit.** Reports keep inspected source, observed runtime
-  behavior, inference, and proposal apart, and link material claims to a
-  revision-pinned evidence index.
-- **Deliverables, not notes.** Markdown and PDF with consistent diagrams,
-  captions, stated limitations, and token accounting; optional one-command
-  publication to Confluence.
-- **Work that compounds.** A published report is the input to the next step of
-  the incident lifecycle and the record a teammate extends — instead of a
-  transcript that expires with the session, or the same alert investigated twice
-  by two people who never saw each other's notes.
+  behavior, inference, and proposal apart, and link claims to a pinned evidence
+  index.
+- **Work that compounds.** A published report is the record a teammate extends,
+  instead of a transcript that expires with the session.
 - **Authorization stays with you.** A task describes work. It never grants
-  permission to commit, update a ticket, deploy, or publish.
+  permission to commit, update a ticket, deploy, or publish; publishing happens
+  only when you ask.
 
 ## Requirements
 
-A coding agent that reads [AGENTS.md](AGENTS.md) or [CLAUDE.md](CLAUDE.md), a
-working CodeGraph installation, and Python 3. Each integration's tooling and
-sign-in live in its own skill. A missing required dependency is setup work
-rather than a blocker — see
-[Required Dependencies](AGENTS.md#required-dependencies).
+- A coding agent that reads [AGENTS.md](AGENTS.md) or [CLAUDE.md](CLAUDE.md).
+- CodeGraph and Python 3.
+- Access to the systems your task names. Each integration's tooling and sign-in
+  are handled by its own skill when first needed.
 
-The workflow works best in an IDE with the coding agent running in terminal
-mode in the integrated terminal: the task draft opens in a waiting editor
-beside the agent session, and closing that editor is what starts execution.
+The agent installs missing required tools itself — see
+[Required Dependencies](AGENTS.md#required-dependencies). The workflow works
+best in an IDE with the agent in the integrated terminal: the task draft opens
+in an editor tab beside the session, and closing that tab starts execution.
 
 ## Quick start
 
-1. **Open a draft.** Ask the agent:
+1. **Open a draft.**
 
    ```text
    open task
    ```
 
-   It copies [templates/TASK.md](templates/TASK.md) to a `docs/tasks/TASK.md`
-   draft and opens it in a waiting editor. An existing draft is preserved, not
-   replaced.
+   The agent creates `docs/tasks/TASK.md` from the
+   [template](templates/TASK.md) and opens it in your editor. An existing draft
+   is preserved, not replaced.
 
-2. **Fill it in.** Give the task a title, the problem, at least one observable
-   acceptance test, and at least one real resource — repository, Slack channel,
-   AWS profile, Grafana context, or alert. Individual fields are optional;
-   placeholders and examples do not count as resources. The template also takes
-   a Publish parent page, which records the intended destination with the
-   investigation; publication itself stays a separate, authorized step.
+2. **Fill it in.** A task needs four things:
 
-   Resources you use repeatedly can be saved once and reused. Ask the agent to
-   `add profile example` and then `load profile example into the task`, and
-   [Profile Manager](skills/profile-manager/SKILL.md) fills the Resources
-   section from a local `.env` store that stays out of Git.
+   | Section | What to write |
+   | --- | --- |
+   | Title | A short name; the task and report files are named from it. |
+   | Problem | What is wrong — pasting the alert text or thread is fine. |
+   | Acceptance Tests | At least one observable outcome, such as *identify the root cause*. |
+   | Resources | At least one real resource: a repository, Slack channel, AWS profile and Region, Grafana context, or alert. Delete the lines that do not apply. |
 
-3. **Save and close the editor.** That alone starts execution. Once any
-   supplied checks pass, the agent names the task from its title, runs its
-   saved requirements, and produces the reports. **No separate `run`
-   instruction is needed.**
+3. **Save and close the editor tab.** That alone starts the investigation; no
+   separate `run` request is needed. Saving without closing does not start it.
 
-To revisit an existing investigation, supply its actual path:
+4. **Read the report.** The agent writes `docs/reports/REPORT-{slug}.md` and a
+   PDF, and renames the task to `docs/tasks/TASK-{slug}.md`.
+
+5. **Publish it** when you want the team to have it — see
+   [Publish the report](#publish-the-report).
+
+To revisit an investigation, name its file:
 
 ```text
 edit task docs/tasks/TASK-example-service-investigation.md
 ```
 
-Existing tasks keep their filenames. To stop before execution, ask for **edit
-only**; for a new draft, **initialization only** stops at the same boundary.
+To stop before execution, ask for **edit only** (or **initialization only** for
+a new draft).
 
-## Fan out the queries. Fold in the analysis.
+### Reuse resources with profiles
 
-*How an investigation runs.*
+Save the resources you use repeatedly once, then load them into any draft:
 
-Once the task is running, the agent works through the same arc whatever the
-resources in scope are:
+```text
+add profile prod-us
+load profile prod-us into the task
+```
 
-1. **Gather.** The saved task names what is in scope, and the queries fan out
-   across every store in it, each through its own scoped read-only skill, with
-   the account, context, Region, object identity, and time window resolved
-   before the call rather than guessed. The fan-out is not a single pass: it
-   repeats every iteration, as the analysis needs it.
-2. **Relate.** The relationships between signals are drawn across the data
-   stores that hold them — an alert transition, a log burst, a throttled
-   dependency, a deploy, and the customer report that followed are connected
-   into one picture instead of read in four tools. Aligning on an explicit time
-   window and timezone is how those connections are made. Human reports carry
-   data points the telemetry does not: a Slack message that customers started
-   seeing checkout timeouts around 09:40 timestamps the first user-visible
-   symptom, scopes which customers and features were affected, and tells the
-   agent which metric excursions in the window mattered and which were noise.
-3. **Narrow.** Candidate causes are tested against that evidence rather than
-   asserted: a finding in one store becomes the next query in another, until a
-   cause survives the evidence. Code, a schema, or a class name proves what the
-   source says, not what production did; the paths and consumers that matter
-   are traced before a behavioral conclusion is drawn.
-4. **Write up.** The report captures the findings, the reasoning that connects
-   them, diagrams of the flows and dependencies involved, and the resolution or
-   proposed change — separating what the evidence verifies from what it only
-   suggests, and recording the questions still open and what would answer them.
-5. **Publish.** The report becomes a page the team can read, cite, and extend.
+The agent stores the values you give it in a local `.env` file that stays out
+of Git. Profiles hold identifiers only, never credentials. You can also
+compose profiles — for example an environment profile plus an application
+profile — into one named profile. Anything you write in the task yourself always
+wins over a profile value. Details:
+[Profile Manager](skills/profile-manager/SKILL.md).
 
-Step 5 is where the value is captured. Because the evidence index is pinned to
-the exact revision, observation window, and objects that produced it, a later
-reader can tell what was verified, what has changed since, and what was never
-tested. That makes the report a working input rather than a summary: the
-postmortem starts from a confirmed timeline, the corrective-action ticket names
-a specific defect, the next investigation begins from what has already been
-ruled out, and a teammate reads the page instead of reconstructing the
-reasoning.
+### Task settings
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-workflow-dark.png">
-  <img alt="Open and edit an investigation task, save and close the task editor to start execution, investigate using aws-mcp, gcx-cli, slack-mcp, and rovo-dev-mcp as needed, produce Markdown and PDF reports, then Publish to the configured parent page." src="diagrams/DIAGRAM-investigation-workflow-light.png">
-</picture>
+Optional lines in the task's Resources section adjust how a run behaves:
 
-**Figure 1 — Lifecycle and integrations.** The same arc as a flow. Solid arrows
-are activity handoffs; dashed arrows are the integrations Investigate calls as
-the task requires, in no fixed order. The artifacts progress from `TASK.md` to
-the saved task, findings and evidence, and the reports. Publish uses the parent
-page configured in the task.
+| Setting | Default | Effect |
+| --- | --- | --- |
+| `Publish: <page or repository>` | none | Where the report is published; repeat the line for several destinations. Best set once in a profile — see [Publish the report](#publish-the-report). Publishing still needs your request. |
+| `Grafana Assistant: disabled` | enabled | Skips Grafana Assistant prompts, which can incur fees beyond ordinary Grafana usage; direct queries still run. |
+| `Fan-out: disabled` | enabled | Investigates in one session instead of parallel sub-agents. |
+| `Generate PDF: F` | `T` | Produces the Markdown report only. |
+| `Rhyming endpoints: <JSON>` | none | Past investigations, pages, channels, or repositories to search for similar incidents. |
+| `Rhyming historical window days: <n>` | `7` | How far back that search looks. |
 
-[Editable diagram](diagrams/DIAGRAM-investigation-workflow.dot) ·
-[Light SVG](diagrams/DIAGRAM-investigation-workflow-light.svg) ·
-[Dark SVG](diagrams/DIAGRAM-investigation-workflow-dark.svg)
+## What a run looks like
+
+A flapping alert is the ordinary case. Illustrative, not a recorded finding:
+
+**What goes in.** The alert text as the problem. The Slack channel the thread
+is in, the Grafana context that holds the alert, the AWS profile and Region the
+workload runs in, and the repository that owns the service as resources.
+*Identify the root cause*, *propose a resolution*, and *say what remains
+unverified* as acceptance tests.
+
+**What comes back.** A report with a timeline that puts the alert transitions,
+the metric series, the deploy, and the thread on one clock; the cause the
+evidence supports; a diagram of the path involved; a proposed fix; the questions
+still open; and the duration and token cost of the run.
+
+**Why it is worth keeping.** A flapping alert is often a symptom — a duplicated
+collection path double-counting a series, say — rather than a threshold that
+needs widening. Tuning the alert hides it; the report names it, and the next
+person who sees the alert flap starts from there.
+
+## How an investigation runs
+
+Whatever the resources in scope, the agent works through the same arc:
+
+1. **Gather.** Queries go to every store the task names, each through its own
+   read-only skill, with the account, context, Region, and time window resolved
+   first rather than guessed.
+2. **Relate.** Signals are aligned on one explicit time window and timezone, so
+   an alert transition, a log burst, a deploy, and a customer report become one
+   picture. Human reports count as data: a Slack message timestamps the first
+   user-visible symptom and says which excursions mattered.
+3. **Narrow.** A finding in one store becomes the next query in another, until
+   a cause survives the evidence. Source code proves what the code says, not
+   what production did.
+4. **Write up.** The report separates what the evidence verifies from what it
+   only suggests, and records the questions still open.
+5. **Publish.** The report becomes a page or repository entry the team can read,
+   cite, and extend.
+
+Three behaviors are on by default. Each is owned by a skill, which holds the
+full rules:
+
+| Behavior | What happens | Details |
+| --- | --- | --- |
+| Per-store fan-out | When a task names several stores, repositories, or Slack channels, one read-only sub-agent inspects each in parallel. The main session alone relates, verifies, and reports. | [Skill](skills/per-store-fan-out/SKILL.md) · [diagram](diagrams/DIAGRAM-per-store-fan-out.svg) · [notes](diagrams/DIAGRAM-per-store-fan-out.md) |
+| Parallel Grafana queries | Every Grafana query runs twice at once — Grafana Assistant and direct `gcx` — and the results are reconciled. Assistant conclusions are leads until verified. | [Skill](skills/parallel-grafana-investigation/SKILL.md) · [diagram](diagrams/DIAGRAM-parallel-alert-investigation.svg) · [notes](diagrams/DIAGRAM-parallel-alert-investigation.md) |
+| Rhyming incident search | When rhyming endpoints are configured, one read-only sub-agent per endpoint looks for similar past incidents. | [Skill](skills/rhyming-incident-search/SKILL.md) · [diagram](diagrams/DIAGRAM-rhyming-incident-search.svg) · [notes](diagrams/DIAGRAM-rhyming-incident-search.md) |
+
+Sub-agents only read: they never mutate, acknowledge, message, or publish. Long
+runs pause at a ten-minute soft checkpoint to surface findings and gaps before
+continuing.
+
+## What you get
+
+| Path | Purpose |
+| --- | --- |
+| `docs/tasks/TASK.md` | The draft you edit. |
+| `docs/tasks/TASK-{slug}.md` | The finalized task, named from its title. |
+| `docs/reports/REPORT-{slug}.md` and `.pdf` | The investigation report. |
+| `docs/reports/assets/{slug}/` | Diagrams and other report assets. |
+| `logs/` | Investigation logs and supporting evidence. |
+| `.env` | Your resource profiles. |
+
+All of it is local and ignored by Git: findings about live systems are never
+committed here. The published page or repository, not this checkout, is the shared copy. An
+existing draft or a filename collision is left for you to resolve rather than
+overwritten.
+
+## Publish the report
+
+A report can be published to one or more destinations, of two kinds:
+
+| Destination | What you get |
+| --- | --- |
+| A Confluence page | The report as a child page, with its diagrams and evidence, and the original report and task attached as downloads. |
+| A GitHub or Bitbucket repository | The report, task, PDF, and assets on a branch, with a pull request for you to review and merge. |
+
+### Set the destinations once
+
+Set destinations in the profile you load into your tasks, rather than in every
+task. For example, to publish under an "Investigations" launch page in
+Confluence:
+
+```text
+edit profile: Prod US, add publish: https://<company>.atlassian.net/wiki/spaces/PRD/pages/4547051801/Investigation
+```
+
+To publish to a repository as well, add it the same way. A profile holds up to
+16 destinations:
+
+```text
+edit profile: Prod US, add publish: https://github.com/<org>/investigation-reports
+```
+
+From then on, loading the profile into a task fills them in for you:
+
+```text
+load profile: Prod US
+```
+
+```markdown
+- Publish: `https://<company>.atlassian.net/wiki/spaces/PRD/pages/4547051801/Investigation`
+- Publish: `https://github.com/<org>/investigation-reports`
+```
+
+A repository URL can also name a branch and directory, such as
+`https://github.com/<org>/investigation-reports/tree/main/reports`.
+
+### Publish
+
+When the report is ready, ask:
+
+```text
+publish it --task docs/tasks/TASK-example.md
+```
+
+[Publish It](skills/publish-it/SKILL.md) publishes to every `Publish:` line in
+the task and reports a result for each. Destinations are independent: if one
+fails, the others still publish.
+
+- **One-off changes.** Edit the `Publish:` lines in a single task, or name
+  destinations in the request with `--parent <Confluence page URL>` or
+  `--repo <repository URL>`. Either replaces the profile's list for that
+  publication. You can also narrow it: `publish it … to Confluence only`.
+- **Repositories are never pushed to directly.** The agent pushes a
+  `publish/<slug>` branch and opens a pull request; merging is yours. A public
+  repository needs your explicit confirmation first.
+- **Publishing does not rerun anything.** It presents the investigation as it
+  was recorded. Republish a revised report rather than editing a page or
+  branch away from its evidence.
+
+## Skills
+
+| Skill | Responsibility |
+| --- | --- |
+| [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) | Open a task in the editor, wait for it to close, then execute it. |
+| [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) | Name and place tasks, reports, logs, and assets. |
+| [Profile Manager](skills/profile-manager/SKILL.md) | Maintain local resource profiles and load them into a task. |
+| [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) | Inspect multiple stores, repositories, or channels in parallel. |
+| [Parallel Grafana Investigation](skills/parallel-grafana-investigation/SKILL.md) | Answer Grafana queries with Assistant and direct `gcx` agents, then reconcile. |
+| [Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) | Find related prior incidents. |
+| [Source Investigation](skills/source-investigation/SKILL.md) | Trace a problem to source code, root cause, and a proposed fix. |
+| [Report Evidence](skills/report-evidence/SKILL.md) | Evidence index, citations, and stated limitations. |
+| [Diagramming Style](skills/diagramming-style/SKILL.md) | Readable diagrams in light and dark themes. |
+| [AWS Architecture Diagrams](skills/aws-architecture-diagrams/SKILL.md) | AWS architecture and data-flow diagrams. |
+| [Token Usage](skills/token-usage/SKILL.md) | Report duration and token totals. |
+| [Publish It](skills/publish-it/SKILL.md) | Publish tasks and reports to Confluence pages and GitHub or Bitbucket repositories. |
+| [AWS MCP](skills/aws-mcp/SKILL.md) | AWS sign-in and read-only queries. |
+| [Grafana CLI](skills/gcx-cli/SKILL.md) | `gcx` setup, sign-in, and read-only queries. |
+| [Slack MCP](skills/slack-mcp/SKILL.md) | Slack access and diagnosis. |
+| [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) | Bitbucket, Jira, and Confluence access. |
+| [Release It](skills/release-it/SKILL.md) | Release this repository. |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-skill-routing-dark.png">
   <img alt="Initialize in Open and Edit mode invokes the naming, editor, and profile skills; Investigate in Close and Execute mode routes to the orchestration skills, Per-Store Fan-Out, Parallel Grafana Investigation, and Rhyming Incident Search, which invoke the resource skills including Source Investigation; Report invokes the naming, token usage, report evidence, diagramming, and AWS architecture diagram skills; Publish invokes Publish It, Release It, and Rovo Dev MCP, which deliver the artifact to a repository or content system where the next lifecycle step picks it up." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
 </picture>
 
-**Figure 2 — Skill routing.** The same lifecycle expanded into the skill that
-owns each step, with each activity labelled by the editor mode it runs in, so
-both views share one vocabulary. Investigate routes through the orchestration
-skills — Per-Store Fan-Out for multi-store tasks, Parallel Grafana Investigation
-for all Grafana queries — which invoke the resource skills; a single-store Grafana query still uses both agents, while other single-store tasks
-invoke their resource skill directly. Dashed arrows mean
-invocation or routing; the solid arrow is delivery — Publish hands the artifact
-to a repository or content system, where the next lifecycle step picks it up.
-Peer placement implies no ordering, and listing a skill does not make its
-resource field mandatory.
-
-[Editable routing diagram](diagrams/DIAGRAM-investigation-skill-routing.dot) ·
-[Light SVG](diagrams/DIAGRAM-investigation-skill-routing-light.svg) ·
-[Dark SVG](diagrams/DIAGRAM-investigation-skill-routing-dark.svg) ·
-[Source notes and regeneration](diagrams/DIAGRAM-investigation-workflow.md)
-
-The repository owns the template, draft creation, final naming, execution, and
-reporting. The [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md)
-skill owns the waiting-editor barrier that triggers them: saving alone, or a
-timeout, never counts as closure. In VS Code the waiting command is
-`code --reuse-window --wait "<task-path>"`; the
-[editor contract](skills/open-edit-close-execute/references/open-edit-close-execute.md)
-covers other editors and how closure is confirmed when it cannot be tracked.
-
-### Resource profiles
-
-[Profile Manager](skills/profile-manager/SKILL.md) keeps resource identifiers in an ignored,
-owner-only `.env` store. It derives fields from `templates/TASK.md`, validates them before
-writes, and loads resolved Resources into an existing task draft before its editor opens.
-Profiles hold configuration; each integration still authenticates separately. Never source
-`.env` as shell code or commit it. Commands below use synthetic resources only; replace them
-with your actual resources for an investigation.
-
-#### Configuration precedence: user-specified values win
-
-**User-specified configuration always wins over Profile Manager values.** A profile supplies
-fallback resources, not an instruction to replace your chosen Slack channel or other settings.
-The effective order is explicit command overrides (`--field`), saved user TASK Resources,
-resolved profile fields, then absent-value defaults. Current user instructions also override
-injected values when preparing the investigation's effective Resources and shared briefs.
-
-For example, if the profile supplies `#demo-ops` but your TASK specifies `#my-channel`, loading
-with `--replace` keeps `#my-channel` while filling missing profile resources. The flag permits
-rewriting an already-populated Resources section; it does not override explicit user fields.
-A newer explicit command override can select `#latest-channel`:
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  load --profile prod-us-app-alpha --task docs/tasks/TASK.md --replace \
-  --field SLACK_CHANNEL='#latest-channel'
-```
-
-`compose ... --field SLACK_CHANNEL='#my-channel'` replaces the profile-derived channel list
-with your supplied channel. Other unresolved scalar profile conflicts remain errors. An explicit REPO
-override replaces the profile repository list. Compose overrides affect only the combined
-snapshot; load overrides affect only the TASK. Source profiles remain unchanged. Existing TASK
-values are treated as user configuration on subsequent loads; edit them or supply `--field`
-to change them. Unknown task settings such as `Fan-out: disabled` are retained.
-
-“Prod US” (`prod-us`) is the environmental configuration. This example covers the local
-environmental profile's field names without copying its values: AWS_ACCOUNT, AWS_REGION,
-GRAFANA_CONTEXT, SLACK_CHANNEL, PUBLISH, REPO and RHYMING_ENDPOINTS. The helper also persists
-its PDF, Grafana Assistant and historical-window defaults.
-
-<!-- profile-composition-example:start -->
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . ignore
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . init
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  set --profile prod-us \
-  --field AWS_ACCOUNT=demo-prod-us-readonly \
-  --field AWS_REGION=us-east-1 \
-  --field GRAFANA_CONTEXT=demo-prod-us \
-  --field SLACK_CHANNEL='#demo-ops' \
-  --field PUBLISH=https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations \
-  --field REPO=https://github.com/demo-org/shared-config \
-  --field 'RHYMING_ENDPOINTS=[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]'
-```
-
-“App Alpha” (`app-alpha`) supplies the application configuration: multiple repositories
-and multiple Slack channels. SLACK_CHANNEL accepts the same scalar-or-array shape and limits
-as REPO, rendering a separate Slack channel bullet for every entry.
-`REPO` keeps its field name and accepts either the existing scalar or a JSON array of up to
-16 unique strings, 512 characters each and 8192 UTF-8 bytes total.
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  set --profile app-alpha \
-  --field 'REPO=["https://github.com/demo-org/app-alpha","https://github.com/demo-org/app-alpha-lib"]' \
-  --field 'SLACK_CHANNEL=["#demo-app","#demo-library"]'
-```
-
-Compose both profiles into a named snapshot in `.env`, then load that snapshot into the
-existing `docs/tasks/TASK.md` draft created by `open task`. `--dry-run` previews without writes.
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  compose --profile prod-us --profile app-alpha --into prod-us-app-alpha --dry-run
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  compose --profile prod-us --profile app-alpha --into prod-us-app-alpha
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  render --profile prod-us-app-alpha
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  load --profile prod-us-app-alpha --task docs/tasks/TASK.md --dry-run
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  load --profile prod-us-app-alpha --task docs/tasks/TASK.md
-```
-<!-- profile-composition-example:end -->
-
-The effective task Resources are:
-
-```markdown
-## Resources
-
-- Repo (Bitbucket/Github): `https://github.com/demo-org/shared-config`
-- Repo (Bitbucket/Github): `https://github.com/demo-org/app-alpha`
-- Repo (Bitbucket/Github): `https://github.com/demo-org/app-alpha-lib`
-- Slack channel: `#demo-ops`
-- Slack channel: `#demo-app`
-- Slack channel: `#demo-library`
-- AWS account: `demo-prod-us-readonly`
-- AWS region: `us-east-1`
-- Grafana context: `demo-prod-us`
-- Grafana Assistant: `enabled`
-- Publish: `https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations`
-- Rhyming endpoints: `[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]`
-- Rhyming historical window days: `7`
-- Generate PDF: `T`
-```
-
-Sources merge in command order. Repository and Slack channel entries form first-seen ordered
-unions with exact duplicates removed across sources. All other overlapping stored fields must match; conflicting
-values fail before writes and name the field. For example, different GRAFANA_CONTEXT values
-require explicit alignment of the source profiles before composition. Stored PDF/history defaults
-participate in conflict checks; absent defaults apply only after merging. Endpoint arrays are
-compared as stored strings, not combined. Unknown source fields fail.
-
-Sources and unrelated `.env` bytes stay unchanged. An existing combined profile requires
-`compose ... --replace`, which replaces its complete field set; later source changes require
-explicit recomposition. `load ... --replace` permits rewriting supplied TASK
-Resources while retaining every explicit user field, including the TASK PDF choice. Loading never closes the editor or
-starts an investigation. Existing scalar profiles need no migration. See the
-[store contract](skills/profile-manager/references/profile-store.md#profile-composition).
-
-### Per-store fan-out
-
-When a task's effective Resources name multiple stores, repositories or Slack channels, the gather step fans
-out by default: read-only store or per-resource inspection units, launched in parallel
-with the same resolved identity, environment, time window, timezone, and
-questions. You can disable it — by asking, or with `Fan-out: disabled` in the
-task's Resources — and the agent investigates inline instead. Scope and authority live in
-[Per-Store Fan-Out Policy](AGENTS.md#per-store-fan-out-policy);
-the [Per-Store Fan-Out skill](skills/per-store-fan-out/SKILL.md) owns activation, the
-disable switch and mechanics — store resolution, brief templates, launch and degradation, and the
-auditable fan-out manifest each run records.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-per-store-fan-out-dark.png">
-  <img alt="The task's Resources name the stores in scope; the parent resolves shared inputs, invokes rhyming incident search for configured historical endpoints, and launches one read-only agent per store in parallel; their candidate evidence is related on the shared timeline, material claims are verified, and findings, gaps, and limitations are reported. Findings route back as the next query." src="diagrams/DIAGRAM-per-store-fan-out-light.png">
-</picture>
-
-**Figure 3 — Per-store fan-out.** The parent invokes rhyming incident search once when
-profile endpoints are configured, then gathers and relates evidence through store delegation.
-All store agents launch before any result is awaited; each returns
-candidate evidence, limitations, and follow-up questions for other stores.
-Solid arrows are handoffs; dashed arrows are invocation, including the loop in
-which a finding in one store becomes the next query in another, continued
-through that store's existing agent. The orchestrating session alone relates,
-verifies, and reports — sub-agent output is leads, not verified findings, and
-sub-agents never mutate, acknowledge, message, or publish. The figure
-illustrates the documented workflow, not an executed investigation.
-
-[Editable fan-out diagram](diagrams/DIAGRAM-per-store-fan-out.dot) ·
-[Light SVG](diagrams/DIAGRAM-per-store-fan-out-light.svg) ·
-[Dark SVG](diagrams/DIAGRAM-per-store-fan-out-dark.svg) ·
-[Source notes and regeneration](diagrams/DIAGRAM-per-store-fan-out.md)
-
-#### Parallel inspection of multiple repositories
-
-Multiple configured repositories independently activate repository fan-out, even when all
-belong to the same provider and no other store is named. The parent resolves every Repo
-bullet, applies user configuration precedence once, and schedules a separate read-only
-inspection for each distinct repository alongside other named store work. Every brief gets
-the same effective environment, resources, window and questions. A user-selected Slack
-channel therefore stays selected across all branches.
-
-GitHub repositories use approved GitHub tooling; Bitbucket repositories use Rovo MCP. Short
-names need verified provider context. Aliases of the same repository share an inspection
-owner, with every configured entry recorded. Store briefs exclude already-assigned code
-inspection; Jira/Confluence work can remain in an ordinary Atlassian branch. The parent owns
-scheduling, capacity waves, cross-repository follow-ups and verification; repository agents
-do not recursively delegate or repeat another owner's inspection.
-
-A single repository keeps the inline source-investigation path. `Fan-out: disabled` disables
-repository delegation as well as store delegation, while preserving investigation coverage.
-The [shared contract](skills/per-store-fan-out/references/delegation-contract.md) governs limited
-capacity and unavailable delegation; manifests retain every repository outcome or access gap.
-One failure does not cancel independent work. The store diagram above shows the store layer;
-repository inspections are additional parent-owned units described in the
-[repository workflow](skills/per-store-fan-out/SKILL.md#repository-resolution-and-scheduling).
-
-#### Parallel inspection of multiple Slack channels
-
-Multiple effective Slack channels activate a separate read-only inspection for each resolved
-channel, including Slack-only tasks. The parent resolves workspace/channel identity and access,
-applies explicit user overrides, and schedules channel work alongside repository/store work.
-Aliases share one owner; ordinary Slack briefs exclude reads already assigned to channel units.
-One channel keeps the existing inline or ordinary store owner. A user-selected single channel
-replaces an inherited list, so delegation is selected from the effective channel count.
-
-The [channel workflow](skills/per-store-fan-out/SKILL.md#channel-resolution-and-scheduling)
-uses the same shared delegation contract and identical effective Resources across briefs.
-Disabled parent fan-out includes channel work. Capacity waves and isolated access/ambiguity
-failures preserve every configured channel's outcome without inventing access or broadening
-workspace scope. Channel agents return message/thread references and limitations; the parent
-verifies material evidence and correlates across channels. These rules authorize no messages,
-acknowledgments, mutations or publication.
-
-### Rhyming incident search
-
-[Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) looks for relevant prior
-incidents and investigations using the selected local profile's optional `RHYMING_ENDPOINTS`
-JSON array. [Profile Manager](skills/profile-manager/SKILL.md) validates that field against
-the task template. Existing profiles remain valid without it; `.env` stays local and untracked.
-
-Profiles also support `RHYMING_HISTORICAL_WINDOW_DAYS` (positive integer days). New profiles
-persist `7` in their local `.env` block when omitted. Profile Manager renders the lookback
-into task Resources only when valid rhyming endpoints are configured. Explicit caller search
-windows take precedence; otherwise searches look back from the current incident's start.
-Legacy endpoint profiles resolve seven days without rewriting the store; their next profile
-update persists a missing default.
-
-For a new ignored profile store, run `ignore` and `init` first. These commands illustrate
-creating a 30-day profile and updating it to 14 days; replace the example endpoint with your
-actual repository. Omitting the window flag on creation saves the seven-day default.
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . ignore
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . init
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  set --profile history \
-  --field 'RHYMING_ENDPOINTS=[{"id":"code","kind":"repository","target":"https://github.com/example/service-a","provider":"github"}]' \
-  --field RHYMING_HISTORICAL_WINDOW_DAYS=30
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  set --profile history --field RHYMING_HISTORICAL_WINDOW_DAYS=14
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  load --profile history --task docs/tasks/TASK.md --dry-run
-```
-
-Each configured endpoint gets its own read-only sub-agent. Independent queries use parallel
-capacity waves across prior gcx investigations, prior Grafana Assistant conversations,
-configured Confluence pages, Slack channels, and code repositories. The per-store parent
-invokes this skill once before its store batch. Reports separate verified relationships,
-hypotheses, no matches in the searched scope, and unavailable endpoints. Existing conversation
-reads do not send new Assistant prompts; disabled parent fan-out disables nested endpoint agents.
-The explicit `grafana-assistant-search` kind sends the complete incident-matching brief through
-`gcx assistant prompt` in its configured context. Compatible work shares a combined initial
-prompt with one execution owner while every endpoint retains its own child and manifest row.
-`Grafana Assistant: disabled` suppresses all prompts while permitted historical reads continue.
-A request arriving after the initial prompt is recorded unavailable for reuse; it does not
-automatically start another billable prompt. See the
-[Assistant matching contract](skills/rhyming-incident-search/references/assistant-search.md) for
-preparation, receipts, budgets and evidence verification.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-rhyming-incident-search-dark.png">
-  <img alt="Validated profile endpoints each receive a separate read-only agent for historical search. The parent compares leads, verifies source evidence and reports relationships, hypotheses and gaps." src="diagrams/DIAGRAM-rhyming-incident-search-light.png">
-</picture>
-
-**Rhyming incident search.** The boxes illustrate supported endpoint kinds; only configured
-endpoints are probed, with one agent per endpoint even when kinds repeat. Solid arrows show
-handoffs and dashed arrows show invocation. This depicts the skill contract, not a live run.
-
-[Editable source](diagrams/DIAGRAM-rhyming-incident-search.dot) ·
-[Light SVG](diagrams/DIAGRAM-rhyming-incident-search-light.svg) ·
-[Dark SVG](diagrams/DIAGRAM-rhyming-incident-search-dark.svg) ·
-[Source notes and regeneration](diagrams/DIAGRAM-rhyming-incident-search.md)
-
-### Grafana queries and investigations
-
-Every user-requested Grafana query **inherits authorization from the request itself**:
-exact expressions, metrics/logs/traces, inventory, alerts, SLOs and other health reads all
-use the [Parallel Grafana Investigation skill](skills/parallel-grafana-investigation/SKILL.md).
-It launches Assistant and direct gcx agents concurrently without a separate plan-approval
-pause. Both share the selected context, exact request, filters, limits, output requirements,
-and applicable environment/window/timezone. Inventory does not require invented alert or
-incident details. The direct agent selects relevant refreshed bundled gcx skills.
-
-Grafana Assistant incurs additional cost beyond ordinary Grafana usage and is enabled by
-default. Disable it by instruction or `Grafana Assistant: disabled` in task Resources:
-only gcx and relevant gcx agent skills then run, through the direct agent, with no Assistant
-prompt. Record the disabled branch as a configured limitation. Setup-only work stays with
-Grafana CLI; internal commands and historical endpoint reads never recursively launch pairs.
-The profile schema also supports `GRAFANA_ASSISTANT=enabled|disabled` (default `enabled`).
-Save a default with Profile Manager, for example:
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  set --profile team --field GRAFANA_ASSISTANT=disabled
-```
-
-The named profile must already supply an actual resource; this setting alone adds no
-Grafana scope. An explicit TASK value overrides the profile, and a load `--field` override
-has highest priority. See the [skill README](skills/parallel-grafana-investigation/README.md)
-for workflow details.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-parallel-alert-investigation-dark.png">
-  <img alt="Three shaded rows show request, shared-input resolution and authentication, parallel Assistant and direct gcx agents, then reconciliation, verification and reporting. The launch step highlights parallel-grafana-investigation in orange." src="diagrams/DIAGRAM-parallel-alert-investigation-light.png">
-</picture>
-
-**Figure 4 — Parallel Grafana investigation.** The orange skill name identifies the
-launch owner within the three-row visual pattern. Both agents launch — before
-either result is awaited — with the same resolved Grafana context, request, resource scope, filters, limits and applicable
-environment, exact time window and timezone. Solid arrows are handoffs; dashed arrows are invocation;
-ovals are activities and boxes are the two agent calls. Assistant conclusions
-are investigation leads: material claims are verified against bounded direct
-evidence, and disagreements, gaps, and limitations go into the report. The
-figure illustrates the documented workflow, not an executed investigation.
-
-[Editable query diagram](diagrams/DIAGRAM-parallel-alert-investigation.dot) ·
-[Light SVG](diagrams/DIAGRAM-parallel-alert-investigation-light.svg) ·
-[Dark SVG](diagrams/DIAGRAM-parallel-alert-investigation-dark.svg) ·
-[Source notes and regeneration](diagrams/DIAGRAM-parallel-alert-investigation.md)
-
-Investigations use a [ten-minute soft checkpoint](skills/open-edit-close-execute/references/investigation-delivery.md), including setup, reporting and required QA, with observed waits reported separately. It surfaces findings/gaps and explains necessary continuation. Profiles support exact `GENERATE_PDF=T/F`: absent defaults T; explicit task values override profiles. F keeps verified Markdown/evidence/required graphs and skips PDF-only work. Historical PDFs remain preserved and excluded from new companions.
-
-## What a run looks like
-
-A flapping alert is the ordinary case. Illustrative, with placeholder
-identifiers — not a recorded finding:
-
-**What goes into the task.** Paste the alert text straight out of the on-call
-thread as the problem. Name the resources it touches: the Slack channel the
-thread is in, the Grafana context that holds the alert, the AWS profile and
-Region the workload runs in, the repository that owns the service. Then state
-what a good answer looks like, as acceptance tests — *identify the root cause*,
-*propose a resolution*, *say what remains unverified*.
-
-**What comes back.** A task named from its own title, so the investigation is
-addressable, and a report containing a timeline that puts the alert transitions,
-the metric series, the deploy, and the thread on one clock; the cause the
-evidence supports; a diagram of the path involved; a proposed fix; the questions
-still open; and the duration and token cost of the run.
-
-**Why it is worth writing down.** A flapping alert is often not a threshold that
-needs widening — it is a symptom with a cause underneath, such as a duplicated
-collection path double-counting a series so a threshold is crossed and cleared
-repeatedly. Tuning the alert hides it; the report names it, and the next person
-who sees the alert flap starts from that instead of from scratch.
-
-## What you get
-
-| Path | Purpose |
-| --- | --- |
-| [templates/TASK.md](templates/TASK.md) | Reusable task template; copied when starting a new task. |
-| `docs/tasks/TASK.md` | Local temporary task draft; ignored by Git. |
-| `docs/tasks/TASK-{slug}.md` | Local finalized task, named from its saved title; ignored by Git. |
-| `docs/reports/REPORT-{slug}.md` and `.pdf` | Local investigation deliverables; ignored by Git. |
-| `docs/reports/assets/{slug}/` | Local supporting report assets. |
-| `logs/` | Local investigation logs and supporting evidence; ignored by Git. |
-| `.env` | Local resource-profile store for task Resources; ignored by Git. |
-| [diagrams/](diagrams/) | Committed documentation diagrams and editable source. |
-| [skills/](skills/) | Self-contained skill packages and their references or helpers. |
-
-Investigation output stays local: `docs/tasks/`, `docs/reports/*`, `logs/`, and
-`outputs/` are ignored, while the task template stays tracked. That split is
-deliberate. Source control is for code and reviewed policy; a report is durable
-prose that wants versioned pages, comments, and search, so it belongs in a
-content system instead. Findings about live systems are therefore never
-committed here — the published page, not this checkout, is the shared copy.
-Custom destinations need their own tracking decision. Paths are resolved before
-any write, and an existing draft or a destination collision is preserved for you
-to resolve rather than overwritten or suffixed.
-
-## Publish to Confluence
-
-Configure the publication destination in the task's Resources section:
-
-```text
-Publish: <Parent page>
-```
-
-For example, `Publish: Confluence page "Investigations"`. Use the parent page's URL
-or ID when its title is ambiguous. The saved task supplies this destination to
-[Publish It](skills/publish-it/SKILL.md); an explicit `--parent` can also name it:
-
-```text
-publish it --task docs/tasks/TASK-example.md --report docs/reports/REPORT-example.md --parent <Confluence parent URL>
-```
-
-It resolves related artifacts, publishes the report with its diagrams and
-evidence, and attaches the original report and parent task as downloads — so a
-reader gets the narrative on the page and the inputs underneath it, and can
-reopen the task the findings came from. A task-only or report-only request uses
-verified companion files when they exist and reports any that are missing.
-
-Publishing presents the investigation as it was recorded: it does not rerun it
-or refresh its evidence window, which is what makes the page citable later.
-Republish a revised report rather than editing the page away from its evidence.
-
-## Skills
-
-| Skill | Responsibility |
-| --- | --- |
-| [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) | Wait for editor closure and supplied checks, then continue within scope. |
-| [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) | Resolve artifact identity, format, filename, and destination. |
-| [Profile Manager](skills/profile-manager/SKILL.md) | Maintain local `.env` resource profiles and load one into a task's Resources. |
-| [Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) | Find related prior incidents through one read-only agent per configured historical endpoint. |
-| [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) | Fan a multi-store investigation out into per-store read-only sub-agents and fold their evidence in. |
-| [Parallel Grafana Investigation](skills/parallel-grafana-investigation/SKILL.md) | Handle any Grafana query with parallel Assistant and direct gcx sub-agents using relevant bundled skills, then reconcile and verify. |
-| [Release It](skills/release-it/SKILL.md) | Prepare and verify protected GitHub releases. |
-| [Publish It](skills/publish-it/SKILL.md) | Publish tasks and reports to Confluence with diagrams, evidence and verified downloads. |
-| [Token Usage](skills/token-usage/SKILL.md) | Derive scoped report duration and token totals from local conversation records. |
-| [Diagramming Style](skills/diagramming-style/SKILL.md) | Create and verify readable diagrams in light and dark themes. |
-| [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) | Authenticate and perform scoped Atlassian resource reads. |
-| [Grafana CLI](skills/gcx-cli/SKILL.md) | Install gcx and its Claude/Codex skills, refresh before commands, authenticate a selected context, and investigate through scoped queries. |
-| [Slack MCP](skills/slack-mcp/SKILL.md) | Establish and verify scoped Slack access. |
-| [AWS MCP](skills/aws-mcp/SKILL.md) | Authenticate a selected AWS profile, wait for browser sign-in, and investigate root causes through scoped AWS MCP queries. |
-| [AWS architecture diagrams](skills/aws-architecture-diagrams/SKILL.md) | Document AWS architecture with the bundled diagram conventions. |
-
-Each skill does one thing, and the repository [policy](AGENTS.md) is a router
-rather than a manual: it says which request goes to which skill and holds only
-what no skill owns. That shape is load-bearing. Policy that absorbs every rule
-becomes a single file nobody can refine safely, while a skill with one
-responsibility can be read, tested, and reused on its own — authenticating a
-Grafana context is useful well beyond an investigation. It also has a cost worth
-respecting: every skill is something the agent must consider before choosing
-one, so the answer to a new requirement is usually a narrower skill or a bundled
-reference, not a broader one. Depth lives in each skill's `references/`, where
-it loads only when that skill is selected.
+**Figure 2 — Skill routing.** The lifecycle of Figure 1 expanded into the skill
+that owns each step. Dashed arrows are invocation; the solid arrow is delivery.
+([source](diagrams/DIAGRAM-investigation-skill-routing.dot) ·
+[notes](diagrams/DIAGRAM-investigation-workflow.md))
 
 ## Skill philosophy
 
-This catalog treats each capability like a code module — "skill as code". The root
-[AGENTS.md](AGENTS.md)/[CLAUDE.md](CLAUDE.md) files open with one ownership clause: they
-route requests to their owners, each owning skill holds its workflow, guidance, and
-verification, and the root files never restate or override it. Whatever else the root files
-carry is policy that no skill covers, and where such a policy limits a skill, the limit
-holds. That gives every capability exactly one owner, a clear interface
-(its routing trigger — the `description` the router matches), and its own tests (the eval
-case in `skill_evals/cases/<name>.json`), so a developer can see and refine capabilities the
-way they would modules.
+Each capability is treated like a code module — "skill as code". It has exactly
+one owner (its skill), a clear interface (the `description` the router matches),
+and its own tests (an eval case in `skill_evals/cases/`). The root
+[AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) are a router, not a manual:
+they say which request goes to which skill and hold only the policy no skill
+covers. So when you need the rule for something, follow the skill link above
+rather than a summary here.
 
-Repository-owned policy is limited to what no skill covers: required dependencies,
-CodeGraph, the routing table and its trimmed notes, the source-investigation authorization
-grant, Grafana billing/disable facts, the fan-out scope/authority rule, the shared
-delegation contract, the quality gate, and the sync rule — exactly the section allowlist
-that [policy/root-contract.json](policy/root-contract.json) declares beside the verbatim
-ownership clause.
+CI enforces the model. The [Skill Quality Gate](AGENTS.md#skill-quality-gate)
+exercises every skill's structure, routing, and behavior, and drift checks fail
+when workflow content accretes in the root files or the README and diagrams fall
+out of step ([policy/root-contract.json](policy/root-contract.json)). New
+workflow content therefore belongs in a skill with an eval case, never in the
+routing files.
 
-Two gates enforce the model in the required CI jobs: the
-[Skill Quality Gate](AGENTS.md#skill-quality-gate) exercises every skill's structure,
-routing (80% rank-one threshold), and behavioral evals, and the drift checks
-(`scripts/check-root-drift.py`, `scripts/check-docs-drift.py`) fail closed when workflow
-content accretes in the root files, the ownership clause that opens them is reworded or
-gains company, a skill loses its routing row or a row names a missing skill, a link
-anywhere in the repository points at a root-file section that no longer exists, the root
-files diverge or outgrow their budget, or README/diagram assets drift. New workflow content therefore
-belongs in a skill (with an eval case), never in the routing files.
+## Contributing
 
-## Where the rules live
-
-This README is the entry point. Each rule has exactly one owner, so follow the
-link rather than a summary:
-
-| Topic | Owner |
-| --- | --- |
-| Task lifecycle, resources, continuation, execution and reports | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) |
-| Resource profiles, the local `.env` store, its schema and ignore rules | [Profile Manager](skills/profile-manager/SKILL.md) |
-| Evidence index, citations, data pattern graphs, and stated limitations | [Report Evidence](skills/report-evidence/SKILL.md) |
-| Source tracing, root cause, and deployed-revision verification | [Source Investigation](skills/source-investigation/SKILL.md) |
-| Artifact paths and destinations | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) |
-| Report duration and token accounting | [Token Usage](skills/token-usage/SKILL.md) |
-| Diagram style, theming, flapping-alert graph pair, and consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
-| Atlassian connectivity probes | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
-| Per-store investigation fan-out | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) |
-| Shared sub-agent delegation machinery | [Shared Delegation Contract](skills/per-store-fan-out/references/delegation-contract.md) |
-| Grafana investigations and authentication | [Grafana CLI](skills/gcx-cli/SKILL.md) |
-| Parallel Grafana query workflow | [Parallel Grafana Investigation](skills/parallel-grafana-investigation/SKILL.md) |
-| Skill and eval quality gate | [Skill Quality Gate](AGENTS.md#skill-quality-gate) |
-| Root and docs drift contract | [policy/root-contract.json](policy/root-contract.json) |
-| Publication security and disclosure | [SECURITY.md](SECURITY.md) |
-| Release contract | [VERSIONING.md](VERSIONING.md) |
-
-[AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) are byte-identical; change
-repository policy in both.
-
-## Local validation
-
-Run the same checks CI runs, from the repository root:
+Run the checks CI runs, from the repository root:
 
 ```sh
-bash scripts/check.sh
+bash scripts/check.sh                    # tests, policy and docs drift, delegation contract
+bash scripts/run-skill-quality-gate.sh   # also required after changing a skill or eval case
+bash scripts/render-workflow-diagram.sh  # regenerate diagrams after editing a .dot source
+bash scripts/check-disclosure.sh         # credential and institutional-data scan before a first upload
 ```
 
-That validates release metadata, compiles the scripts, skills, and tests, runs
-the repository and diagramming test suites, confirms the two policy files match,
-and rejects whitespace errors. It also runs the delegation-contract check, which fails when a
-delegating skill restates a rule the
-[Shared Delegation Contract](skills/per-store-fan-out/references/delegation-contract.md) owns or
-when a skill that delegates is missing from
-[policy/delegation-contract.json](policy/delegation-contract.json). The repository suite includes an end-to-end pass
-over the [Profile Manager](skills/profile-manager/SKILL.md) chain — ignore
-coverage, store creation, adding a profile, loading it into a task, and removal
-— which CI also runs as its own named step. Changes to any skill or eval case additionally
-need `bash scripts/run-skill-quality-gate.sh`.
-
-Keep the CodeGraph index current and local:
-
-```sh
-codegraph status
-codegraph sync
-```
-
-To regenerate both workflow views — adaptive SVGs, fixed light and dark
-exports, and overlap checks:
-
-```sh
-bash scripts/render-workflow-diagram.sh
-```
-
-Then inspect the rendered README in both GitHub themes alongside the exported
-images. The [Validate workflow](.github/workflows/validate.yml) runs the
-required `Tests` check on pull requests, merge queues, and `main`; authorized
-changes land through a protected squash pull request.
-
-## Security
-
-Investigation output is deliberately untracked, and the repository gates what
-can be committed: a full-history credential scan plus an institutional-data
-policy that rejects private artifacts, institution fingerprints, corporate email
-addresses, unreviewed hosts, and identifying account or ticket values — without
-logging matched content. Before any first upload, when CI cannot help yet:
-
-```sh
-bash scripts/check-disclosure.sh
-```
-
-[SECURITY.md](SECURITY.md) has the coverage, policy review, required checks, and
-the local pre-push hook.
-
-## Versioning and releases
-
-[VERSION](VERSION) is the repository release version. Ask your agent to
-`run release-it` to invoke the [Release It skill](skills/release-it/SKILL.md),
-which prepares a protected pull request, validates the exact merged revision,
-pushes an annotated SemVer tag, verifies its workflow, and publishes curated
-release notes. [VERSIONING.md](VERSIONING.md) holds the contract.
+- [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) are byte-identical; change
+  policy in both.
+- Changes land through a protected squash pull request with the required
+  `Tests` check.
+- [SECURITY.md](SECURITY.md) covers what may be committed and the local
+  pre-push hook.
+- [VERSION](VERSION) holds the release version. Ask the agent to
+  `run release-it`; [VERSIONING.md](VERSIONING.md) holds the contract.
 
 ## License
 

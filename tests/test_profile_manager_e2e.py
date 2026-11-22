@@ -193,9 +193,9 @@ class EndToEndChainTests(unittest.TestCase):
         self.assertTrue(self.ok('remove-env')['deleted'])
 
 
-    def test_readme_environment_application_and_composition_commands(self):
+    def test_documented_environment_application_and_composition_commands(self):
         """Execute the actual documented synthetic commands and compare rendered output."""
-        readme = (ROOT / 'README.md').read_text()
+        readme = (ROOT / 'skills/profile-manager/references/profile-store.md').read_text()
         example = readme.split('<!-- profile-composition-example:start -->')[1].split(
             '<!-- profile-composition-example:end -->')[0]
         self.task.write_text(TEMPLATE.read_text())
