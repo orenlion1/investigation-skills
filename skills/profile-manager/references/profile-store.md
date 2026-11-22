@@ -253,7 +253,7 @@ It requires at least two unique sources and a distinct target. Names remain keba
 “Prod US” and “App Alpha” are display names. No source is modified and no TASK is loaded
 implicitly. Run the existing load command with the combined profile afterward.
 
-Merge stored fields only. REPO and SLACK_CHANNEL use first-seen order and exact-string deduplication across
+Merge stored fields only. REPO, SLACK_CHANNEL and PUBLISH use first-seen order and exact-string deduplication across
 profiles, then revalidates the union's limits; duplicates within one input array are errors.
 A one-entry result uses scalar form. Identical non-list values are compatible; differing
 values fail without a write and identify only the conflicting field. This includes endpoint
@@ -271,6 +271,80 @@ read-back of all profiles. Repeating replacement with the same inputs yields the
 Refresh the snapshot explicitly after changing sources. Direct multi-profile TASK loading and
 shell environment export are outside this command's scope.
 
+### Worked example
+
+The agent runs these commands when asked to compose and load profiles; the repository test
+suite executes this block verbatim. All values are synthetic. `prod-us` is the environmental
+profile, `app-alpha` the application profile with multiple repositories and Slack channels.
+The first block creates the store and `prod-us`, the second `app-alpha`, and the third
+composes them into a snapshot and loads it into the `docs/tasks/TASK.md` draft.
+
+<!-- profile-composition-example:start -->
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . ignore
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . init
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  set --profile prod-us \
+  --field AWS_ACCOUNT=demo-prod-us-readonly \
+  --field AWS_REGION=us-east-1 \
+  --field GRAFANA_CONTEXT=demo-prod-us \
+  --field SLACK_CHANNEL='#demo-ops' \
+  --field PUBLISH=https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations \
+  --field REPO=https://github.com/demo-org/shared-config \
+  --field 'RHYMING_ENDPOINTS=[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]'
+```
+
+“App Alpha” (`app-alpha`) supplies the application configuration: multiple repositories
+and multiple Slack channels. SLACK_CHANNEL accepts the same scalar-or-array shape and limits
+as REPO, rendering a separate Slack channel bullet for every entry.
+`REPO` keeps its field name and accepts either the existing scalar or a JSON array of up to
+16 unique strings, 512 characters each and 8192 UTF-8 bytes total.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  set --profile app-alpha \
+  --field 'REPO=["https://github.com/demo-org/app-alpha","https://github.com/demo-org/app-alpha-lib"]' \
+  --field 'SLACK_CHANNEL=["#demo-app","#demo-library"]'
+```
+
+Compose both profiles into a named snapshot in `.env`, then load that snapshot into the
+existing `docs/tasks/TASK.md` draft created by `open task`. `--dry-run` previews without writes.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  compose --profile prod-us --profile app-alpha --into prod-us-app-alpha --dry-run
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  compose --profile prod-us --profile app-alpha --into prod-us-app-alpha
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  render --profile prod-us-app-alpha
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  load --profile prod-us-app-alpha --task docs/tasks/TASK.md --dry-run
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  load --profile prod-us-app-alpha --task docs/tasks/TASK.md
+```
+<!-- profile-composition-example:end -->
+
+The effective task Resources are:
+
+```markdown
+## Resources
+
+- Repo (Bitbucket/Github): `https://github.com/demo-org/shared-config`
+- Repo (Bitbucket/Github): `https://github.com/demo-org/app-alpha`
+- Repo (Bitbucket/Github): `https://github.com/demo-org/app-alpha-lib`
+- Slack channel: `#demo-ops`
+- Slack channel: `#demo-app`
+- Slack channel: `#demo-library`
+- AWS account: `demo-prod-us-readonly`
+- AWS region: `us-east-1`
+- Grafana context: `demo-prod-us`
+- Grafana Assistant: `enabled`
+- Publish: `https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations`
+- Rhyming endpoints: `[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]`
+- Rhyming historical window days: `7`
+- Generate PDF: `T`
+```
+
 
 ## User configuration precedence
 
@@ -285,7 +359,7 @@ command field. TASK user fields do not modify the profile store.
 
 `compose` also accepts repeated `--field FIELD=value`. Validate all sources; resolve scalar
 conflicts only when the user supplies that field explicitly, then layer the override before
-missing defaults and effective dependency validation. An explicit REPO or SLACK_CHANNEL replaces its inherited
+missing defaults and effective dependency validation. An explicit REPO, SLACK_CHANNEL or PUBLISH replaces its inherited
 union. Overrides must be nonempty, unique, schema-declared, validated values. They change only
 the composed target, never its sources. All other conflicting stored fields remain errors.
 
@@ -309,6 +383,27 @@ lists. Repeated TASK channel bullets form one validated list, while other scalar
 settings remain errors. All source profiles and unrelated .env bytes remain unchanged. A
 single resulting channel uses scalar form. Resolve names, IDs, aliases, workspaces and access
 later through Slack MCP; successful storage proves neither access nor permission to query.
+
+## Publish destinations
+
+PUBLISH accepts the existing scalar or a JSON array of 1–16 unique strings, at most 512
+characters per entry and 8192 UTF-8 bytes total, using the same bounded resource-list parser
+as REPO and SLACK_CHANNEL. Each entry is one publication destination: a Confluence parent page
+(URL, ID or title) or a GitHub or Bitbucket repository URL, optionally with a branch and
+directory. The store does not classify entries; Publish It does when publication is requested.
+
+Malformed/empty arrays, duplicates within an input list, non-strings, placeholders,
+credentials, URL user information, controls and unsafe Markdown delimiters fail before writes.
+Unlike REPO, a URL query is permitted, because a Confluence page URL may carry its page ID
+there. No stored value is migrated by reading, and existing scalar profiles need no change. Set
+replaces/clears the field; show retains stored format; render/load emit every destination as a
+repeated Publish bullet.
+
+Compose forms a stable first-seen union of destinations across profiles, then revalidates
+limits. User --field overrides and existing explicit TASK Publish bullets replace inherited
+lists. Repeated TASK Publish bullets form one validated list. A single resulting destination
+uses scalar form. Successful storage proves neither access nor permission to publish; an
+explicit publish request remains required.
 
 ## Grafana Assistant
 

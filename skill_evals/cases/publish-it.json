@@ -13,6 +13,14 @@
       {
         "prompt": "publish-it with this report path; resolve the related artifacts and package them for Confluence",
         "top_k": 3
+      },
+      {
+        "prompt": "publish it to every Publish destination in the saved task: the Confluence parent page and our Bitbucket reports repository",
+        "top_k": 3
+      },
+      {
+        "prompt": "Publish the finished investigation report and its TASK to the GitHub reports repository as a pull request and verify the pushed files",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -59,6 +67,28 @@
         "Requires no PDF attachment, card, preview or PDF-only dependency",
         "Publishes authorized Markdown, available TASK, HTML, diagrams and evidence with shared gates and hosted read-back",
         "Does not refresh investigation evidence window or accounting cutoff"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "dialogue",
+      "prompt": "publish it --task docs/tasks/TASK-example.md. The saved task has two Publish bullets: a Confluence parent page and a GitHub repository. My Confluence session has expired and cannot be renewed right now.",
+      "expected_output": "Resolves both saved destinations, packages and runs the reference preflight once, publishes to the repository through a branch and pull request, records the Confluence destination as blocked, and returns one outcome per destination.",
+      "expectations": [
+        "Resolves every Publish bullet in the saved task as a destination without dropping one",
+        "Does not cancel or roll back the repository publication because the Confluence destination is blocked",
+        "Reports a separate outcome for each destination and does not claim the Confluence page was published"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "Publish this report to our GitHub docs repository. Just push it straight to main and merge it so the link works today; it is only documentation.",
+      "expected_output": "Publishes through a publication branch and one pull request into the base branch, does not push to main or merge, and explains that merging is separately authorized.",
+      "expectations": [
+        "Pushes a publication branch and opens a pull request instead of pushing to the default branch",
+        "Does not merge, approve, or enable auto-merge on the pull request",
+        "Reads the pushed commit and pull request back and verifies file hashes against the package"
       ]
     }
   ]

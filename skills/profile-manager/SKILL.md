@@ -1,6 +1,6 @@
 ---
 name: profile-manager
-description: "Maintain the local untracked .env resource-profile store: create, inspect, compose or remove named profiles; store single or multiple repositories and Slack channels; load task Resources; derive the schema from the TASK template. Use when composing environmental/application profiles, managing .env profiles or ignore rules, or loading task Resources; credentials stay in their own stores."
+description: "Maintain the local untracked .env resource-profile store: create, inspect, compose or remove named profiles; store single or multiple repositories, Slack channels and publish destinations; load task Resources; derive the schema from the TASK template. Use when composing environmental/application profiles, managing .env profiles or ignore rules, or loading task Resources; credentials stay in their own stores."
 ---
 
 # Profile Manager
@@ -112,8 +112,8 @@ outside the `PROFILE__` namespace is preserved and those key names are reported.
 
 ## Load a profile into a task
 
-`REPO` and `SLACK_CHANNEL` accept an existing scalar or a JSON array of 1–16 unique strings (512 characters
-per entry, 8192 UTF-8 bytes total). Arrays render as repeated Repo or Slack channel bullets; never drop all
+`REPO`, `SLACK_CHANNEL` and `PUBLISH` accept an existing scalar or a JSON array of 1–16 unique strings (512 characters
+per entry, 8192 UTF-8 bytes total). Arrays render as repeated Repo, Slack channel or Publish bullets; never drop all
 but the first entry. All commands validate stored arrays before returning resources. Reads
 never migrate the store. See [repository values](references/profile-store.md#repository-values).
 
@@ -151,7 +151,7 @@ configuration on later loads. Unknown task controls such as `Fan-out: disabled` 
 
 Compose/load accept repeated `--field` overrides, validated against the same schema. An
 explicit compose field resolves conflicts only for that field; others still fail. Explicit
-REPO or SLACK_CHANNEL replaces its inherited list. Sources remain unchanged. Load overrides change only TASK;
+REPO, SLACK_CHANNEL or PUBLISH replaces its inherited list. Sources remain unchanged. Load overrides change only TASK;
 compose overrides persist only in the named target. Empty/duplicate override assignments and
 invalid scalar duplicates or duplicate list entries in known TASK settings fail before writing. The supplied-resource guard remains:
 use load `--replace` to permit rewriting an already-populated Resources section, while retaining
@@ -287,13 +287,34 @@ Keep the SLACK_CHANNEL key. Store a scalar for compatibility or a JSON array of 
 strings, bounded to 512 characters each and 8192 UTF-8 bytes per field. The shared resource-list
 parser validates set/show/render/load and composition; readers never migrate stored arrays.
 Render/load emit a separate Slack channel bullet for each entry. Compose uses a stable ordered
-union for both list fields; explicit command or saved user TASK selections replace inherited
+union for every list field; explicit command or saved user TASK selections replace inherited
 lists rather than appending to them. All sources remain validated and unchanged.
 
 ```sh
 python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
   set --profile app-alpha --field 'SLACK_CHANNEL=["#ops-alpha","#app-alpha"]'
 ```
+
+## Multiple publish destinations
+
+PUBLISH takes the same scalar-or-array shape and limits, so one profile can name every place an
+investigation is published: Confluence parent pages, GitHub or Bitbucket repositories, or both.
+Render/load emit a separate Publish bullet for each entry; compose forms the same ordered union;
+explicit command or saved user TASK destinations replace the inherited list.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
+  set --profile prod-us \
+  --field 'PUBLISH=["https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations","https://github.com/example-org/example-reports"]'
+```
+
+`set` replaces the field; it never appends. To add a destination to a profile that already
+has one, read the stored value with `show` and set the complete array, keeping every existing
+entry unless the user asked to remove it.
+
+Profile operations never contact a destination and storing one authorizes nothing.
+[Publish It](../publish-it/SKILL.md#destinations) resolves each saved bullet's kind, identity
+and access when the user asks to publish.
 
 Profile operations never query Slack. The parent resolves actual workspace/channel identities
 and cardinality after user overrides, then routes multiple channels to

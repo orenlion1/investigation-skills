@@ -33,7 +33,7 @@ blocker rather than substituting direct reads.
 | Creating, styling, or verifying diagrams and graphs — themes, caveats, ER and SQL views, flapping-alert graph pair, format consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
 | Evidence index, `Source:` snapshot, citation discipline, and data-pattern-graph coverage for investigation reports | [Report Evidence](skills/report-evidence/SKILL.md) |
 | Tracing an investigated problem to source code: cross-repository tracing, root cause, fix proposal, deployed-revision verification | [Source Investigation](skills/source-investigation/SKILL.md) |
-| `publish it`, `publish-it`, authorized Confluence task/report publication | [Publish It](skills/publish-it/SKILL.md) |
+| `publish it`, `publish-it`, authorized task/report publication to one or more Confluence pages and GitHub or Bitbucket repositories | [Publish It](skills/publish-it/SKILL.md) |
 | Atlassian authentication, connectivity, resource probes, and Bitbucket/Jira/Confluence discovery | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
 | AWS MCP authentication, connectivity, and read-only AWS troubleshooting | [AWS MCP](skills/aws-mcp/SKILL.md) |
 | AWS architecture, topology, and data-flow diagrams | [AWS Architecture Diagrams](skills/aws-architecture-diagrams/SKILL.md) |

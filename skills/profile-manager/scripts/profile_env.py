@@ -25,7 +25,8 @@ MAX_ENDPOINT_BYTES = 8192
 MAX_ENDPOINTS = 16
 MAX_RESOURCE_LIST_BYTES = 8192
 MAX_RESOURCE_LIST_ITEMS = 16
-LIST_FIELDS = {'REPO': 'repository-or-array', 'SLACK_CHANNEL': 'channel-or-array'}
+LIST_FIELDS = {'REPO': 'repository-or-array', 'SLACK_CHANNEL': 'channel-or-array',
+               'PUBLISH': 'destination-or-array'}
 HISTORICAL_WINDOW = 'RHYMING_HISTORICAL_WINDOW_DAYS'
 DEFAULT_HISTORICAL_WINDOW_DAYS = '7'
 GENERATE_PDF = 'GENERATE_PDF'
@@ -309,7 +310,7 @@ def check_field(field, value):
 
 
 def resource_values(value, field):
-    """Normalize bounded repository/channel lists without rewriting stored values."""
+    """Normalize bounded repository/channel/destination lists without rewriting stored values."""
     try:
         if (not isinstance(value, str) or value != value.strip()
                 or len(value.encode('utf-8')) > MAX_RESOURCE_LIST_BYTES
@@ -324,11 +325,13 @@ def resource_values(value, field):
             entry.encode('utf-8')
             if entry in seen or any(char in entry for char in '`<>\\\x85\u2028\u2029'):
                 raise ValueError()
-            if field == 'REPO' and '://' in entry:
+            if field in ('REPO', 'PUBLISH') and '://' in entry:
                 url = urlsplit(entry)
                 ssh_identity = url.scheme == 'ssh' and url.username == 'git'
-                if ((url.username is not None and not ssh_identity) or url.password is not None
-                        or url.query or url.fragment):
+                if (url.username is not None and not ssh_identity) or url.password is not None:
+                    raise ValueError()
+                # A Confluence page URL may carry its page ID in the query; a repository may not.
+                if field == 'REPO' and (url.query or url.fragment):
                     raise ValueError()
             seen.add(entry)
         return entries

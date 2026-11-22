@@ -660,6 +660,60 @@ class ProfileStoreTests(unittest.TestCase):
         self.ok('set', '--profile', 'channels', '--field', 'REPO=repo', '--field', 'SLACK_CHANNEL=')
         self.assertNotIn('SLACK_CHANNEL', self.ok('show', '--profile', 'channels')['fields'])
 
+    def test_publish_destination_array_roundtrip_load_and_task_precedence(self):
+        self.ignore_and_init()
+        page = 'https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations'
+        repo = 'https://github.com/example-org/example-reports'
+        value = json.dumps([page, repo], separators=(',', ':'))
+        self.ok('set', '--profile', 'out', '--field', 'REPO=repo', '--field', 'PUBLISH=' + value)
+        schema = {field['field']: field for field in self.ok('schema')['fields']}
+        self.assertEqual(schema['PUBLISH']['type'], 'destination-or-array')
+        self.assertEqual(self.ok('show', '--profile', 'out')['fields']['PUBLISH'], value)
+        before = self.store.read_bytes()
+        self.assertIn('- Publish: `' + page + '`\n- Publish: `' + repo + '`',
+                      self.ok('render', '--profile', 'out'))
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n')
+        self.ok('load', '--profile', 'out', '--task', str(task))
+        first = task.read_bytes()
+        self.ok('load', '--profile', 'out', '--task', str(task), '--replace')
+        self.assertEqual(first, task.read_bytes())
+        self.assertEqual(before, self.store.read_bytes())
+        # Destinations the user wrote in the task replace the profile list.
+        chosen = 'Confluence page "Investigations"'
+        task.write_text('## Resources\n\n- Publish: `' + chosen + '`\n')
+        result = self.ok('load', '--profile', 'out', '--task', str(task), '--replace')
+        self.assertEqual(result['fields']['PUBLISH'], chosen)
+        self.assertEqual(task.read_text().count('- Publish:'), 1)
+        # A scalar remains valid, and an empty assignment clears the field.
+        self.ok('set', '--profile', 'out', '--field', 'PUBLISH=' + page)
+        self.assertIn('- Publish: `' + page + '`', self.ok('render', '--profile', 'out'))
+        self.ok('set', '--profile', 'out', '--field', 'PUBLISH=')
+        self.assertNotIn('PUBLISH', self.ok('show', '--profile', 'out')['fields'])
+
+    def test_compose_publish_destinations_uses_ordered_union(self):
+        self.ignore_and_init()
+        page = 'https://example.atlassian.net/wiki/pages/viewpage.action?pageId=123'
+        repo = 'https://bitbucket.example/example-workspace/example-reports'
+        self.ok('set', '--profile', 'environment', '--field', 'AWS_REGION=us-east-1',
+                '--field', 'PUBLISH=' + page)
+        self.ok('set', '--profile', 'application', '--field', 'REPO=repo',
+                '--field', 'PUBLISH=' + json.dumps([page, repo]))
+        result = self.ok('compose', '--profile', 'environment', '--profile', 'application',
+                         '--into', 'combined')
+        self.assertEqual(json.loads(result['fields']['PUBLISH']), [page, repo])
+
+    def test_publish_destinations_are_validated_before_any_write(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'out', '--field', 'REPO=repo')
+        before = self.store.read_bytes()
+        secret = 'https://' + 'user:hunter2' + '@' + 'example.atlassian.net/wiki/spaces/OPS'
+        for value in ('["a","a"]', '[]', '["<Parent page>"]', secret,
+                      json.dumps(['ok', secret]), json.dumps(['d%d' % i for i in range(17)])):
+            error = self.fails('set', '--profile', 'out', '--field', 'PUBLISH=' + value)
+            self.assertNotIn('hunter2', error)
+            self.assertEqual(before, self.store.read_bytes())
+
     def test_compose_channels_uses_ordered_union_and_user_list_replaces_it(self):
         self.ignore_and_init()
         self.ok('set', '--profile', 'env', '--field', 'SLACK_CHANNEL=#ops')
