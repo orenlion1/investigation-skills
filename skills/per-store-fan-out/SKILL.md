@@ -14,6 +14,10 @@ any result is awaited, and their candidate evidence folded in by the orchestrati
 
 - The repository policy's [Per-Store Fan-Out Policy](../../AGENTS.md#per-store-fan-out-policy)
   owns scope and authority.
+- The units this skill requires are the minimum delegation, not a ceiling. The orchestrating
+  session may spawn further sub-agents at its discretion, under the same scope, authority and
+  read-only limits, unless the user has disabled delegation. Extra agents never repeat an
+  inspection already assigned to a unit, and are recorded in the manifest like any other.
 - The [shared delegation contract](references/delegation-contract.md) owns the launch-mode
   vocabulary, the manifest schema, the harness launch and continuation mechanics, the degradation
   rules, and the rule that delegated output is leads until verified. This skill does not restate it.

@@ -5,23 +5,6 @@ and verification; follow the owner rather than restating or overriding it here. 
 else here is policy that no owner covers, and where such a policy limits an owner, the limit
 holds.
 
-## Required Dependencies
-
-Tools required by the active task, repository workflow, and invoked skills are
-pre-authorized: check and reuse working versions, install or update missing or incompatible
-ones at user scope from documented sources (preferring pinned releases), verify they run, and
-report what changed. A missing dependency is setup work, not a reason to stop. The global
-Tooling Dependencies safeguards apply; this covers required dependencies only, not extras.
-
-## CodeGraph
-
-Run `codegraph init` from the verified repository root before inspecting this repository
-(`codegraph sync` for updates, `codegraph status` to verify); install CodeGraph from the
-[official CodeGraph project](https://github.com/colbymchenry/codegraph) if missing. Use
-`codegraph_explore` (or `codegraph explore`) before `rg`, `find`, or direct reads. Keep
-`.codegraph/` local and unstaged. If initialization fails, repair and retry; report the exact
-blocker rather than substituting direct reads.
-
 ## Routing
 
 | Request or situation | Owning skill |
@@ -63,6 +46,23 @@ Routing notes:
   requirement does not make an Atlassian resource mandatory for a task scoped to other
   integrations. If MCP recovery fails, report the blocker and stop only dependent work.
 
+## Required Dependencies
+
+Tools required by the active task, repository workflow, and invoked skills are
+pre-authorized: check and reuse working versions, install or update missing or incompatible
+ones at user scope from documented sources (preferring pinned releases), verify they run, and
+report what changed. A missing dependency is setup work, not a reason to stop. The global
+Tooling Dependencies safeguards apply; this covers required dependencies only, not extras.
+
+## CodeGraph
+
+Run `codegraph init` from the verified repository root before inspecting this repository
+(`codegraph sync` for updates, `codegraph status` to verify); install CodeGraph from the
+[official CodeGraph project](https://github.com/colbymchenry/codegraph) if missing. Use
+`codegraph_explore` (or `codegraph explore`) before `rg`, `find`, or direct reads. Keep
+`.codegraph/` local and unstaged. If initialization fails, repair and retry; report the exact
+blocker rather than substituting direct reads.
+
 ## Source Investigation Authorization
 
 Supplying a repository authorizes read-only discovery, search, and inspection across all
@@ -75,21 +75,19 @@ mutations, messages, publication, and deployment still apply. The
 
 ## Grafana Policy
 
-Grafana Assistant prompts are enabled by default and may incur additional fees beyond
-ordinary Grafana usage; the user may disable them, by instruction or with a
-`Grafana Assistant: disabled` line in the task's Resources — honor that for the stated scope
-without re-asking. All user-requested Grafana queries route to Parallel Grafana Investigation,
-which owns the two-agent workflow and its authorization. When Assistant is disabled, only gcx
-and relevant gcx agent skills run. Grafana CLI owns setup/authentication; internal commands
-never recursively launch the query workflow.
+Grafana Assistant prompts are enabled by default and may incur fees beyond ordinary Grafana
+usage. The user may disable them by instruction or with a `Grafana Assistant: disabled` line in
+the task's Resources; honor that for the stated scope without re-asking.
 
 ## Per-Store Fan-Out Policy
 
-Fan-out creates no scope or authority: only stores the task's Resources actually name get a
-sub-agent, AWS branches stay within the allowed Regions, all Grafana query requests route
-to Parallel Grafana Investigation nested inside the gcx branch, and sub-agents never mutate,
-acknowledge, message, or publish — those remain separately authorized. The Per-Store Fan-Out
-skill owns the workflow, including the fan-out default and how to disable it.
+Fan-out creates no scope or authority: sub-agents inspect only what the task's Resources
+name, AWS work stays within the allowed Regions, and sub-agents never mutate, acknowledge,
+message, or publish — those remain separately authorized.
+
+The Per-Store Fan-Out skill sets the minimum delegation for an investigation, not a ceiling.
+The coding agent may spawn further sub-agents at its discretion, under these same limits,
+unless the user has disabled delegation.
 
 ## Shared Delegation Contract
 

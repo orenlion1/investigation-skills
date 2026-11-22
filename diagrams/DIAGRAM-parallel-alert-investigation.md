@@ -29,7 +29,7 @@ parallel delegation is unavailable, report that limitation. Resource changes,
 acknowledgments, messages, and publication require separate authorization.
 
 Source: [Parallel Grafana Investigation](../skills/parallel-grafana-investigation/SKILL.md),
-routed from the [Grafana Policy](../AGENTS.md#grafana-policy).
+routed by the [routing table](../AGENTS.md#routing) under the [Grafana Policy](../AGENTS.md#grafana-policy).
 Visual reference: [Investigation workflow](DIAGRAM-investigation-workflow.dot).
 
 Editable [Graphviz source](DIAGRAM-parallel-alert-investigation.dot),
