@@ -301,6 +301,7 @@ fails, the others still publish.
 | [Grafana CLI](skills/gcx-cli/SKILL.md) | `gcx` setup, sign-in, and read-only queries. |
 | [Slack MCP](skills/slack-mcp/SKILL.md) | Slack access and diagnosis. |
 | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) | Bitbucket, Jira, and Confluence access. |
+| [Skill Ownership](skills/skill-ownership/SKILL.md) | Audit this repository against the ownership principle, run its checks, and sync the carried copy. |
 | [Release It](skills/release-it/SKILL.md) | Release this repository. |
 
 <picture>
@@ -330,12 +331,18 @@ out of step ([policy/root-contract.json](policy/root-contract.json)). New
 workflow content therefore belongs in a skill with an eval case, never in the
 routing files.
 
+The principle and its checks come from the upstream `skill-ownership` repository.
+This repository carries a versioned copy in
+[skills/skill-ownership](skills/skill-ownership/SKILL.md) and records the release it
+took in [policy/skill-ownership-pin.json](policy/skill-ownership-pin.json); the checks
+fail when the two disagree.
+
 ## Contributing
 
 Run the checks CI runs, from the repository root:
 
 ```sh
-bash scripts/check.sh                    # tests, policy and docs drift, delegation contract
+bash scripts/check.sh                    # tests and the carried ownership checks
 bash scripts/run-skill-quality-gate.sh   # also required after changing a skill or eval case
 bash scripts/render-workflow-diagram.sh  # regenerate diagrams after editing a .dot source
 bash scripts/check-disclosure.sh         # credential and institutional-data scan before a first upload

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fail closed when README or diagram assets drift from the repository's state.
 
-Enforces the docs block of policy/root-contract.json: every diagrams/DIAGRAM-*
+Enforces the optional docs block of policy/root-contract.json: every diagrams/DIAGRAM-*
 set is complete (every declared suffix exists for each base name), every diagram
 file README.md references exists, every policy-required README section exists,
 and — when enabled — every skill routed in the root files appears in the routing
@@ -16,7 +16,6 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
 README_DIAGRAM = re.compile(r'\(((?:[a-z0-9_-]+/)*DIAGRAM-[A-Za-z0-9._-]+)\)|'
                             r'(?:src|srcset)="((?:[a-z0-9_-]+/)*DIAGRAM-[A-Za-z0-9._-]+)"')
 HEADING = re.compile(r'^#{2,3} (.+?)\s*$', re.MULTILINE)
@@ -34,6 +33,8 @@ def load_docs_policy(path: Path) -> dict:
     if not isinstance(policy, dict) or policy.get('schema') != 'root-contract/v1':
         raise ValueError('policy must be root-contract/v1')
     docs = policy.get('docs')
+    if docs is None:
+        return None
     required = {'readme', 'readme_required_sections', 'diagram_dir', 'diagram_suffixes',
                 'routing_diagram', 'minimum'}
     if not isinstance(docs, dict) or not required <= set(docs):
@@ -122,13 +123,16 @@ def check(repository: Path, docs: dict, root_file: str) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--repository', type=Path, default=ROOT)
+    parser.add_argument('--repository', type=Path, default=Path.cwd())
     parser.add_argument('--policy', type=Path, default=None)
     parser.add_argument('--root-file', default='CLAUDE.md')
     args = parser.parse_args()
     policy_path = args.policy or args.repository / 'policy' / 'root-contract.json'
     try:
         docs = load_docs_policy(policy_path)
+        if docs is None:
+            print('docs contract: not configured')
+            return 0
         errors = check(args.repository, docs, args.root_file)
     except (OSError, ValueError, json.JSONDecodeError) as error:
         print(f'error: {error}', file=sys.stderr)

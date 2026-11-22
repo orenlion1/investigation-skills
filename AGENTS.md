@@ -25,6 +25,7 @@ holds.
 | Finding rhyming incidents and related prior investigations across configured historical endpoints | [Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) |
 | Multi-store, multi-repository or multi-channel fan-out: inspection briefs, launch, manifest, disabling fan-out | [Per-Store Fan-Out](skills/per-store-fan-out/SKILL.md) |
 | Any Grafana query: parallel Assistant and direct gcx sub-agents using relevant bundled skills | [Parallel Grafana Investigation](skills/parallel-grafana-investigation/SKILL.md) |
+| Auditing this repository against the skill ownership principle, running or changing the ownership checks, economizing a skill, and syncing the carried copy and its pin | [Skill Ownership](skills/skill-ownership/SKILL.md) |
 | `run release-it`, repository releases | [Release It](skills/release-it/SKILL.md) with [VERSIONING.md](VERSIONING.md) |
 
 Routing notes:
@@ -110,7 +111,7 @@ skill can never exempt that skill. It declares the contract, the registered call
 concepts, the caller-owned tokens, the delegation signature, the required sentinel, and the
 exemptions with their reasons.
 
-`scripts/check-delegation-contract.py` enforces it and runs inside `bash scripts/check.sh`, so
+The carried `delegation-contract` check enforces it and runs inside `bash scripts/check.sh`, so
 the already-required `Tests` job fails when a registered caller loses its link or its sentinel,
 when an owned token reappears in a caller, when the contract takes over a caller-owned token or
 a numeric budget, when a skill matching the delegation signature is registered neither as a

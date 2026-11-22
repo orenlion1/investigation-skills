@@ -1,0 +1,7 @@
+{
+  "schema": "skill-ownership-pin/v1",
+  "upstream_repository": "https://github.com/orenlion1/skill-ownership",
+  "commit": "6fe120af3a6448806e3d3f9d60cea9e6af30c3d7",
+  "version": "0.1.0",
+  "local_adaptations": []
+}

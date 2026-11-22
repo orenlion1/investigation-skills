@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fail closed when workflow content accretes in the root routing files.
 
-Enforces policy/root-contract.json: AGENTS.md and CLAUDE.md stay byte-identical,
+Enforces policy/root-contract.json: the declared root files stay byte-identical,
 within the line budget, open with one title and the verbatim ownership clause and
 nothing else, contain only allowlisted level-two sections, and their routing table
 reaches every directory under skills/ and names no skill that is missing. Every
@@ -18,7 +18,6 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
 HEADING = re.compile(r'^## (.+?)\s*$', re.MULTILINE)
 TITLE = re.compile(r'^# \S')
 ANY_HEADING = re.compile(r'^#{1,6} (.+?)\s*$', re.MULTILINE)
@@ -34,11 +33,11 @@ def read_regular(path: Path) -> str:
 def load_policy(path: Path) -> dict:
     policy = json.loads(read_regular(path))
     required_keys = {'schema', 'files', 'max_lines', 'ownership_clause', 'allowed_sections',
-                     'required_sections', 'routing_section', 'skills_dir', 'minimum', 'docs'}
+                     'required_sections', 'routing_section', 'skills_dir', 'minimum'}
     if not isinstance(policy, dict) or not required_keys <= set(policy):
         raise ValueError('policy must declare schema, files, max_lines, ownership_clause, '
                          'allowed_sections, required_sections, routing_section, skills_dir, '
-                         'minimum, docs')
+                         'minimum')
     if policy['schema'] != 'root-contract/v1':
         raise ValueError(f'unsupported policy schema: {policy["schema"]!r}')
     if (not isinstance(policy['files'], list) or len(policy['files']) < 2
@@ -168,7 +167,7 @@ def check(repository: Path, policy: dict) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--repository', type=Path, default=ROOT)
+    parser.add_argument('--repository', type=Path, default=Path.cwd())
     parser.add_argument('--policy', type=Path, default=None)
     args = parser.parse_args()
     policy_path = args.policy or args.repository / 'policy' / 'root-contract.json'

@@ -1,9 +1,10 @@
 // Independent skill routes; peer placement is not an execution-order edge.
-// Coverage manifest, checked by scripts/check-docs-drift.py against the root routing table:
+// Coverage manifest, checked by the carried docs-contract check against the root routing table:
 // workflow-artifact-naming, open-edit-close-execute, profile-manager, token-usage,
 // diagramming-style, report-evidence, source-investigation, publish-it, rovo-dev-mcp,
 // aws-mcp, aws-architecture-diagrams, gcx-cli, slack-mcp, rhyming-incident-search,
-// per-store-fan-out, parallel-grafana-investigation, release-it.
+// per-store-fan-out, parallel-grafana-investigation, release-it, skill-ownership.
+// skill-ownership governs this repository rather than an investigation step, so it has no node.
 // Activity labels carry the Open/Edit/Close/Execute mode they run in, matching
 // the lifecycle view. Dashed edges invoke or route; the solid edge delivers.
 digraph InvestigationSkillRouting {

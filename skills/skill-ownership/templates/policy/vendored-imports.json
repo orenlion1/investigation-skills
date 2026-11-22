@@ -1,0 +1,10 @@
+{
+  "schema": "vendored-imports/v1",
+  "skills": {
+    "skills/example-import": {
+      "upstream_repository": "https://github.com/example/upstream",
+      "commit": "0000000000000000000000000000000000000000",
+      "version": "0.0.0"
+    }
+  }
+}

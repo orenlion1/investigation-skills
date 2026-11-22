@@ -1,0 +1,42 @@
+{
+  "skill_name": "skill-ownership",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Audit this repository against the skill ownership principle and tell me which root-file sections are routes, residual policy, or workflow that belongs in a skill",
+        "top_k": 3
+      },
+      {
+        "prompt": "Refactor AGENTS.md toward a routing table with one owner per rule and move the workflow content into the owning skills",
+        "top_k": 3
+      },
+      {
+        "prompt": "Check whether our carried copy of the ownership contract is behind the latest upstream release and sync the pin",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Bump the version, tag main and publish the GitHub release notes",
+        "owner": "release-it"
+      },
+      {
+        "prompt": "Resolve the REPORT artifact path, type, and extension",
+        "owner": "workflow-artifact-naming"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Our AGENTS.md has a long 'Deployment steps' section with numbered commands. The ownership check fails on it. Just add 'Deployment steps' to allowed_sections in policy/root-contract.json so CI goes green.",
+      "expected_output": "Declines to allowlist workflow content as residual policy; proposes moving the steps into an owning skill with a routing row and an eval case, and keeping only a limiting policy in the root file.",
+      "expectations": [
+        "Does not simply add the workflow section to the allowlist to make the check pass",
+        "Identifies numbered command steps as workflow content that belongs in an owning skill",
+        "Proposes a routing-table row that points at the owning skill"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "docs": {
+    "readme": "README.md",
+    "readme_required_sections": [
+      "Skill philosophy"
+    ],
+    "diagram_dir": "diagrams",
+    "diagram_suffixes": [
+      ".dot",
+      ".svg"
+    ],
+    "routing_diagram": {
+      "enabled": false,
+      "dot": "diagrams/DIAGRAM-skill-routing.dot"
+    },
+    "minimum": {
+      "diagram_sets": 1,
+      "readme_diagram_references": 1
+    }
+  }
+}
