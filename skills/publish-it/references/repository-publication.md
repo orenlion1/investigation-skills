@@ -53,7 +53,7 @@ figures and cited assets resolve without edits:
 | Packaged artifact | Path under `<directory>/<slug>/` |
 | --- | --- |
 | Report Markdown | `REPORT-<slug>.md` |
-| Selected matching PDF (Generate PDF T only) | `REPORT-<slug>.pdf` |
+| Selected matching PDF (Generate PDF `enabled` only) | `REPORT-<slug>.pdf` |
 | Parent TASK | `TASK-<slug>.md` |
 | Diagrams, theme variants, editable sources, cited local evidence | The report-relative paths they already have, such as `assets/<slug>/…` |
 

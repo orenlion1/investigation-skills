@@ -103,12 +103,12 @@
     {
       "id": 6,
       "kind": "dialogue",
-      "prompt": "Set GENERATE_PDF=F in a real resource profile, load a task explicitly set to T, then show legacy absent and invalid settings. Can the toggle alone start an investigation?",
-      "expected_output": "Derives Generate PDF from template; validates exact T/F. Explicit task T overrides profile F. Missing defaults T, legacy reads do not migrate. Toggle alone is configuration; invalid settings fail before writes.",
+      "prompt": "Set GENERATE_PDF=disabled in a real resource profile, load a task explicitly set to enabled, then show absent, legacy T/F and invalid settings. Can the toggle alone start an investigation?",
+      "expected_output": "Derives Generate PDF from template; validates exact enabled/disabled under the shared settings contract. Explicit task enabled overrides profile disabled. Missing defaults enabled; legacy T/F resolve to enabled/disabled and reads do not migrate. Toggle alone is configuration; invalid settings fail before writes.",
       "expectations": [
-        "Derives GENERATE_PDF from the template and validates exact T/F, rejecting invalid stored or task settings",
-        "Uses explicit task over profile over absent T, preserving explicit task choice even with replacement",
-        "Round trips set/show/render/load, keeps legacy reads non-mutating and preserves unrelated values",
+        "Derives GENERATE_PDF from the template and validates exact enabled/disabled, rejecting invalid stored or task settings",
+        "Uses explicit task over profile over absent enabled, preserving explicit task choice even with replacement",
+        "Resolves legacy T and F to enabled and disabled, keeps legacy reads non-mutating and preserves unrelated values",
         "Refuses a toggle alone as an actual resource and does not authorize investigation or publication"
       ]
     },
@@ -144,7 +144,7 @@
       "prompt": "Store multiple Slack channels in an application profile, compose it with the environment channel, then use my explicit channel list instead of the injected channels.",
       "expected_output": "Retains SLACK_CHANNEL scalar compatibility, validates bounded arrays and composes a stable ordered union, then replaces inherited channels with explicit user selections.",
       "expectations": [
-        "Accepts legacy scalar or validated 1\u201316-entry SLACK_CHANNEL arrays with shared per-item/field limits",
+        "Accepts legacy scalar or validated 1–16-entry SLACK_CHANNEL arrays with shared per-item/field limits",
         "Shows stored representation and renders/loads every channel bullet without read-time migration",
         "Forms a stable first-seen channel union across profiles and revalidates limits",
         "Explicit command or saved user TASK channel lists replace inherited channels rather than appending",

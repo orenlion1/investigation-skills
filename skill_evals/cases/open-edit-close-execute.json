@@ -53,10 +53,10 @@
     {
       "id": 3,
       "kind": "dialogue",
-      "prompt": "Execute the saved investigation with Generate PDF F. Reuse verified setup and reporting machinery; an older PDF already exists.",
-      "expected_output": "Validates exact task PDF choice with task over profile over absent T before PDF dependency setup; Produces verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks; Preserves old PDF as historical and excludes it from current companions and delivery links; Records effective choice and verified output provenance without granting publication.",
+      "prompt": "Execute the saved investigation with Generate PDF disabled. Reuse verified setup and reporting machinery; an older PDF already exists.",
+      "expected_output": "Validates exact task PDF choice with task over profile over absent enabled before PDF dependency setup; Produces verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks; Preserves old PDF as historical and excludes it from current companions and delivery links; Records effective choice and verified output provenance without granting publication.",
       "expectations": [
-        "Validates exact task PDF choice with task over profile over absent T before PDF dependency setup",
+        "Validates exact task PDF choice with task over profile over absent enabled before PDF dependency setup",
         "Produces verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks",
         "Preserves old PDF as historical and excludes it from current companions and delivery links",
         "Records effective choice and verified output provenance without granting publication"

@@ -30,11 +30,15 @@ LIST_FIELDS = {'REPO': 'repository-or-array', 'SLACK_CHANNEL': 'channel-or-array
 HISTORICAL_WINDOW = 'RHYMING_HISTORICAL_WINDOW_DAYS'
 DEFAULT_HISTORICAL_WINDOW_DAYS = '7'
 GENERATE_PDF = 'GENERATE_PDF'
-DEFAULT_GENERATE_PDF = 'T'
 GRAFANA_ASSISTANT = 'GRAFANA_ASSISTANT'
+# Settings contract: every toggle setting takes exactly these two values.
+TOGGLE_VALUES = ('enabled', 'disabled')
+DEFAULT_GENERATE_PDF = 'enabled'
 DEFAULT_GRAFANA_ASSISTANT = 'enabled'
 CONTROL_DEFAULTS = {GENERATE_PDF: DEFAULT_GENERATE_PDF,
                     GRAFANA_ASSISTANT: DEFAULT_GRAFANA_ASSISTANT}
+# Values written before the contract; accepted on input and stored as their canonical value.
+LEGACY_TOGGLE_VALUES = {GENERATE_PDF: {'T': 'enabled', 'F': 'disabled'}}
 ENDPOINT_KINDS = ('grafana-investigations', 'grafana-assistant-conversations',
                   'grafana-assistant-search',
                   'confluence', 'slack', 'repository')
@@ -168,11 +172,12 @@ def parse_template(text):
         fields[HISTORICAL_WINDOW].update(
             type='positive-integer-days', default=DEFAULT_HISTORICAL_WINDOW_DAYS,
             render_requires='RHYMING_ENDPOINTS')
-    if GENERATE_PDF in fields:
-        fields[GENERATE_PDF].update(type='T/F', default=DEFAULT_GENERATE_PDF, resource=False)
-    if GRAFANA_ASSISTANT in fields:
-        fields[GRAFANA_ASSISTANT].update(type='enum', enum=['enabled', 'disabled'],
-                                        default=DEFAULT_GRAFANA_ASSISTANT, resource=False)
+    for key, default in CONTROL_DEFAULTS.items():
+        if key in fields:
+            fields[key].update(type='enum', enum=list(TOGGLE_VALUES), default=default,
+                               resource=False)
+            if key in LEGACY_TOGGLE_VALUES:
+                fields[key].update(legacy_values=dict(LEGACY_TOGGLE_VALUES[key]))
     return {'schema': SCHEMA, 'fields': fields, 'bullets': bullets}
 
 
@@ -285,18 +290,16 @@ def validate_rhyming_endpoints(value):
 
 
 def check_field(field, value):
+    """Validate one field and return the value to use, canonical for toggle settings."""
+    if field in CONTROL_DEFAULTS:
+        value = LEGACY_TOGGLE_VALUES.get(field, {}).get(value, value)
+        if value not in TOGGLE_VALUES:
+            raise ProfileError('invalid ' + field + '; expected enabled or disabled')
+        return value
     if field in LIST_FIELDS:
         if isinstance(value, str) and not value.startswith('['):
             check_value(value)
         resource_values(value, field)
-        return value
-    if field == GENERATE_PDF:
-        if value not in ('T', 'F'):
-            raise ProfileError('invalid GENERATE_PDF; expected T or F')
-        return value
-    if field == GRAFANA_ASSISTANT:
-        if value not in ('enabled', 'disabled'):
-            raise ProfileError('invalid GRAFANA_ASSISTANT; expected enabled or disabled')
         return value
     if field == HISTORICAL_WINDOW:
         if (not isinstance(value, str) or len(value) > MAX_VALUE_LENGTH
@@ -509,9 +512,9 @@ def resolve_profile(store_values, schema, name):
     values = store_values.get(name)
     if values is None:
         raise ProfileError('profile is not in the store: ' + name)
-    known = {field: value for field, value in values.items() if field in schema['fields']}
-    for field, value in known.items():
-        check_field(field, value)
+    # Legacy toggle values resolve to their canonical value without rewriting the store.
+    known = {field: check_field(field, value) for field, value in values.items()
+             if field in schema['fields']}
     unknown = sorted(field for field in values if field not in schema['fields'])
     return known, unknown
 
@@ -573,7 +576,7 @@ def command_set(arguments, context):
     for field in list(values):
         if field not in schema['fields']:
             raise ProfileError('store holds unknown field ' + field + ' for profile ' + name)
-        check_field(field, values[field])
+        values[field] = check_field(field, values[field])
     if values:
         render_section(schema, values)
     relative = require_ignored(context['root'], context['env_path'])
@@ -829,17 +832,17 @@ def task_fields(lines, schema):
             r'(?:; ' + re.escape(bullet['sublabels'][key]) + r' `([^`]*)`)?'
             for key in bullet['keys'][1:])
         parsed = re.fullmatch(pattern, match.group('rest')) if match else None
-        if parsed is None and primary == GRAFANA_ASSISTANT and match:
-            # The documented task control also permits the bare enabled/disabled form.
+        if parsed is None and primary in CONTROL_DEFAULTS and match:
+            # Task toggle settings also permit the bare enabled/disabled form.
             parsed = re.fullmatch(r'(enabled|disabled)', match.group('rest'))
         if not parsed:
-            if primary == GENERATE_PDF:
-                raise ProfileError('invalid GENERATE_PDF; expected T or F')
+            if primary in CONTROL_DEFAULTS:
+                raise ProfileError('invalid ' + primary + '; expected enabled or disabled')
             raise ProfileError('invalid task resource field ' + primary)
         for key, value in zip(bullet['keys'], parsed.groups()):
             if value is None or (value.startswith('<') and value.endswith('>')):
                 continue
-            check_field(key, value)
+            value = check_field(key, value)
             if key in LIST_FIELDS:
                 lists[key].extend(resource_values(value, key))
             else:

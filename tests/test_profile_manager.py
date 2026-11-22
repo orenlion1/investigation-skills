@@ -131,41 +131,83 @@ class ProfileStoreTests(unittest.TestCase):
     def test_generate_pdf_roundtrip_default_and_task_override(self):
         self.ignore_and_init()
         added = self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
-        self.assertEqual(added['fields']['GENERATE_PDF'], 'T')
-        self.ok('set', '--profile', 'example', '--field', 'GENERATE_PDF=F')
-        self.assertIn('- Generate PDF: `F`', self.ok('render', '--profile', 'example'))
+        self.assertEqual(added['fields']['GENERATE_PDF'], 'enabled')
+        self.ok('set', '--profile', 'example', '--field', 'GENERATE_PDF=disabled')
+        self.assertIn('- Generate PDF: `disabled`', self.ok('render', '--profile', 'example'))
         task = self.root / 'TASK.md'
-        task.write_text('# Task Title: demo\n\n## Resources\n\n- Generate PDF: `T`\n')
+        task.write_text('# Task Title: demo\n\n## Resources\n\n- Generate PDF: `enabled`\n')
         self.ok('load', '--profile', 'example', '--task', str(task))
-        self.assertIn('- Generate PDF: `T`', task.read_text())
+        self.assertIn('- Generate PDF: `enabled`', task.read_text())
         first = task.read_bytes()
         self.ok('load', '--profile', 'example', '--task', str(task), '--replace')
         self.assertEqual(task.read_bytes(), first)
-        self.assertEqual(self.ok('show', '--profile', 'example')['fields']['GENERATE_PDF'], 'F')
+        self.assertEqual(self.ok('show', '--profile', 'example')['fields']['GENERATE_PDF'], 'disabled')
 
     def test_generate_pdf_legacy_invalid_and_configuration_only(self):
         self.ignore_and_init()
         self.store.write_text('UNMANAGED="keep"\nPROFILE__example__REPO="example-service"\n')
         before = self.store.read_bytes()
         shown = self.ok('show', '--profile', 'example')
-        self.assertEqual(shown['effective_generate_pdf'], 'T')
-        self.assertIn('- Generate PDF: `T`', self.ok('render', '--profile', 'example'))
+        self.assertEqual(shown['effective_generate_pdf'], 'enabled')
+        self.assertIn('- Generate PDF: `enabled`', self.ok('render', '--profile', 'example'))
         self.assertEqual(self.store.read_bytes(), before)
-        for bad in ('true', 't', 'False', '0', ' T'):
-            self.assertIn('expected T or F', self.fails('set', '--profile', 'example',
+        for bad in ('true', 't', 'False', '0', ' enabled', 'Enabled', 'on'):
+            self.assertIn('expected enabled or disabled', self.fails('set', '--profile', 'example',
                                                        '--field', 'GENERATE_PDF=' + bad))
             self.assertEqual(self.store.read_bytes(), before)
         self.assertIn('no actual resource', self.fails('set', '--profile', 'only',
-                                                      '--field', 'GENERATE_PDF=F'))
+                                                      '--field', 'GENERATE_PDF=disabled'))
         task = self.root / 'TASK.md'
         task.write_text('# Task Title: demo\n\n## Resources\n\n- Generate PDF: `false`\n')
         original = task.read_bytes()
-        self.assertIn('expected T or F', self.fails('load', '--profile', 'example',
+        self.assertIn('expected enabled or disabled', self.fails('load', '--profile', 'example',
                                                   '--task', str(task), '--replace'))
         self.assertEqual(task.read_bytes(), original)
-        task.write_text('# Task Title: demo\n\n## Resources\n\n- Generate PDF: `T`\n- Generate PDF: `F`\n')
+        task.write_text('# Task Title: demo\n\n## Resources\n\n- Generate PDF: `enabled`\n- Generate PDF: `disabled`\n')
         self.assertIn('duplicate Generate PDF', self.fails('load', '--profile', 'example',
                                                         '--task', str(task), '--replace'))
+
+    def test_toggle_settings_share_one_enabled_disabled_contract(self):
+        self.ignore_and_init()
+        schema = {field['field']: field for field in self.ok('schema')['fields']}
+        for toggle in ('GENERATE_PDF', 'GRAFANA_ASSISTANT'):
+            self.assertEqual(schema[toggle]['type'], 'enum')
+            self.assertEqual(schema[toggle]['enum'], ['enabled', 'disabled'])
+            self.assertEqual(schema[toggle]['default'], 'enabled')
+            self.assertFalse(schema[toggle]['resource'])
+            self.ok('set', '--profile', 'example', '--field', 'REPO=example-service',
+                    '--field', toggle + '=disabled')
+            self.assertIn('expected enabled or disabled',
+                          self.fails('set', '--profile', 'example', '--field', toggle + '=off'))
+        self.assertEqual(schema['GENERATE_PDF']['legacy_values'], {'T': 'enabled', 'F': 'disabled'})
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n\n- Generate PDF: enabled\n- Grafana Assistant: enabled\n')
+        self.ok('load', '--profile', 'example', '--task', str(task))
+        self.assertIn('- Generate PDF: `enabled`', task.read_text())
+        self.assertIn('- Grafana Assistant: `enabled`', task.read_text())
+
+    def test_generate_pdf_legacy_values_resolve_and_normalize_on_write(self):
+        self.ignore_and_init()
+        self.store.write_text("PROFILE__OLD__REPO='example-service'\n"
+                              "PROFILE__OLD__GENERATE_PDF='F'\n")
+        before = self.store.read_bytes()
+        shown = self.ok('show', '--profile', 'old')
+        self.assertEqual(shown['fields']['GENERATE_PDF'], 'disabled')
+        self.assertEqual(shown['effective_generate_pdf'], 'disabled')
+        self.assertIn('- Generate PDF: `disabled`', self.ok('render', '--profile', 'old'))
+        # Reads never migrate the store.
+        self.assertEqual(self.store.read_bytes(), before)
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n\n- Generate PDF: `T`\n')
+        self.ok('load', '--profile', 'old', '--task', str(task))
+        self.assertIn('- Generate PDF: `enabled`', task.read_text())
+        # A legacy value supplied on a command is stored in canonical form.
+        self.assertEqual(self.ok('set', '--profile', 'new', '--field', 'REPO=repo',
+                                 '--field', 'GENERATE_PDF=F')['fields']['GENERATE_PDF'], 'disabled')
+        # The next update of a legacy profile rewrites its stored toggle canonically.
+        self.ok('set', '--profile', 'old', '--field', 'AWS_REGION=us-east-1')
+        self.assertIn("PROFILE__OLD__GENERATE_PDF='disabled'", self.store.read_text())
+        self.assertNotIn("GENERATE_PDF='F'", self.store.read_text())
 
     def test_schema_is_derived_from_the_template_labels(self):
         schema = self.ok('schema')
@@ -219,18 +261,18 @@ class ProfileStoreTests(unittest.TestCase):
         self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
         merged = self.ok('set', '--profile', 'example', '--field', 'GRAFANA_CONTEXT=example')
         self.assertEqual(merged['fields'], {'REPO': 'example-service',
-                                            'GRAFANA_CONTEXT': 'example', 'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_PDF': 'T', 'GRAFANA_ASSISTANT': 'enabled'})
+                                            'GRAFANA_CONTEXT': 'example', 'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_PDF': 'enabled', 'GRAFANA_ASSISTANT': 'enabled'})
         self.assertEqual(merged['added'], ['GRAFANA_CONTEXT'])
         contents = self.store.read_text(encoding='utf-8')
         self.assertIn('# local only\nUNRELATED_TOKEN="keep me"\n', contents)
         self.assertIn("PROFILE__EXAMPLE__REPO='example-service'", contents)
         replaced = self.ok('set', '--profile', 'example', '--replace',
                            '--field', 'REPO=example-service')
-        self.assertEqual(replaced['fields'], {'REPO': 'example-service', 'GENERATE_PDF': 'T', 'GRAFANA_ASSISTANT': 'enabled'})
+        self.assertEqual(replaced['fields'], {'REPO': 'example-service', 'GENERATE_PDF': 'enabled', 'GRAFANA_ASSISTANT': 'enabled'})
         self.assertEqual(replaced['cleared'], ['GRAFANA_CONTEXT', 'RHYMING_HISTORICAL_WINDOW_DAYS'])
         cleared = self.ok('set', '--profile', 'example', '--field', 'REPO=other-service',
                           '--field', 'GRAFANA_CONTEXT=')
-        self.assertEqual(cleared['fields'], {'REPO': 'other-service', 'GENERATE_PDF': 'T', 'GRAFANA_ASSISTANT': 'enabled'})
+        self.assertEqual(cleared['fields'], {'REPO': 'other-service', 'GENERATE_PDF': 'enabled', 'GRAFANA_ASSISTANT': 'enabled'})
         self.assertIn('UNRELATED_TOKEN="keep me"', self.store.read_text(encoding='utf-8'))
 
     def test_dependent_field_requires_its_primary_field(self):
@@ -266,7 +308,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertNotIn('keep me', json.dumps(listed))
         shown = self.ok('show', '--profile', 'example')
         self.assertEqual(shown['fields'], {'REPO': 'example-service',
-                                           'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_PDF': 'T', 'GRAFANA_ASSISTANT': 'enabled'})
+                                           'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_PDF': 'enabled', 'GRAFANA_ASSISTANT': 'enabled'})
         self.assertIn('PUBLISH', shown['missing_fields'])
         self.assertEqual(shown['unknown_fields'], [])
         self.assertNotIn('keep me', json.dumps(shown))
@@ -328,7 +370,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertEqual(preview['resources'],
                          ['- Repo (Bitbucket/Github): `example-service`',
                           '- Slack channel: `#example-support`', '- Grafana Assistant: `enabled`',
-                          '- Generate PDF: `T`'])
+                          '- Generate PDF: `enabled`'])
         self.assertFalse(preview['replaced'])
         self.assertEqual(task.read_text(encoding='utf-8'), original)
         loaded = self.ok('load', '--profile', 'example', '--task', 'docs/tasks/TASK.md')
@@ -473,7 +515,7 @@ class ProfileStoreTests(unittest.TestCase):
         shown = self.ok('show', '--profile', 'combined')['fields']
         self.assertEqual(shown['AWS_ACCOUNT'], 'ops-readonly')
         self.assertEqual(shown['AWS_REGION'], 'us-east-1')
-        self.assertEqual(shown['GENERATE_PDF'], 'T')
+        self.assertEqual(shown['GENERATE_PDF'], 'enabled')
         self.assertEqual(oct(self.store.stat().st_mode & 0o777), '0o600')
         target_before = self.store.read_bytes()
         self.assertIn('already exists', self.fails('compose', '--profile', 'prod-us',
@@ -483,11 +525,11 @@ class ProfileStoreTests(unittest.TestCase):
                 '--into', 'combined', '--replace')
         self.assertEqual(self.store.read_bytes(), target_before)
         task = self.root / 'TASK.md'
-        task.write_text('## Resources\n- Generate PDF: `F`\n')
+        task.write_text('## Resources\n- Generate PDF: `disabled`\n')
         self.ok('load', '--profile', 'combined', '--task', str(task))
         self.assertEqual(task.read_text().count('- Repo (Bitbucket/Github):'), 3)
         self.assertIn('- AWS region: `us-east-1`', task.read_text())
-        self.assertIn('- Generate PDF: `F`', task.read_text())
+        self.assertIn('- Generate PDF: `disabled`', task.read_text())
 
     def test_compose_scalar_conflicts_are_atomic_and_sanitized(self):
         self.ignore_and_init()
@@ -523,7 +565,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.store.write_text("PROFILE__ONE__REPO='a'\nPROFILE__TWO__REPO='b'\n"
                               "PROFILE__TWO__GENERATE_PDF='F'\n")
         self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out')
-        self.assertEqual(self.ok('show', '--profile', 'out')['fields']['GENERATE_PDF'], 'F')
+        self.assertEqual(self.ok('show', '--profile', 'out')['fields']['GENERATE_PDF'], 'disabled')
         self.ok('set', '--profile', 'out', '--field', 'SLACK_CHANNEL=#stale')
         self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out', '--replace')
         self.assertNotIn('SLACK_CHANNEL', self.ok('show', '--profile', 'out')['fields'])
@@ -598,12 +640,12 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertEqual(result['fields']['REPO'], 'chosen-repo')
         self.assertTrue(self.store.read_bytes().startswith(before))
         task = self.root / 'TASK.md'
-        task.write_text('## Resources\n- Slack channel: `#saved`\n- Generate PDF: `T`\n')
+        task.write_text('## Resources\n- Slack channel: `#saved`\n- Generate PDF: `enabled`\n')
         profile_before = self.store.read_bytes()
         self.ok('load', '--profile', 'out', '--task', str(task), '--replace',
-                '--field', 'SLACK_CHANNEL=#latest', '--field', 'GENERATE_PDF=F')
+                '--field', 'SLACK_CHANNEL=#latest', '--field', 'GENERATE_PDF=disabled')
         self.assertIn('- Slack channel: `#latest`', task.read_text())
-        self.assertIn('- Generate PDF: `F`', task.read_text())
+        self.assertIn('- Generate PDF: `disabled`', task.read_text())
         self.assertEqual(self.store.read_bytes(), profile_before)
 
     def test_invalid_or_duplicate_user_task_fields_fail_before_mutation(self):

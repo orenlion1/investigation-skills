@@ -108,7 +108,8 @@ destination's outcome in the publication manifest and return one result per dest
    it does not execute them or invent a completed investigation report.
 3. Resolve the saved report's effective Generate PDF choice and same-source metadata under the
    [format contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats).
-   Legacy absent values default T. F excludes historical PDFs and requires no PDF attachment,
+   Absent values default `enabled`; legacy `T`/`F` read as `enabled`/`disabled`. `disabled`
+   excludes historical PDFs and requires no PDF attachment,
    card, preview, renderer or PDF-only validation dependency. Preserve old files. Reject invalid
    values and reconcile conflicting task/report decisions before writes.
    Build a bounded inventory: parent TASK, original report source, selected matching available PDF,

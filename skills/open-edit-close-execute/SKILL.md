@@ -64,7 +64,7 @@ draft directory, and the rule that task contents never bypass separate authoriza
   through Workflow Artifact Naming, in the same directory. Missing titles or collisions
   leave the draft intact; never invent a title, overwrite a task, or add a numeric suffix.
 - Run the finalized task from its resolved path, then generate the matching reports from
-  observed results in verified Markdown and, only when effective Generate PDF is T, a verified
+  observed results in verified Markdown and, only when effective Generate PDF is `enabled`, a verified
   same-source PDF (selected `REPORT` paths via Workflow Artifact Naming). Resolve formats before
   PDF-only tooling using the [delivery contract](references/investigation-delivery.md). Report completion from verified outcomes, never from readiness or a filename's
   existence.
