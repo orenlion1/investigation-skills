@@ -1,6 +1,6 @@
 ---
 name: publish-it
-description: Publish an existing task and/or report to one or more destinations - Confluence pages and GitHub or Bitbucket repositories - with original files as downloadable supporting evidence, diagrams, PDF and cited assets. Use when handling publish it or publish-it requests with a TASK path, report path, or both; resolve related artifacts and every Publish destination, package once, publish to each page or repository pull request and verify each result. This does not run an investigation or publish a software release.
+description: "Publish an existing task, report, or both to one or more destinations, Confluence pages and GitHub or Bitbucket repositories, with the original files as downloadable evidence plus diagrams, PDF and cited assets, then verify each result. Use when handling `publish it` or `publish-it` requests with a TASK path, a report path, or both. Does not run an investigation or publish a software release."
 ---
 
 # Publish It
@@ -25,22 +25,23 @@ publishing decisions here.
 
 ## Arguments
 
-Accept `task` and/or `report` as explicit local file paths, plus zero or more destinations.
-These are arguments to the agent's skill invocation, not an installed shell command:
+Accept `task` and/or `report` (at least one) as explicit local file paths, plus zero or more
+destinations. These are arguments to the agent's skill invocation, not an installed shell
+command; accept equivalent natural-language arguments:
 
 ```text
 publish it --task docs/tasks/TASK-example.md
-publish it --task docs/tasks/TASK-example.md --parent <Confluence parent URL>
-publish it --report docs/reports/REPORT-example.md --repo <repository URL>
-publish it --task <TASK path> --parent <Confluence parent URL> --repo <repository URL>
+publish it --report docs/reports/REPORT-example.md --parent <Confluence parent URL> --repo <repository URL>
 publish it --task <TASK path> --report <report path> --page <existing Confluence page URL>
 ```
 
-`task` identifies the parent TASK document; `parent` identifies the Confluence page that will
-contain a new child report page. `page` selects an existing report page to update. `repo`
-identifies a repository that will receive the artifacts through a pull request. Do not confuse
-these identities. `parent` and `repo` may repeat. Accept equivalent natural-language arguments.
-At least one task or report is required.
+| Argument | Identity (do not confuse them) |
+| --- | --- |
+| `task` | The parent TASK document |
+| `report` | The report document |
+| `parent` (may repeat) | Confluence page that will contain a new child report page |
+| `page` | Existing report page to update |
+| `repo` (may repeat) | Repository that receives the artifacts through a pull request |
 
 ## Destinations
 
@@ -54,9 +55,9 @@ Resolve the effective destination list before any write:
 3. A request may narrow the saved list ("Confluence only", "skip the repository").
 
 There is no default destination. Do not reuse a previous investigation's site, parent or
-repository, read the profile store, or invent a location. When neither the request nor the saved
-task's Resources names a destination, write nothing and tell the requester that no publish
-destination is configured, offering both ways forward:
+repository, or invent a location. When neither the request nor the saved task's Resources names
+a destination, write nothing and tell the requester that no publish destination is configured,
+offering both ways forward:
 
 - **Supply one now.** Append the supplied destination as a `- Publish:` bullet under the saved
   task's Resources, one bullet per destination, leaving every other line unchanged; read the
@@ -148,21 +149,15 @@ anchor-landing and preview results. A browser capability or authentication gap s
 ## Publish and verify
 
 Read the procedure for each destination kind in the effective list before external writes:
-[Confluence publication](references/confluence-publication.md) for pages and
-[repository publication](references/repository-publication.md) for repositories. The rest of
-this section states the page requirements; the repository procedure states its own equivalents
-and shares the same package, preflight and evidence rules.
+[Confluence publication](references/confluence-publication.md) for pages (live tool schemas,
+semantic-success checks, draft snapshots, media collections, timeout reconciliation,
+published-version read-back) and [repository publication](references/repository-publication.md)
+for repositories. Both share this package, preflight and evidence rules; the page requirements
+below have repository equivalents in that procedure.
 
 For a page, verify the destination and duplicates, compose the report as the page body, attach the
-original report and parent task as supporting evidence, and include their clearly labeled download
-cards. Include the matching PDF only when selected, and the inventoried diagrams/evidence. For a PDF-only report,
-inspect it with suitable tooling, attach the original and publish a faithful readable summary or
-conversion; disclose any conversion limitation. Do not claim a full rich page if only a file card
-was delivered. A task-only page identifies its actual scope and includes its task download.
-
-Use the complete live tool schemas and the procedure's semantic-success checks, draft snapshot
-handling, media collection resolution, timeout reconciliation and published-version read-back.
-Preserve unrelated content on an existing page and stop on conflicting concurrent edits.
+original report and parent task as supporting evidence with clearly labeled download cards, and
+include the inventoried diagrams/evidence and, only when selected, the matching PDF.
 
 Completion requires the intended published page and hierarchy, all selected file downloads,
 the full diagram/caption/evidence inventory, working anchors and native media, and the requested

@@ -126,6 +126,21 @@ Optional lines in the task's Resources section adjust how a run behaves:
 | `Rhyming historical window days: <n>` | `7` | How far back that search looks. |
 
 Every on/off setting takes `enabled` or `disabled`, in a task or in a profile.
+Spelling is forgiving: `fan out: disabled`, `FAN_OUT=DISABLED`, and
+`Fan-out: Disabled` all mean the same thing.
+
+If you edit `.env` or a task by hand, or have settings from an earlier version,
+the agent will tell you when it finds values in an old or unusual form. To tidy
+them up, ask:
+
+```text
+lint profiles
+lint task docs/tasks/TASK.md
+```
+
+It rewrites what has one correct answer and asks you about anything that does
+not, such as an illegal value or the same setting given twice with different
+values.
 Tasks and profiles written with the earlier `Generate PDF: T` or `F` keep
 working; they are read as `enabled` and `disabled`.
 

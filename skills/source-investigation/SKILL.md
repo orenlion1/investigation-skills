@@ -1,6 +1,6 @@
 ---
 name: source-investigation
-description: Trace an investigated problem to its source code across repositories — follow execution paths and consumers, search the authorized provider workspace beyond the supplied repository, establish an evidence-supported root cause with a concrete fix and validation, pin citations to the inspected commit, and verify the deployed revision. Use when a task supplies a source repository and the observed behavior, error, or alert must be explained by code.
+description: "Trace an investigated problem to source code across the authorized provider's repositories. Follow execution paths and consumers, establish an evidence-supported root cause and concrete fix, pin citations to the inspected commit, and verify the deployed revision. Use when a task supplies a source repository and the observed behavior, error, or alert must be explained by code."
 ---
 
 # Source Investigation

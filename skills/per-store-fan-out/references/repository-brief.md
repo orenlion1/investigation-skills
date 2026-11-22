@@ -2,10 +2,9 @@
 
 Use for each parent-resolved repository unit under the
 [repository workflow](../SKILL.md#repository-resolution-and-scheduling). The parent supplies
-all placeholders. Keep the resolved block and output contract byte-identical to the store
-brief template for this run. The shared delegation machinery and manifest schema remain in
-[the delegation contract](delegation-contract.md); this file owns repository-specific identity
-and questions only.
+all placeholders. Keep the resolved block and output contract byte-identical to the
+[store brief template](sub-agent-brief.md) for this run. Delegation machinery and the manifest
+schema stay in [the delegation contract](delegation-contract.md).
 
 ```markdown
 # Investigation brief: <canonical repository>
@@ -47,6 +46,17 @@ Return exactly these sections:
 Do not draw cross-store conclusions; do not mutate anything.
 ```
 
-The parent's linked repository manifest uses the caller-owned fields documented in the skill.
-Every distinct repository and every unresolved input retains an outcome. The parent correlates
-and verifies returned evidence before making cross-repository causal claims.
+## Repository manifest
+
+Repository runs use a separate linked manifest under the delegation contract. Add only these
+repository-owned fields: `repository`, `configured_entries`, `provider`, `provider_scope`,
+`inspected_revision`, `inspection_owner`, `outcome` and `store_manifest` (absent when no ordinary
+store work remains).
+
+- Each distinct repository gets its own row; each unresolved input retains its own gap row.
+- These rows, the ordinary store manifest and the parent's resource-to-owner map together cover
+  every configured entry without duplicate inspection.
+- Keep authentication, tooling and actual reads distinct as for stores. Do not claim an
+  inspection succeeded merely because its profile loaded or its provider authenticated.
+- The parent correlates and verifies returned evidence before making cross-repository causal
+  claims.

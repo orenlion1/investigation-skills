@@ -32,16 +32,26 @@ DEFAULT_HISTORICAL_WINDOW_DAYS = '7'
 GENERATE_PDF = 'GENERATE_PDF'
 GRAFANA_ASSISTANT = 'GRAFANA_ASSISTANT'
 # Settings contract: every toggle setting takes exactly these two values.
-TOGGLE_VALUES = ('enabled', 'disabled')
-DEFAULT_GENERATE_PDF = 'enabled'
-DEFAULT_GRAFANA_ASSISTANT = 'enabled'
+ENABLED = 'enabled'
+DISABLED = 'disabled'
+TOGGLE_VALUES = (ENABLED, DISABLED)
+TOGGLE_ERROR = '; expected ' + ENABLED + ' or ' + DISABLED
+DEFAULT_GENERATE_PDF = ENABLED
+DEFAULT_GRAFANA_ASSISTANT = ENABLED
 FAN_OUT = 'FAN_OUT'
-DEFAULT_FAN_OUT = 'enabled'
+DEFAULT_FAN_OUT = ENABLED
 CONTROL_DEFAULTS = {GENERATE_PDF: DEFAULT_GENERATE_PDF,
                     GRAFANA_ASSISTANT: DEFAULT_GRAFANA_ASSISTANT,
                     FAN_OUT: DEFAULT_FAN_OUT}
+LINT_MESSAGE = ('the profile store holds legacy or hand-edited settings; ask the user to run '
+                '"lint profiles" (lint --fix) to update their .env')
+TASK_LINT_MESSAGE = ('task Resources hold legacy, hand-edited or illegal settings; ask the user '
+                     'to run "lint task <path>" (lint --task <path> --fix) and to replace any '
+                     'value that needs a decision with a legal one')
+DEFAULT_TASK_DIRECTORY = 'docs/tasks'
+MAX_LINTED_TASKS = 200
 # Values written before the contract; accepted on input and stored as their canonical value.
-LEGACY_TOGGLE_VALUES = {GENERATE_PDF: {'T': 'enabled', 'F': 'disabled'}}
+LEGACY_TOGGLE_VALUES = {GENERATE_PDF: {'T': ENABLED, 'F': DISABLED}}
 ENDPOINT_KINDS = ('grafana-investigations', 'grafana-assistant-conversations',
                   'grafana-assistant-search',
                   'confluence', 'slack', 'repository')
@@ -113,6 +123,36 @@ def normalize_label(label):
     if not FIELD.fullmatch(key) or SEPARATOR in key:
         raise ProfileError('resource label does not normalize to a field key: ' + label.strip())
     return key
+
+
+def squash(name):
+    """Reduce a field name or label to its letters and digits for tolerant matching."""
+    return re.sub(r'[^A-Za-z0-9]+', '', re.sub(r'\([^)]*\)', ' ', name)).upper()
+
+
+def resolve_field(name, schema):
+    """Match a field name or template label regardless of case, spaces, hyphens or underscores."""
+    wanted = squash(name)
+    matches = [field for field in schema['fields'] if squash(field) == wanted]
+    if not matches:
+        matches = [bullet['keys'][0] for bullet in schema['bullets']
+                   if squash(bullet['label']) == wanted]
+    if len(matches) != 1 or not wanted:
+        raise ProfileError('unknown field ' + ' '.join(name.split()).upper()
+                           + '; the schema comes from the template')
+    return matches[0]
+
+
+def parse_assignment(assignment, schema):
+    """Split FIELD=value or "field: value"; the first delimiter decides the form."""
+    positions = [index for index in (assignment.find('='), assignment.find(':')) if index >= 0]
+    if not positions:
+        raise ProfileError('field must be FIELD=value or "field: value"')
+    index = min(positions)
+    value = assignment[index + 1:]
+    if assignment[index] == ':':
+        value = value.strip()
+    return resolve_field(assignment[:index], schema), value
 
 
 def section_bounds(lines, description):
@@ -292,13 +332,22 @@ def validate_rhyming_endpoints(value):
         reject()
 
 
+def toggle_value(field, value):
+    """Translate any accepted spelling of a toggle value to its setting constant."""
+    spelling = value.strip().casefold() if isinstance(value, str) else None
+    for constant in TOGGLE_VALUES:
+        if spelling == constant:
+            return constant
+    for legacy, constant in LEGACY_TOGGLE_VALUES.get(field, {}).items():
+        if spelling == legacy.casefold():
+            return constant
+    raise ProfileError('invalid ' + field + TOGGLE_ERROR)
+
+
 def check_field(field, value):
     """Validate one field and return the value to use, canonical for toggle settings."""
     if field in CONTROL_DEFAULTS:
-        value = LEGACY_TOGGLE_VALUES.get(field, {}).get(value, value)
-        if value not in TOGGLE_VALUES:
-            raise ProfileError('invalid ' + field + '; expected enabled or disabled')
-        return value
+        return toggle_value(field, value)
     if field in LIST_FIELDS:
         if isinstance(value, str) and not value.startswith('['):
             check_value(value)
@@ -555,12 +604,7 @@ def command_set(arguments, context):
     name = profile_name(arguments.profile)
     schema, updates, cleared = context['schema'], {}, []
     for assignment in arguments.field:
-        if '=' not in assignment:
-            raise ProfileError('field must be FIELD=value: ' + assignment)
-        field, value = assignment.split('=', 1)
-        field = field.strip().upper()
-        if field not in schema['fields']:
-            raise ProfileError('unknown field ' + field + '; the schema comes from the template')
+        field, value = parse_assignment(assignment, schema)
         if value == '':
             cleared.append(field)
         else:
@@ -777,9 +821,10 @@ def command_load(arguments, context):
     known.update(task_values)
     known.update(explicit_fields(arguments.field, context['schema']))
     bullets = render_section(context['schema'], known)
+    toggles = {squash(bullet['label']) for bullet in context['schema']['bullets']
+               if bullet['keys'][0] in CONTROL_DEFAULTS}
     supplied = supplied_values([line for line in section
-                                if not line.startswith(('- Generate PDF:', '- Grafana Assistant:',
-                                                         '- Fan-out:'))])
+                                if squash(line[2:].split(':', 1)[0]) not in toggles])
     if supplied and not arguments.replace:
         raise ProfileError('task Resources already supplies ' + ', '.join(supplied) +
                            '; re-run with --replace to rewrite while preserving user fields')
@@ -804,12 +849,7 @@ def explicit_fields(assignments, schema):
     """Validate the user's highest-priority layer without mutating any source."""
     values = {}
     for assignment in assignments:
-        if '=' not in assignment:
-            raise ProfileError('explicit field must be FIELD=value')
-        field, value = assignment.split('=', 1)
-        field = field.strip().upper()
-        if field not in schema['fields']:
-            raise ProfileError('unknown field ' + field + '; the schema comes from the template')
+        field, value = parse_assignment(assignment, schema)
         if field in values:
             raise ProfileError('duplicate explicit field ' + field)
         values[field] = check_field(field, value)
@@ -818,21 +858,23 @@ def explicit_fields(assignments, schema):
 
 def task_fields(lines, schema):
     """Collect explicit task fields; keep unrecognized settings such as Fan-out."""
-    definitions = {bullet['label']: bullet for bullet in schema['bullets']}
+    # Task labels match the template regardless of case, spaces, hyphens or underscores.
+    definitions = {squash(bullet['label']): bullet for bullet in schema['bullets']}
     values, preserved, seen = {}, [], set()
     lists = {field: [] for field in LIST_FIELDS}
     for line in lines:
         match = BULLET.fullmatch(EXAMPLES.sub('', line.rstrip()))
         # A malformed known label must not be silently replaced by a profile.
         label = line[2:].split(':', 1)[0].strip() if line.startswith('- ') else None
-        if label not in definitions:
+        key = squash(label) if label else None
+        if key not in definitions:
             if line.strip():
                 preserved.append(line)
             continue
-        bullet = definitions[label]
+        bullet = definitions[key]
         primary = bullet['keys'][0]
         if primary not in LIST_FIELDS and primary in seen:
-            raise ProfileError('duplicate ' + label + ' setting in task Resources')
+            raise ProfileError('duplicate ' + bullet['label'] + ' setting in task Resources')
         seen.add(primary)
         pattern = r'`([^`]*)`' + ''.join(
             r'(?:; ' + re.escape(bullet['sublabels'][key]) + r' `([^`]*)`)?'
@@ -840,10 +882,11 @@ def task_fields(lines, schema):
         parsed = re.fullmatch(pattern, match.group('rest')) if match else None
         if parsed is None and primary in CONTROL_DEFAULTS and match:
             # Task toggle settings also permit the bare enabled/disabled form.
-            parsed = re.fullmatch(r'(enabled|disabled)', match.group('rest'))
+            parsed = re.fullmatch('(' + '|'.join(TOGGLE_VALUES) + ')',
+                                  match.group('rest').strip(), re.IGNORECASE)
         if not parsed:
             if primary in CONTROL_DEFAULTS:
-                raise ProfileError('invalid ' + primary + '; expected enabled or disabled')
+                raise ProfileError('invalid ' + primary + TOGGLE_ERROR)
             raise ProfileError('invalid task resource field ' + primary)
         for key, value in zip(bullet['keys'], parsed.groups()):
             if value is None or (value.startswith('<') and value.endswith('>')):
@@ -861,11 +904,216 @@ def task_fields(lines, schema):
     return values, preserved
 
 
+def finding(rule, location, line, fixable, **details):
+    """Describe one lint finding without ever including a stored value."""
+    return dict(rule=rule, location=location, line=line, fixable=fixable, **details)
+
+
+def value_rule(field, value):
+    """Name a non-canonical value: a pre-contract legacy value, or a hand-edited spelling."""
+    legacy = {key.casefold() for key in LEGACY_TOGGLE_VALUES.get(field, {})}
+    return 'legacy-value' if value.strip().casefold() in legacy else 'value-spelling'
+
+
+def lint_notice(context):
+    """Tell the caller when the store needs the user's lint run; never fix it implicitly."""
+    try:
+        # Read the store again so a command that just rewrote entries reports its new state.
+        lines, managed, exists = load_store(context['env_path'])
+        findings = lint_store(lines, managed, context['schema'])[0] if exists else []
+    except (ProfileError, OSError):
+        return None
+    if not findings:
+        return None
+    fixable = sum(1 for item in findings if item['fixable'])
+    return {'findings': len(findings), 'fixable': fixable,
+            'needs_decision': len(findings) - fixable,
+            'rules': sorted({item['rule'] for item in findings}),
+            'message': LINT_MESSAGE}
+
+
+def lint_store(lines, managed, schema, only=None):
+    """Find hand-edited store entries; return (findings, lines with fixable ones resolved)."""
+    findings, replace, drop, first = [], {}, set(), {}
+    for index in sorted(managed):
+        key, value = managed[index]
+        try:
+            name, raw_field = profile_from_key(key)
+            space = namespace(name)
+        except ProfileError:
+            findings.append(finding('invalid-key', 'store', index + 1, False))
+            continue
+        if only is not None and name != only:
+            continue
+        where = {'profile': name}
+        try:
+            field = resolve_field(raw_field, schema)
+        except ProfileError:
+            findings.append(finding('unknown-field', 'store', index + 1, False, **where))
+            continue
+        where['field'] = field
+        try:
+            canonical = check_field(field, value)
+        except ProfileError:
+            findings.append(finding('invalid-value', 'store', index + 1, False, **where))
+            continue
+        if (name, field) in first:
+            # A repeated setting is one finding: dropped when it agrees, left for the user
+            # when it disagrees, since only they know which value was intended.
+            same = first[(name, field)] == canonical
+            findings.append(finding('duplicate' if same else 'conflicting-duplicate', 'store',
+                                    index + 1, same, **where))
+            if same:
+                drop.add(index)
+            continue
+        first[(name, field)] = canonical
+        if key != space + field:
+            findings.append(finding('key-spelling', 'store', index + 1, True,
+                                    canonical=space + field, **where))
+        if canonical != value:
+            findings.append(finding(value_rule(field, value), 'store', index + 1, True,
+                                    canonical=canonical, **where))
+        rendered = space + field + "='" + canonical + "'"
+        if lines[index] != rendered:
+            if key == space + field and canonical == value:
+                findings.append(finding('formatting', 'store', index + 1, True, **where))
+            replace[index] = rendered
+    fixed = [replace.get(index, line) for index, line in enumerate(lines) if index not in drop]
+    return findings, fixed
+
+
+def lint_task(lines, schema):
+    """Find hand-edited Resources bullets; return (findings, lines with fixable ones resolved)."""
+    start, end = section_bounds(lines, 'task')
+    definitions = {squash(bullet['label']): bullet for bullet in schema['bullets']}
+    findings, replace, drop, first = [], {}, set(), {}
+    for index in range(start + 1, end):
+        line = lines[index]
+        match = BULLET.fullmatch(EXAMPLES.sub('', line.rstrip()))
+        if not match or squash(match.group('label')) not in definitions:
+            continue
+        bullet = definitions[squash(match.group('label'))]
+        primary, rest = bullet['keys'][0], match.group('rest')
+        where = {'field': primary}
+        if match.group('label').strip() != bullet['label']:
+            findings.append(finding('label-spelling', 'task', index + 1, True,
+                                    canonical=bullet['label'], **where))
+            replace[index] = '- ' + bullet['label'] + ': ' + rest
+        if primary not in CONTROL_DEFAULTS:
+            continue
+        quoted = re.fullmatch(r'`([^`]*)`', rest)
+        value = quoted.group(1) if quoted else rest.strip()
+        if value.startswith('<') and value.endswith('>'):
+            continue
+        try:
+            canonical = toggle_value(primary, value)
+        except ProfileError:
+            findings.append(finding('invalid-value', 'task', index + 1, False, **where))
+            continue
+        if not quoted or canonical != value:
+            findings.append(finding(value_rule(primary, value), 'task', index + 1, True,
+                                    canonical=canonical, **where))
+            replace[index] = '- ' + bullet['label'] + ': `' + canonical + '`'
+        if primary in first:
+            same = first[primary] == canonical
+            findings.append(finding('duplicate' if same else 'conflicting-duplicate', 'task',
+                                    index + 1, same, **where))
+            if same:
+                drop.add(index)
+        first.setdefault(primary, canonical)
+    fixed = [replace.get(index, line) for index, line in enumerate(lines) if index not in drop]
+    if not any(not item['fixable'] for item in findings):
+        try:
+            bounds = section_bounds(fixed, 'task')
+            task_fields(fixed[bounds[0] + 1:bounds[1]], schema)
+        except ProfileError as error:
+            findings.append(finding('invalid-resources', 'task', start + 1, False,
+                                    detail=str(error)))
+    return findings, fixed
+
+
+def task_lint_notice(context, directory):
+    """Scan saved tasks read-only so a store lint can prompt for the tasks that need one."""
+    folder = Path(directory)
+    if not folder.is_absolute():
+        folder = context['root'] / folder
+    if not folder.is_dir():
+        return None
+    tasks = []
+    for path in sorted(folder.glob('TASK*.md'))[:MAX_LINTED_TASKS]:
+        try:
+            lines = read_text(path, 'task', MAX_TASK_BYTES).splitlines()
+            findings = lint_task(lines, context['schema'])[0]
+        except (ProfileError, OSError):
+            continue
+        if findings:
+            fixable = sum(1 for item in findings if item['fixable'])
+            tasks.append({'task': Path(os.path.relpath(path, context['root'])).as_posix(),
+                          'findings': len(findings), 'fixable': fixable,
+                          'needs_decision': len(findings) - fixable,
+                          'rules': sorted({item['rule'] for item in findings})})
+    return {'tasks': tasks, 'message': TASK_LINT_MESSAGE} if tasks else None
+
+
+def command_lint(arguments, context):
+    """Report hand-edited settings in the store and an optional task; --fix resolves them."""
+    only = profile_name(arguments.profile) if arguments.profile else None
+    findings, writes = [], []
+    if context['exists']:
+        found, fixed = lint_store(context['lines'], context['managed'], context['schema'], only)
+        findings += found
+        if fixed != context['lines']:
+            writes.append(('store', context['env_path'],
+                           '\n'.join(fixed) + ('\n' if fixed else ''), True))
+    task_path = None
+    if arguments.task:
+        task_path = Path(arguments.task)
+        if not task_path.is_absolute():
+            task_path = context['root'] / task_path
+        if not os.path.lexists(task_path):
+            raise ProfileError('task does not exist: ' + str(task_path))
+        text = read_text(task_path, 'task', MAX_TASK_BYTES)
+        lines = text.splitlines()
+        found, fixed = lint_task(lines, context['schema'])
+        findings += found
+        if fixed != lines:
+            writes.append(('task', task_path,
+                           '\n'.join(fixed) + ('\n' if text.endswith('\n') else ''), False))
+    fixable = [item for item in findings if item['fixable']]
+    applied = bool(arguments.fix and not arguments.dry_run and writes)
+    if applied:
+        for location, path, body, enforce in writes:
+            if location == 'store':
+                require_ignored(context['root'], path)
+            write_file(path, body, enforce=enforce)
+        lines, managed = parse_store(read_text(context['env_path'], 'profile store',
+                                               MAX_ENV_BYTES)) if context['exists'] else ([], {})
+        remaining = lint_store(lines, managed, context['schema'], only)[0]
+        if task_path is not None:
+            remaining += lint_task(read_text(task_path, 'task', MAX_TASK_BYTES).splitlines(),
+                                   context['schema'])[0]
+        if any(item['fixable'] for item in remaining):
+            raise ProfileError('lint fixes did not read back as written')
+    unresolved = [item for item in findings if not (applied and item['fixable'])]
+    result = {'store': context['env_relative'] if context['exists'] else None,
+              'task': str(task_path) if task_path is not None else None,
+              'findings': findings, 'fixable': len(fixable),
+              'unfixable': len(findings) - len(fixable), 'fixed': len(fixable) if applied else 0,
+              'clean': not unresolved, 'dry_run': arguments.dry_run,
+              'exit_status': 1 if unresolved else 0}
+    if task_path is None:
+        # A store lint never edits a task; it reports the tasks whose own lint is due.
+        notice = task_lint_notice(context, arguments.task_dir)
+        if notice:
+            result['task_notice'] = notice
+    return result
+
+
 COMMANDS = {'schema': command_schema, 'list': command_list, 'show': command_show,
             'set': command_set, 'remove': command_remove, 'init': command_init,
             'remove-env': command_remove_env, 'ignore': command_ignore,
             'render': command_render, 'load': command_load, 'endpoints': command_endpoints,
-            'compose': command_compose}
+            'compose': command_compose, 'lint': command_lint}
 
 
 def build_parser():
@@ -889,6 +1137,13 @@ def build_parser():
                              help='discard values this command would otherwise preserve')
         if command == 'load':
             sub.add_argument('--task', required=True)
+        if command == 'lint':
+            sub.add_argument('--profile', help='limit store findings to one profile')
+            sub.add_argument('--task', help='also lint this task\'s Resources section')
+            sub.add_argument('--task-dir', default=DEFAULT_TASK_DIRECTORY,
+                             help='saved tasks to check, read-only, when no --task is given')
+            sub.add_argument('--fix', action='store_true',
+                             help='rewrite fixable findings in canonical form')
         if command == 'remove-env':
             sub.add_argument('--force', action='store_true',
                              help='delete the store even though it holds unmanaged keys')
@@ -918,9 +1173,18 @@ def build_context(arguments):
 def main():
     arguments = build_parser().parse_args()
     try:
-        result = COMMANDS[arguments.command](arguments, build_context(arguments))
+        context = build_context(arguments)
+        result = COMMANDS[arguments.command](arguments, context)
+        status = result.pop('exit_status', 0) if isinstance(result, dict) else 0
+        # Every other command reports, but never repairs, a store that needs linting.
+        notice = lint_notice(context) if arguments.command != 'lint' else None
+        if notice and isinstance(result, dict):
+            result['lint_notice'] = notice
+        elif notice:
+            print('profile_env.py: ' + notice['message'], file=sys.stderr)
         if result is not None:
             print(json.dumps(result, sort_keys=True))
+        return status
     except (ProfileError, OSError, RuntimeError) as error:
         print('profile_env.py: ' + str(error), file=sys.stderr)
         return 2

@@ -46,7 +46,7 @@ diagrams; AWS trademark and icon terms continue to apply. The diagram
 composition is project-authored and is not an AWS endorsement.
 ````
 
-## Two sections worth adding when they apply
+## Sections worth adding when they apply
 
 **What the edge styles mean.** Where the diagrams mix evidence classes, give the
 reader a key — each style, what it claims, and what confirmed it:

@@ -44,18 +44,14 @@ api [label=<<TABLE BORDER="0" CELLBORDER="0" CELLPADDING="3">
 </TABLE>>];
 ```
 
-Four rows, in this order:
-
-1. the icon;
-2. the **real AWS name** in bold — what you would search the console for;
-3. the **resource type** in grey `#545B64` at 9pt — "Lambda function",
-   "DynamoDB table", "S3 bucket";
-4. the one purpose line a reader cannot infer, omitted when they can.
+Four rows, in this order: the icon; the **real AWS name** in bold; the
+**resource type** in grey `#545B64` at 9pt; the one purpose line a reader cannot
+infer, omitted when they can.
 
 A node is a label, not a paragraph: break a long name with `<BR/>` rather than
-letting one row set the column width. Write an account id as `<account>`
-(escaped `&lt;account&gt;` inside the HTML label), and never put a secret,
-token, ARN, or endpoint in a diagram.
+letting one row set the column width. Escape the account placeholder as
+`&lt;account&gt;` inside the HTML label, and never put a secret, token, ARN, or
+endpoint in a diagram.
 
 ## Which icon: `Arch_` or `Res_`
 
@@ -69,10 +65,6 @@ whenever the node is a resource and AWS publishes one:
 | An S3 bucket | `Res_Amazon-Simple-Storage-Service_Bucket_48.png` |
 | A Lambda function | `Res_AWS-Lambda_Lambda-Function_48.png` |
 | A service with no distinct resource icon | `Arch_<Service>_48.png` |
-
-The icon is reinforcement. The text has to identify the resource on its own,
-because an icon is not readable in greyscale, at thumbnail size, or by a screen
-reader.
 
 For something owned by another team, deliberately disabled, or otherwise not
 what it appears, give the table a border:
@@ -134,13 +126,19 @@ web -> secret [label="secretsmanager:GetSecretValue"];
 Edge attribute statements are positional — they apply to every edge declared
 after them — so group edges by class and set the attributes once.
 
+For dense fan-out or scheduled/notification paths, use named HTML-table `PORT`
+cells and explicit compass endpoints such as `worker:telemetry:s` or
+`table:email:e`. Put endpoint meaning on the resource or its named cell where
+possible. Invocation, state, logging, and alarm connectors must leave distinct
+ports so downstream edges cannot appear to branch from an unrelated invoke
+line. Render and inspect after every connector-layout change; syntactically
+valid DOT can still communicate the wrong origin or destination.
+
 ## Publishing in two themes
 
-A white canvas is a glaring slab in a dark-only UI, which is where a lot of
-people now read. If a diagram set needs both themes, **derive the dark variant
-at render time from the light source. Do not keep a second `.dot`.** A forked
-pair drifts the moment someone edits one side, and the drift is invisible until
-a reader trusts the stale one.
+If a diagram set needs both themes, **derive the dark variant at render time
+from the light source. Do not keep a second `.dot`** — a forked pair drifts the
+moment someone edits one side.
 
 A small generator that string-substitutes a role-based palette is enough:
 
@@ -150,8 +148,8 @@ A small generator that string-substitutes a role-based palette is enough:
 | Primary text, account boundary | `#232F3E` | `#E6EDF3` |
 | Secondary text, edges | `#545B64` | `#9BA7B4` |
 | Region | `#00A4A6` | `#2DD4D6` |
-| VPC | `#7AA116` | `#A3D227` |
-| Ingress / messaging | `#8C4FFF` | `#B18AFF` |
+| VPC | `#8C4FFF` | `#B18AFF` |
+| Ingress / messaging, edge / global | `#7AA116` | `#A3D227` |
 | Compute | `#ED7100` | `#FF9A3C` |
 | Data / storage | `#3B48CC` | `#7C86F0` |
 | Security | `#C7131F` | `#FF6B6B` |
@@ -161,9 +159,8 @@ For that substitution to be total, every colour in the source has to come from
 the palette. Two things escape it, and both are silent:
 
 **Tint fills.** A pale highlight such as the `BGCOLOR="#FFF7E8"` callout above
-is nearly white. Left unmapped it burns a hole in the dark canvas, and it will
-not show up in any warning — only by looking. Give every tint a dark surface
-counterpart (`#FFF7E8` → `#2A2113`, `#F7FAEF` → `#172013`).
+is nearly white. Left unmapped it burns a hole in the dark canvas, with no
+warning. Give every tint a dark surface counterpart (`#FFF7E8` → `#2A2113`, `#F7FAEF` → `#172013`).
 
 **Icons.** AWS publishes the coloured service and resource glyphs for light
 backgrounds only. In practice they read acceptably on dark, because the strokes
@@ -203,10 +200,4 @@ sizes, it is two diagrams.
 
 ## Render
 
-```bash
-dot -Tsvg name-aws.dot -o name-aws.svg
-dot -Tpng -Gdpi=180 name-aws.dot -o name-aws.png
-```
-
-Icon paths are resolved against the working directory of the `dot` process,
-not against the DOT file, so always render from the diagram directory.
+See [graphviz-workflow.md](graphviz-workflow.md#3-render).

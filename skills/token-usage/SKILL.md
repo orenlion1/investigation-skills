@@ -1,6 +1,6 @@
 ---
 name: token-usage
-description: Derive investigation duration and token usage from explicitly selected local Codex conversation files, with verified task and turn boundaries and sanitized evidence. Use when reporting or checking investigation effort; this does not query billing or remote telemetry.
+description: "Derive an investigation's duration and token usage from explicitly selected local Codex conversation files, with verified task and turn boundaries and sanitized evidence. Use when reporting or checking investigation effort. Does not query billing or remote telemetry."
 ---
 
 # Token Usage
@@ -9,11 +9,17 @@ description: Derive investigation duration and token usage from explicitly selec
 
 Use local conversation evidence to report an observed wall-clock interval and the tokens
 recorded for that investigation. The bundled Python 3.8+ [collector](scripts/collect_token_usage.py)
-uses only the standard library and does not require a lifecycle log or another checkout.
+uses only the standard library and does not require a lifecycle log or another checkout. It
+supports Codex JSONL; other hosts require a verified adapter, and another provider's counters
+are never reinterpreted using Codex semantics.
 
 This skill owns token-usage collection, accounting, report presentation, and validation for
-all repository reports. Other skills and policies should reference it to generate the token
-usage report instead of maintaining separate formatting or accounting instructions.
+all repository reports. Other skills and policies reference it instead of maintaining separate
+formatting or accounting instructions.
+
+[accounting-evidence.md](references/accounting-evidence.md) holds the manifest schema, proof and
+rejection rules, validation codes, counter reconciliation and provenance. Read it before
+building or repairing a manifest.
 
 ## When to Use
 
@@ -25,13 +31,18 @@ usage report instead of maintaining separate formatting or accounting instructio
 
 Read local conversation files only within the user's authorized scope. Identify the original
 `run docs/tasks/TASK-{slug}.md` or explicit `edit task <task-path>` request, or a shorthand
-`run task`, `open task`, or `edit task` request with verified task-resolution evidence,
-and its native thread and turn IDs. The editor aliases include case and `.md` variants.
+`run task`, `open task`, or `edit task` request (case and `.md` variants included) with verified
+task-resolution evidence, and its native thread and turn IDs. Inspect subsequent user turns to
+decide which continue that same investigation; repository cwd, filenames, timestamps, copied
+policy, and a shared conversation alone do not prove task membership. Keep unrelated requests
+and this accounting refresh outside a historical report's cutoff.
+
 Read this contract before opening a templated task so its caller can retain the successful
-resolution record after the editor/check barrier. Inspect subsequent
-user turns to decide which continue that same investigation; repository cwd, filenames,
-timestamps, copied policy, and a shared conversation alone do not prove task membership.
-Keep unrelated requests and this accounting refresh outside a historical report's cutoff.
+resolution record after the editor/check barrier. That record is a completed command, exit code
+zero, whose only output line is `Finalized: <absolute-task-path>`. During task finalization,
+retain that line after the saved task's exclusive creation and byte verification have succeeded.
+For a shorthand edit of an existing task, emit it after the editor/check barrier and saved-target
+identity/read-back verification; this resolves the existing task and does not authorize a rename.
 
 Select exact regular JSONL files, including contributing child threads. Child threads can be
 reused across tasks and contain inherited parent messages: admit only their own responses
@@ -54,92 +65,36 @@ without implying a new investigation.
 
 ## Private manifest and collection
 
-Create a private manifest outside committed paths. Use
+Create a private manifest outside committed paths, following the
+[manifest reference](references/accounting-evidence.md#manifest). Use
 [Workflow Artifact Naming](../workflow-artifact-naming/SKILL.md) to resolve saved supporting
-artifacts before writes. Each proof uses its 1-based source line and the SHA-256 of
-canonical JSON (`json.dumps(record, sort_keys=True, separators=(',', ':'), ensure_ascii=True)`
-encoded as UTF-8). Source filenames and user text stay private; the output contains metadata.
+artifacts before writes. Every manifest must satisfy these rules:
 
-```json
-{
-  "schema": "investigation-token-usage-bindings/v1",
-  "task_artifact": "docs/tasks/TASK-example.md",
-  "sources": [{"path": "/absolute/selected-session.jsonl", "thread_id": "native-thread-id"}],
-  "bindings": [{
-    "thread_id": "native-thread-id", "turn_id": "native-turn-id",
-    "proof": {"source_line": 10, "sha256": "canonical-record-sha256"}
-  }],
-  "window": {
-    "from": "2026-10-16T10:00:00Z", "to": "2026-10-16T10:10:00Z",
-    "start": {"thread_id": "native-thread-id", "source_line": 8, "sha256": "canonical-record-sha256"},
-    "end": {"thread_id": "native-thread-id", "source_line": 100, "sha256": "canonical-record-sha256"}
-  }
-}
-```
-
-The first binding proves an exact `run <task-path>` or `edit task <task-path>` user request.
-For shorthand `run task`, `open task`, or `edit task` (case insensitive, optional `.md`),
-also supply `task_resolution` on that binding: a proof object with `thread_id`,
-`source_line`, and `sha256`. An editor command may be the first line of a user message
-followed by inline requirements; a conflicting TASK filename in that message is rejected.
-Select the native
-`event_msg` / `item_completed` record for the successful finalization command in the same
-thread and either the request turn or an explicitly verified descendant continuation turn,
-after the request and no later than the report cutoff. Its item must be a
-completed `CommandExecution` with exit code zero, an absolute `cwd` (or local `file:` URI),
-and exactly one output line `Finalized: <absolute-task-path>` matching
-`<cwd>/<task_artifact>`. During task finalization, retain that output line after the saved
-task's exclusive creation and byte verification have succeeded. For a shorthand edit of an
-existing task, emit it after the editor/check barrier and saved-target identity/read-back
-verification; this resolves the existing task and does not authorize a rename.
-For historical recordings only, a successful command whose entire output is the sole absolute
-TASK path (with an optional final newline) is also accepted. Extra output, a different path,
-or a failed, tampered, ambiguous, other-thread, unbound-turn, or out-of-window record is rejected.
-An assistant message naming a path never substitutes for command evidence. Do not synthesize a past
-record or use assistant prose, a user message, a failed command, or a different task as proof.
-If this evidence is unavailable, preserve that limitation instead of assuming which task ran.
-
-```json
-"task_resolution": {
-  "thread_id": "native-thread-id", "source_line": 20,
-  "sha256": "canonical-completed-command-record-sha256"
-}
-```
-
-For a later user revision, add another binding with `continuation_of` set to a previously bound
-turn in that thread, after independently verifying that request continues the same task. This
-explicit attribution is the agent's responsibility: a hash proves source identity, not intent.
-The helper verifies the hashed user record, turn, continuity link, and absence of a conflicting
-TASK filename. It never accepts injected AGENTS policy as a task request. List root bindings in
-continuation order; child turns are admitted from their native lineage without invented bindings.
-Resolution is checked only after every root binding is validated. A later resolution must follow
-`continuation_of` links back to the original shorthand request; an independent root, missing link,
-conflicting task, wrong-thread proof or assistant explanation never substitutes for that chain.
-Select the canonical `response_item` with `role: user`, not the adjacent `UserMessage`
-completion event. Never repair a failed hash by inventing a user record.
-
-Supply `expected_threads` as an explicit list of independently verified contributing thread IDs,
-including roots and children. The collector also detects omitted children from standard Codex
-native agent-spawn function calls and JSON results containing `agent_id`
-in admitted turns. Missing selected sources become `expected_source_missing` coverage gaps;
-unreadable selected files fail collection. Unresolved spawn results remain gaps. Other native
-spawn formats require explicit inventory verification; the helper does not scan session directories
-or prove that the supplied inventory is exhaustive. Every supplied child still needs native ancestry.
+- Each proof is a 1-based source line plus the SHA-256 of the record's canonical JSON.
+- The first binding proves the exact `run <task-path>` or `edit task <task-path>` user request.
+  A shorthand request also needs a `task_resolution` proof of the `Finalized:` command record.
+- Request proofs select the canonical `response_item` with `role: user`, not the adjacent
+  `UserMessage` completion event. Never repair a failed hash by inventing a user record.
+- A later user revision is another binding whose `continuation_of` names a previously bound
+  turn in that thread, added only after independently verifying that it continues the same
+  task. A hash proves source identity, not intent.
+- `expected_threads` is an explicit list of independently verified contributing thread IDs,
+  including roots and children. Missing selected sources become `expected_source_missing`
+  coverage gaps; every supplied child still needs native ancestry.
+- An assistant message naming a path never substitutes for command evidence. Do not synthesize a
+  past record or use assistant prose, a user message, a failed command, or a different task as
+  proof, and never invent a command or task binding to satisfy the collector. If this evidence
+  is unavailable, preserve that limitation instead of assuming which task ran.
 
 ```sh
 python3 -B skills/token-usage/scripts/collect_token_usage.py --manifest "$TOKEN_USAGE_MANIFEST"
 ```
 
 `TOKEN_USAGE_MANIFEST` is the absolute path of the private verified manifest. Capture output
-only to a resolved, authorized evidence destination. Source reads are bounded to 100 selected
-files, 64 MiB each. Malformed/conflicting evidence fails closed with a sanitized JSON diagnostic on stderr (exit 1,
-no accounting JSON on stdout), schema `investigation-token-usage-error/v1`, `status: failed`, and a
-fixed `code`. For example `user_request_required` identifies the wrong request record and
-`task_resolution_wrong_turn` an unbound resolution. `window_start_timestamp_mismatch` and
-`window_end_timestamp_mismatch` distinguish endpoint mismatch from missing turn proof.
-Structural/read failures use `invalid_local_evidence`; raw exceptions and private paths never
-enter diagnostics. Repair
-the selection or report unavailable evidence instead of relaxing validation.
+only to a resolved, authorized evidence destination. Malformed/conflicting evidence fails closed
+(exit 1, sanitized JSON diagnostic with a fixed `code` on stderr, no accounting JSON on stdout);
+see the [limits and codes](references/accounting-evidence.md#collector-limits-and-diagnostics).
+Repair the selection or report unavailable evidence instead of relaxing validation.
 
 ## Observe the report cutoff
 
@@ -153,13 +108,11 @@ python3 -B skills/token-usage/scripts/record_accounting_cutoff.py \
   --output "$CUTOFF_EVIDENCE"
 ```
 
-These IDs must come from the canonical root request/continuation being processed. Resolve
-`CUTOFF_EVIDENCE` to a new absolute private evidence path with existing real parent directories.
-The recorder exclusively writes owner-only evidence using the current UTC time, has no timestamp
-argument, and prints its raw-byte SHA-256, path and exact `observed_at`. Copy that timestamp to
-`window.to`; use `{ "kind": "checkpoint", "path": "/absolute/cutoff.json", "sha256": "..." }`
-for `window.end`. Collection checks the hash, schema, purpose, task, admitted root turn and exact
-timestamp. Its sanitized output retains endpoint proofs without the private file path.
+Resolve `CUTOFF_EVIDENCE` to a new absolute private evidence path with existing real parent
+directories. The recorder prints its raw-byte SHA-256, path and exact `observed_at`. Copy that
+timestamp to `window.to`; use `{ "kind": "checkpoint", "path": "/absolute/cutoff.json", "sha256": "..." }`
+for `window.end`. ID requirements and collection checks are in the
+[checkpoint reference](references/accounting-evidence.md#checkpoint-cutoff-verification).
 
 This observes a present boundary; it cannot restore a missing historical observation. Never run
 it to fabricate a past cutoff, replace a frozen timestamp with now, or round a cutoff to the
@@ -171,15 +124,9 @@ an authentic original boundary source can be supported. Publication preserves th
 - Sum unique native `token_usage_record.usage` responses once, including identified compaction.
   Prefer those records over overlapping `token_count` notifications. Cached input is already
   inside input, reasoning output is already inside output, and total is input plus output.
-- A request may start partway through a native turn that includes earlier editor/setup work.
-  The collector uses the latest same-turn, same-lineage native counter before the window
-  only to reconcile the first included response. It records that baseline's proof metadata,
-  never adds its tokens, and preserves actual counter mismatches as coverage gaps. Legacy
-  counter-only deltas still cannot cross the window start.
-- When native usage is absent for an entire turn, the helper uses only nonnegative deltas
-  between consecutive cumulative snapshots in that same turn. Missing baselines, resets,
-  and deltas crossing the selected window's start remain gaps. Never sum snapshots, inherited
-  history, or last-context counts as request usage.
+- Never sum snapshots, inherited history, or last-context counts as request usage. Baseline
+  and cumulative-snapshot handling is in
+  [counter reconciliation](references/accounting-evidence.md#counter-reconciliation).
 - Retain total tokens, input/output/cached/reasoning breakdowns, root/child populations,
   contributing sessions/models, and coverage in supporting evidence. Null fields remain
   unavailable; partial coverage is an observed subtotal. Compaction is a subset, not an
@@ -187,15 +134,12 @@ an authentic original boundary source can be supported. Publication preserves th
 - Preserve incomplete-coverage status, missing sessions/counters/boundaries, and exclusions
   in that evidence. Keep separately billed Grafana Assistant or other service usage separate
   unless compatible units and non-overlap are verified. Never reuse historical tokens as a
-  new investigation's usage or invent a command or task binding to satisfy the collector.
+  new investigation's usage.
 - Retain source/record hashes, native IDs, source-line references, exact cutoff, field coverage,
   and exclusions in sanitized supporting evidence. Do not copy prompts, tool payloads,
   encrypted content, credentials, or private source-store paths into deliverables. Preserve raw
   local transcripts outside Git and save only minimal accounting evidence with local report assets.
 - Do not estimate cost or model execution time.
-
-The helper currently supports Codex JSONL. Other hosts require a verified adapter; never
-reinterpret another provider's counters using Codex semantics.
 
 ## Render the limited token usage report
 
@@ -245,30 +189,24 @@ arguments, JSON contains `subheading` and `details`; put the former directly und
 the latter at the end of the canonical report. Without metadata arguments the helper renders only
 details (`subheading: null`). Markdown output is also available. Reuse these same sections when
 regenerating selected formats, then apply the owning delivery and evidence checks.
-The renderer reconciles response/session totals and duration before rendering. A successful
-partial collection displays its recorded subtotal, keeping coverage diagnostics in supporting
-evidence. Empty telemetry remains unavailable. A failed collector diagnostic or malformed/
-conflicting accounting file is rejected with nonzero exit and sanitized stderr, never converted
-into a successful report with permanent null values. Save that failure separately; repair and
-recollect before rendering recovered usage. A schema check cannot authenticate an arbitrary
-hand-authored JSON file: retain the successful collector receipt and original evidence proofs.
 
-Render the collector's numeric fields and session/model rows from the saved accounting data;
-do not hard-code `unavailable` in a renderer after records have been recovered.
+- The renderer reconciles response/session totals and duration before rendering. A successful
+  partial collection displays its recorded subtotal, keeping coverage diagnostics in supporting
+  evidence. Empty telemetry remains unavailable.
+- A failed collector diagnostic or malformed/conflicting accounting file is rejected with
+  nonzero exit and sanitized stderr, never converted into a successful report with permanent
+  null values. Save that failure separately; repair and recollect before rendering recovered
+  usage.
+- A schema check cannot authenticate an arbitrary hand-authored JSON file: retain the
+  successful collector receipt and original evidence proofs.
+- Render the collector's numeric fields and session/model rows from the saved accounting data;
+  do not hard-code `unavailable` in a renderer after records have been recovered.
+
 Read the saved Markdown and, when selected, PDF back: the final section and any subheading must agree across
 formats on totals, duration, start/cutoff, and the recorded population. Compare displayed values and the
 session/model table with the supporting evidence. Verify that the section ends at that table
 and that omitted diagnostics have not reappeared elsewhere. When PDF is selected, check the rendered PDF for
 readable labels and tables. A presentation change does not change historical accounting data.
-
-## Provenance
-
-The attribution, deduplication, compaction, legacy-delta, and duration rules follow Agent Tasks
-at commit `f274648836361bfa05a62f86d88a0191a708632f`:
-[analysis-processing.md](https://github.com/orenlion1/agent-tasks/blob/f274648836361bfa05a62f86d88a0191a708632f/skills/agent-task/references/analysis-processing.md)
-and [collect_local_usage.py](https://github.com/orenlion1/agent-tasks/blob/f274648836361bfa05a62f86d88a0191a708632f/skills/agent-task/scripts/collect_local_usage.py).
-This focused implementation adds investigation request/continuation bindings and observed
-conversation endpoints. It does not invoke the Agent Tasks lifecycle or alter frozen logs.
 
 ## Common Rationalizations
 

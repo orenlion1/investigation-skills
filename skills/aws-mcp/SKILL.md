@@ -1,15 +1,15 @@
 ---
 name: aws-mcp
-description: Authenticate a supplied AWS profile with browser sign-in when needed, wait for completion, verify AWS MCP access, and investigate root causes through scoped AWS resource queries. Use when handling AWS MCP connectivity, expired sessions, and read-only AWS troubleshooting.
+description: "Authenticate a supplied AWS profile, including browser sign-in, verify AWS MCP access, and investigate root causes with scoped read-only AWS queries. Use when handling AWS MCP connectivity, expired sessions, or read-only AWS troubleshooting."
 ---
 
 # AWS MCP Authentication and Investigation
 
 ## Overview
 
-Accept an AWS profile, such as `production-readonly`, for authentication or a read-only
-root-cause investigation. The example profile is not a default. Keep profile login,
-CLI identity, MCP identity, resource access, and diagnostic findings separate.
+Accept an AWS profile, such as `production-readonly` (an example, not a default), for
+authentication or a read-only root-cause investigation. Keep profile login, CLI identity,
+MCP identity, resource access, and diagnostic findings separate.
 
 Example agent requests:
 
@@ -49,7 +49,7 @@ outside the allowlist blocks that login; do not override it to make login succee
 Use global calls only when necessary, without discovering or enabling other Regions.
 
 Use task-local variables and explicit arguments; preserve defaults and unrelated
-settings. The following placeholders must be replaced with resolved values:
+settings. Replace the placeholders with resolved values:
 
 ```bash
 AWS_TASK_PROFILE='<selected-profile>'
@@ -63,9 +63,9 @@ aws sts get-caller-identity --profile "$AWS_TASK_PROFILE" \
 ```
 
 Missing tools are setup work under repository Required Dependencies: reuse working
-installations, otherwise use
-documented user-scoped installers and verify versions. `aws login` needs AWS CLI
-2.32.0 or later. Report installed/updated tools, sources, and runtime changes.
+installations, otherwise use documented user-scoped installers and verify versions.
+`aws login` needs AWS CLI 2.32.0 or later. Report installed/updated tools, sources,
+and runtime changes.
 
 ## Open sign-in and wait
 
@@ -74,14 +74,13 @@ or the task requires renewal, start the selected profile's supported flow within
 that authorization without asking for duplicate permission. A status-only or
 explicit no-login request stops at the diagnostic result.
 
-An absent AWS MCP tool or connection does not defer this authentication step. After resolving
-the profile, its login method, and allowed resource and SSO Regions, recover expired credentials
-through the supported flow while preparing permitted MCP setup independently. Before declaring
-AWS unavailable, record an authentication attempt or its explicit blocker and a separate
-connection/tool setup attempt or blocker. Honor the status-only/no-login exception and existing
-credential-owner and setup safeguards; never change authentication methods or weaken controls
-to make either step succeed. Keep authentication, MCP identity, and resource-read verification
-as separate reported outcomes, including a pending sign-in or required host reload.
+An absent AWS MCP tool or connection does not defer authentication. After resolving
+the profile, its login method, and allowed resource and SSO Regions, recover expired
+credentials through the supported flow while preparing permitted MCP setup independently.
+Before declaring AWS unavailable, record an authentication attempt or its explicit
+blocker and a separate connection/tool setup attempt or blocker. The status-only/no-login
+exception and the credential-owner and setup safeguards still apply; never change
+authentication methods or weaken controls to make either step succeed.
 
 - **IAM Identity Center:** after validating its configured SSO Region, run
   `aws sso login --profile "$AWS_TASK_PROFILE" --region "$AWS_TASK_REGION"`.
@@ -130,15 +129,12 @@ the profile is allowed. `AWS_MCP_PROXY_PROFILES` overrides `--profile` and
 `AWS_PROFILE`; check for conflicts. Never assume changing shell environment changes
 an already-running MCP process.
 
-When required, configure a narrowly scoped profile-bound MCP connection using the
-host's supported configuration mechanism and a verified released proxy version.
-Preserve other connections and defaults. The official proxy supports `--profile`
-and `--region`; use an official endpoint in the resolved allowed Region, such as
-`https://aws-mcp.us-east-1.api.aws/mcp`. Reconnect through the host when needed.
-Use read-only credentials where available and inspect proxy `--help` for compatible
-read-only controls. Tool filtering alone does not make arbitrary scripts read-only:
-review every script and API operation before execution. Do not disable protections
-to expose a missing tool, weaken TLS, use unsigned requests, or broaden IAM access.
+When a profile-bound connection must be configured, follow
+[references/mcp-connection-setup.md](references/mcp-connection-setup.md), which also
+lists the official sources for version-sensitive login and setup. Use read-only
+credentials where available. Tool filtering alone does not make arbitrary scripts read-only: review every script and
+API operation before execution. Do not disable protections to expose a missing
+tool, weaken TLS, use unsigned requests, or broaden IAM access.
 
 Through the selected MCP connection, invoke STS `GetCallerIdentity` using the live
 schema (for example, a minimal identity script if `run_script` is exposed). Compare
@@ -192,18 +188,11 @@ Workflow Artifact Naming, Token Usage, and required Markdown/PDF report contract
 
 Report the selected profile, verified account/principal, MCP connection, Regions,
 resource IDs, observation time/window, queries, result limits, and access failures.
-Distinguish login success, CLI identity, MCP identity, object access, and behavioral
-evidence. Successful login is not proof of MCP access or root cause.
-When the MCP tool is absent, report authentication recovery and connection setup separately;
-do not replace an authorized renewal attempt with an immediate capability-unavailable result.
-
-Consult current installed help and official sources for version-sensitive setup:
-
-- [AWS MCP setup](https://docs.aws.amazon.com/agent-toolkit/latest/userguide/getting-started-aws-mcp-server.html)
-- [MCP profile routing](https://docs.aws.amazon.com/agent-toolkit/latest/userguide/multi-account-access.html)
-- [Official MCP proxy](https://github.com/aws/mcp-proxy-for-aws)
-- [SSO login](https://docs.aws.amazon.com/cli/latest/reference/sso/login.html)
-- [Console login](https://docs.aws.amazon.com/cli/latest/reference/login/)
+Report login success, CLI identity, MCP identity, object access, and behavioral
+evidence as separate outcomes, including a pending sign-in or required host reload.
+Successful login is not proof of MCP access or root cause. When the MCP tool is
+absent, report authentication recovery and connection setup separately; do not
+replace an authorized renewal attempt with an immediate capability-unavailable result.
 
 ## Common Rationalizations
 

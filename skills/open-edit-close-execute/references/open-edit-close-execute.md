@@ -18,7 +18,6 @@ continuation procedure; a successful barrier does not expand that scope.
   required outputs made explicit before execution. They must not modify the open input or expose
   credentials. They join the same success barrier; they do not add hidden prerequisite blocks or
   a second configuration source. The caller retains ownership of their procedure and settings.
-
 - **Continuation (optional):** A caller-owned procedure for processing the saved requirements within
   its authorized scope. When none is supplied, process the saved input's requirements directly
   under the current user instruction and governing policies. This is agent work, not permission
@@ -50,10 +49,9 @@ only materialize a missing file under the generic procedure's exclusive no-clobb
 
 Also start eligible additional caller checks after the editor opens, concurrently with configured
 prerequisites where dependencies permit. Validate their dependencies and applicability before
-starting them. Retain every handle. A check starts only when all dependencies succeeded; checks
-eligible together run concurrently, with deterministic start/result reporting. Invalid dependency
-or applicability information blocks checks rather than allowing partial execution. No check may
-write to the open input.
+starting them; invalid dependency or applicability information blocks checks rather than allowing
+partial execution. Retain every handle. A check starts only when all dependencies succeeded; checks
+eligible together run concurrently, with deterministic start/result reporting.
 
 ## Wait for the Barrier
 
@@ -72,8 +70,7 @@ Readiness requires all of the following:
 
 If the editor finishes first, reread the saved file and await the checks. If checks finish first,
 await the editor and then reread the saved file. Recheck the target before execution when checks
-finished later, so execution uses the saved file actually observed. Do not run the caller's
-next step while either side of the barrier is pending.
+finished later, so execution uses the saved file actually observed.
 
 ## Execute the Saved Requirements
 

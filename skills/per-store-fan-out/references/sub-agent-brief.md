@@ -4,9 +4,8 @@ Copy this template verbatim. The resolved block and output contract are identica
 every brief of a run; only Store, Integration skill, and Store-specific questions change.
 Placeholders in angle brackets are the only editable text.
 
-The manifest schema, the launch-mode vocabulary and the harness mechanics are not here: they
-belong to the [shared delegation contract](delegation-contract.md), which every delegating skill
-in this catalog uses. This file owns only the store brief and the store conformity checklist.
+The manifest schema, launch-mode vocabulary and harness mechanics stay in the
+[shared delegation contract](delegation-contract.md).
 
 ## Brief template
 

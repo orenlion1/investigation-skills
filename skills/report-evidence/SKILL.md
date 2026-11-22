@@ -1,6 +1,6 @@
 ---
 name: report-evidence
-description: Build and verify the evidence record of an investigation report before delivery — the Evidence index with its canonical Source snapshot, linked E1/E2 citation identifiers beside material claims, verified-versus-inferred labeling, bounded negative findings, and the required evidence-backed data pattern graphs. Use when assembling, citing, or verifying report evidence or checking a report's evidence discipline before delivery.
+description: "Build and verify an investigation report's evidence record before delivery, covering the Evidence index and its Source snapshot, E1/E2 citations beside material claims, verified-versus-inferred labels, bounded negative findings, and evidence-backed data pattern graphs. Use when assembling, citing, or checking report evidence."
 ---
 
 # Report Evidence

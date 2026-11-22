@@ -1,6 +1,6 @@
 ---
 name: release-it
-description: Release investigation-skills on GitHub. Use when the user says run release-it or requests a new repository release. Validate version metadata, complete the protected PR and annotated tag workflow, verify exact-SHA CI, and publish curated GitHub release notes.
+description: "Release the investigation-skills repository on GitHub through its protected pull request, annotated tag, exact-SHA CI and curated release notes. Use when the user says `run release-it` or asks for a new repository release."
 ---
 
 # Release It
