@@ -120,7 +120,7 @@ Optional lines in the task's Resources section adjust how a run behaves:
 | --- | --- | --- |
 | `Publish: <page or repository>` | none | Where the report is published; repeat the line for several destinations. Best set once in a profile — see [Publish the report](#publish-the-report). Publishing still needs your request. |
 | `Grafana Assistant: disabled` | enabled | Skips Grafana Assistant prompts, which can incur fees beyond ordinary Grafana usage; direct queries still run. |
-| `Fan-out: disabled` | enabled | Investigates in one session instead of parallel sub-agents. |
+| `Fan-out: disabled` | enabled | Investigates in one session instead of parallel sub-agents. Can be saved in a profile. |
 | `Generate PDF: disabled` | enabled | Produces the Markdown report only. |
 | `Rhyming endpoints: <JSON>` | none | Past investigations, pages, channels, or repositories to search for similar incidents. |
 | `Rhyming historical window days: <n>` | `7` | How far back that search looks. |
