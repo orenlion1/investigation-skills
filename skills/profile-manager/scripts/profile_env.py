@@ -817,7 +817,7 @@ def command_load(arguments, context):
     lines = text.splitlines()
     start, end = section_bounds(lines, 'task')
     section = lines[start + 1:end]
-    task_values, preserved = task_fields(section, context['schema'])
+    task_values, _ = task_fields(section, context['schema'])
     known.update(task_values)
     known.update(explicit_fields(arguments.field, context['schema']))
     bullets = render_section(context['schema'], known)
@@ -828,9 +828,9 @@ def command_load(arguments, context):
     if supplied and not arguments.replace:
         raise ProfileError('task Resources already supplies ' + ', '.join(supplied) +
                            '; re-run with --replace to rewrite while preserving user fields')
-    resources = bullets + [line for line in preserved if line.startswith('- ')]
-    updated = (lines[:start + 1] + [''] + bullets + preserved
-               + ([''] if end < len(lines) else []) + lines[end:])
+    section = replace_resource_bullets(section, bullets, context['schema'])
+    resources = [line for line in section if line.startswith('- ')]
+    updated = lines[:start + 1] + section + lines[end:]
     body = '\n'.join(updated) + ('\n' if text.endswith('\n') or not text else '')
     result = {'profile': arguments.profile, 'task': str(task_path), 'fields': known,
               'unknown_fields': unknown, 'resources': resources, 'replaced': bool(supplied),
@@ -843,6 +843,37 @@ def command_load(arguments, context):
             raise ProfileError('task Resources did not read back as written: ' + str(task_path))
         result['verified'] = True
     return result
+
+
+def replace_resource_bullets(section, bullets, schema):
+    """Replace known fields in place, retaining surrounding prose and whitespace."""
+    labels = {squash(bullet['label']) for bullet in schema['bullets']}
+
+    def field(line):
+        return squash(line[2:].split(':', 1)[0]) if line.startswith('- ') else None
+
+    pending = {}
+    for bullet in bullets:
+        pending.setdefault(field(bullet), []).append(bullet)
+    positions = [index for index, line in enumerate(section) if field(line) in labels]
+    updated = []
+    for index, line in enumerate(section):
+        key = field(line)
+        if key in labels:
+            updated.extend(pending.pop(key, []))
+        else:
+            updated.append(line)
+        # Fields absent from the task join the end of its existing resource list.
+        if positions and index == positions[-1]:
+            updated.extend(bullet for group in pending.values() for bullet in group)
+            pending.clear()
+    if pending:
+        # An empty/prose-only section has no existing bullet position to replace.
+        if not updated or updated[-1].strip():
+            updated.append('')
+        updated.extend(bullet for group in pending.values() for bullet in group)
+        updated.append('')
+    return updated
 
 
 def explicit_fields(assignments, schema):

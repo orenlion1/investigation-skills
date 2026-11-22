@@ -141,6 +141,10 @@ saved in the task; profile fields; defaults. A template placeholder counts as ab
   label is not in the template. `--replace` only permits rewriting a section that already
   holds actual values. Later loads treat saved task values as user configuration: change them
   in the editor or with a newer `--field`. Task values never modify the store.
+- Loading replaces recognized resource bullets in place, preserving introductory guidance,
+  comments, blank lines and unknown bullets. Fields missing from the task are added at the
+  end of its recognized resource list; list values expand at their original field position.
+  A section without recognized bullets receives the resource list after its existing prose.
 - Known scalar duplicates, malformed bullets and invalid values in a task fail before writes.
   Repeated bullets of a list field form one validated list.
 - Invalid stored values fail before an override can mask them.
