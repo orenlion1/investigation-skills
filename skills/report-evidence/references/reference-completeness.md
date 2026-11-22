@@ -62,7 +62,7 @@ the registry establishes whole-report reference completeness.
 ## Run before delivery and before publication writes
 
 Use Python 3.10+ in an isolated environment. Install only the pinned requirements from this complete
-skill folder; reuse a compatible environment when present. For Generate PDF F, install only
+skill folder; reuse a compatible environment when present. For Generate PDF `disabled`, install only
 `scripts/requirements-markdown.txt` from this folder and pass only selected Markdown/HTML artifacts;
 PyMuPDF is lazily imported only for a selected PDF. Full repository CI/release tests still use
 `requirements.txt`. See the [format contract](../../open-edit-close-execute/references/investigation-delivery.md#report-formats). Markdown parsing uses markdown-it-py

@@ -193,18 +193,49 @@ The explicit `grafana-assistant-search` kind permits a scoped billable Assistant
 validation; profile reads/writes never launch a prompt. `grafana-assistant-conversations`
 continues to read existing history only. Honor `Grafana Assistant: disabled` during execution.
 
+## Settings contract
+
+Template bullets are either **resources** (what to investigate or where to publish) or
+**settings** (how a run behaves). Every on/off setting is a toggle with one shared contract:
+
+| Field | Task bullet | Default | Legacy values |
+| --- | --- | --- | --- |
+| `GENERATE_PDF` | `Generate PDF` | `enabled` | `T` = `enabled`, `F` = `disabled` |
+| `GRAFANA_ASSISTANT` | `Grafana Assistant` | `enabled` | none |
+
+- **Values.** Only exact lowercase `enabled` or `disabled`. Other case, boolean words,
+  numbers and surrounding whitespace are errors and fail before any write.
+- **Schema.** `schema` reports each toggle as `type: enum`, `enum: [enabled, disabled]`, its
+  `default`, and `resource: false`; a toggle with legacy values also reports `legacy_values`.
+- **Precedence.** An explicit `--field` override, then the saved task value, then the profile,
+  then the default. A template placeholder counts as absent.
+- **Task form.** A task bullet may quote the value or write it bare
+  (`- Generate PDF: disabled`); loading renders the quoted form.
+- **Persistence.** New or updated nonempty profiles persist a missing default, except when
+  the field is explicitly cleared with an empty `set` value, which restores the default.
+- **Legacy values.** A legacy value in a command, a stored profile or a saved task resolves to
+  its canonical value. Reads never rewrite the store; the next update of that profile, and
+  any load into a task, writes the canonical value.
+- **Not a resource.** A toggle alone is configuration: it never satisfies the
+  actual-resource requirement, triggers the supplied-resource overwrite guard, or authorizes
+  an investigation, a query or a publication.
+
+A new on/off setting joins this contract by adding its template bullet and its entry in the
+helper's toggle table; it does not define its own value vocabulary. Task-only controls owned
+by other skills, such as `Fan-out: disabled`, use the same two words.
+
 ## Generate PDF
 
-`GENERATE_PDF` derives from the template's **Generate PDF** Resources bullet. Only exact
-`T` or `F` is valid; lowercase, boolean words and whitespace are errors. An empty `set`
-assignment clears the stored key and restores the effective default `T`. Explicit task
-value overrides the selected profile, which overrides absent-value default `T`.
+`GENERATE_PDF` derives from the template's **Generate PDF** Resources bullet and follows the
+[settings contract](#settings-contract): exact `enabled` or `disabled`, default `enabled`.
+The earlier `T` and `F` values remain accepted as legacy input and resolve to `enabled` and
+`disabled`; they are never written again.
 
-New/updated nonempty profiles persist missing `T` (except on explicit clearing); legacy
-read-only show/render/load resolves `T` without rewriting the store. `show` distinguishes
-stored `fields` from `effective_generate_pdf`; custom templates without the field do not
-materialize it. Invalid stored settings fail before writes, including when a task overrides.
-A toggle or historical-window setting alone is configuration, never an actual resource.
+Profiles without the field resolve `enabled` on show/render/load without rewriting the store.
+`show` distinguishes stored `fields` from `effective_generate_pdf`; custom templates without
+the field do not materialize it. Invalid stored settings fail before writes, including when a
+task overrides. A toggle or historical-window setting alone is configuration, never an actual
+resource.
 
 Render includes the effective choice alongside actual resources. Load preserves an explicit
 task `Generate PDF` value even with `--replace`; duplicate or invalid task values fail
@@ -214,12 +245,12 @@ Loading a finalized task remains subject to the editor contract. Repeated loads 
 same inputs and `--replace` produce the same bytes. Unrelated store lines remain untouched.
 
 ```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field GENERATE_PDF=F
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field GENERATE_PDF=disabled
 python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
 ```
 
-Resolve this choice before report dependencies: T generates/verifies the current PDF;
-F retains verified Markdown, evidence and required graphs, skips PDF-only tooling/checks,
+Resolve this choice before report dependencies: `enabled` generates/verifies the current PDF;
+`disabled` retains verified Markdown, evidence and required graphs, skips PDF-only tooling/checks,
 and preserves older PDFs as historical. Record the choice with the saved report so later
 publication honors it without attaching stale companions. Configuration never authorizes
 an investigation or publication.
@@ -342,7 +373,7 @@ The effective task Resources are:
 - Publish: `https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations`
 - Rhyming endpoints: `[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]`
 - Rhyming historical window days: `7`
-- Generate PDF: `T`
+- Generate PDF: `enabled`
 ```
 
 
@@ -407,8 +438,8 @@ explicit publish request remains required.
 
 ## Grafana Assistant
 
-`GRAFANA_ASSISTANT` derives from the template's **Grafana Assistant** bullet. Only exact
-`enabled` or `disabled` is valid; absent values default to `enabled`. New or updated
+`GRAFANA_ASSISTANT` derives from the template's **Grafana Assistant** bullet and follows the
+[settings contract](#settings-contract): exact `enabled` or `disabled`, default `enabled`. New or updated
 nonempty profiles persist a missing default, except when explicitly cleared with an empty
 `set` value. Legacy read-only operations resolve the default without rewriting the store.
 `show` distinguishes stored fields from `effective_grafana_assistant`; custom templates

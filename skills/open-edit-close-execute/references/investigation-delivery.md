@@ -68,19 +68,20 @@ pass. Final delivery distinguishes completed findings from outstanding evidence/
 
 Resolve the effective Generate PDF choice before PDF dependency setup, rendering or verification,
 using [Profile Manager's contract](../../profile-manager/references/profile-store.md#generate-pdf).
-For a finalized task use its validated saved Resources choice (explicit task > profile > absent T).
+For a finalized task use its validated saved Resources choice (explicit task > profile > absent `enabled`).
 Reject invalid or duplicate values before report work; a toggle alone is never a resource.
 
-Always produce verified Markdown with the required evidence and graphs. Record `Generate PDF: T`
-or `Generate PDF: F` in the saved report's delivery metadata, its source revision/hash and the
-produced/skipped formats. T generates and verifies a PDF companion from the same saved source,
-including reference coverage and readable layout. F skips PDF rendering, PDF-only dependencies,
+Always produce verified Markdown with the required evidence and graphs. Record `Generate PDF: enabled`
+or `Generate PDF: disabled` in the saved report's delivery metadata, its source revision/hash and the
+produced/skipped formats. Read a legacy saved `T` as `enabled` and `F` as `disabled`. `enabled`
+generates and verifies a PDF companion from the same saved source,
+including reference coverage and readable layout. `disabled` skips PDF rendering, PDF-only dependencies,
 PDF-only reference checks and pagination checks; all Markdown/evidence/graph gates still apply.
 A historical PDF is preserved, identified as historical and excluded from new companions and
 current artifact links. Never delete it or infer freshness from the filename. Resolve only the
 formats being produced through Workflow Artifact Naming, and read back those outputs.
 
 Later authorized publication consumes that saved format decision and same-source inventory;
-it does not refresh the investigation, timer or accounting cutoff. F needs no PDF attachment,
+it does not refresh the investigation, timer or accounting cutoff. `disabled` needs no PDF attachment,
 preview or download card. A changed task/profile cannot silently reinterpret a frozen report:
 reconcile a conflict before dependent writes. Publication still requires separate authorization.

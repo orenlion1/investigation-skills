@@ -231,7 +231,7 @@ subset labels remain part of the compact presentation.
 
 Update the canonical report source and regenerate each selected deliverable format under the
 [delivery contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats).
-Generate PDF F skips PDF-only work; preserve historical PDFs without updating or claiming them.
+Generate PDF `disabled` skips PDF-only work; preserve historical PDFs without updating or claiming them.
 Use the [shared renderer](scripts/render_token_usage.py) for the saved successful collector JSON:
 
 ```sh

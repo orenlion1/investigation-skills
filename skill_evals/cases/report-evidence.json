@@ -52,7 +52,7 @@
     {
       "id": 3,
       "kind": "dialogue",
-      "prompt": "Generate PDF is F; verify the Markdown and composed HTML evidence while a stale PDF remains on disk.",
+      "prompt": "Generate PDF is disabled; verify the Markdown and composed HTML evidence while a stale PDF remains on disk.",
       "expected_output": "Runs reference completeness for the selected Markdown and HTML using Markdown-only dependencies; Does not install or require PyMuPDF, render PDF or check the stale PDF; Retains evidence index, canonical Source, citations and required data-pattern graphs.",
       "expectations": [
         "Runs reference completeness for the selected Markdown and HTML using Markdown-only dependencies",

@@ -251,16 +251,16 @@ Profile operations do not send prompts; history-only kinds retain list/get behav
 
 ## Generate PDF
 
-`GENERATE_PDF` derives from the template's **Generate PDF** Resources bullet. Only exact
-`T` or `F` is valid; lowercase, boolean words and whitespace are errors. An empty `set`
-assignment clears the stored key and restores the effective default `T`. Explicit task
-value overrides the selected profile, which overrides absent-value default `T`.
+`GENERATE_PDF` derives from the template's **Generate PDF** Resources bullet and follows the
+[settings contract](references/profile-store.md#settings-contract): exact `enabled` or `disabled`, default `enabled`.
+The earlier `T` and `F` values remain accepted as legacy input and resolve to `enabled` and
+`disabled`; they are never written again.
 
-New/updated nonempty profiles persist missing `T` (except on explicit clearing); legacy
-read-only show/render/load resolves `T` without rewriting the store. `show` distinguishes
-stored `fields` from `effective_generate_pdf`; custom templates without the field do not
-materialize it. Invalid stored settings fail before writes, including when a task overrides.
-A toggle or historical-window setting alone is configuration, never an actual resource.
+Profiles without the field resolve `enabled` on show/render/load without rewriting the store.
+`show` distinguishes stored `fields` from `effective_generate_pdf`; custom templates without
+the field do not materialize it. Invalid stored settings fail before writes, including when a
+task overrides. A toggle or historical-window setting alone is configuration, never an actual
+resource.
 
 Render includes the effective choice alongside actual resources. Load preserves an explicit
 task `Generate PDF` value even with `--replace`; duplicate or invalid task values fail
@@ -270,12 +270,12 @@ Loading a finalized task remains subject to the editor contract. Repeated loads 
 same inputs and `--replace` produce the same bytes. Unrelated store lines remain untouched.
 
 ```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field GENERATE_PDF=F
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field GENERATE_PDF=disabled
 python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
 ```
 
-Resolve this choice before report dependencies: T generates/verifies the current PDF;
-F retains verified Markdown, evidence and required graphs, skips PDF-only tooling/checks,
+Resolve this choice before report dependencies: `enabled` generates/verifies the current PDF;
+`disabled` retains verified Markdown, evidence and required graphs, skips PDF-only tooling/checks,
 and preserves older PDFs as historical. Record the choice with the saved report so later
 publication honors it without attaching stale companions. Configuration never authorizes
 an investigation or publication.
@@ -322,8 +322,9 @@ and cardinality after user overrides, then routes multiple channels to
 
 ## Grafana Assistant
 
-`GRAFANA_ASSISTANT` derives from the template's **Grafana Assistant** bullet. Only exact
-`enabled` or `disabled` is valid; absent values default to `enabled`. New or updated
+`GRAFANA_ASSISTANT` derives from the template's **Grafana Assistant** bullet and follows the
+[settings contract](references/profile-store.md#settings-contract) shared by every toggle:
+exact `enabled` or `disabled`, default `enabled`. New or updated
 nonempty profiles persist a missing default, except when explicitly cleared with an empty
 `set` value. Legacy read-only operations resolve the default without rewriting the store.
 `show` distinguishes stored fields from `effective_grafana_assistant`; custom templates
