@@ -1,6 +1,6 @@
 ---
 name: rovo-dev-mcp
-description: Establish and validate connectivity to Atlassian resources in Bitbucket, Jira, and Confluence through Rovo MCP v2. Use when asked to authenticate, diagnose OAuth or MCP errors, configure separate product grants, or retrieve a repository, ticket, or page to verify access. Also use for Bitbucket workspace, repository, file, branch, pull request, pipeline, or deployment discovery; treat "bb" as Bitbucket only after the hosting provider is established.
+description: 'Establish and validate access to Atlassian resources in Bitbucket, Jira and Confluence through Rovo MCP v2. Use when asked to authenticate, diagnose OAuth or MCP errors, configure separate product grants, or retrieve a repository, ticket or page to verify access, and for Bitbucket workspace, repository, file, branch, pull request, pipeline or deployment discovery. Treat "bb" as Bitbucket only once the hosting provider is established.'
 ---
 <!-- source: self; self-authored: self; managed-by: https://github.com/orenlion1/dotfiles; sync-from: https://github.com/orenlion1/dotfiles; dotfiles-sync-date: 2026-08-30; dotfiles-sync-commit: 42a3e852aa9d6786e9e7f27e3fc77790fea09ffd -->
 
@@ -71,97 +71,78 @@ node "$ROVO_BITBUCKET_HELPER" discover 'list accessible Bitbucket workspaces' --
 node "$ROVO_BITBUCKET_HELPER" call-tool executeRead '{"cloudId":"<cloudId>","name":"<operation from discover>","inputs":{}}' --oauth-cache "$ROVO_BITBUCKET_OAUTH_CACHE"
 ```
 
-For a direct v2 primary or deferred tool call, use its live schema:
-
-```bash
-node "$ROVO_BITBUCKET_HELPER" call-tool <toolName> '<jsonArgs>' --oauth-cache "$ROVO_BITBUCKET_OAUTH_CACHE"
-```
-
-The helper also accepts `--env PATH`, `--mcp-config PATH`, and `--url URL`. It has no project,
-repository, or workspace default. Every authentication source is restricted to the exact official
-v2 endpoint or its `?tools=all` catalog variant. Other URLs are rejected before environment files,
-credential configuration, OAuth caches, or Keychain credentials are read. Each MCP request, including
-response-body reading, has a 30-second deadline; a multi-request command can take longer overall.
-OAuth cache entries are opened without following symlinks, then validated and read through the
-same file descriptor; runtimes without that filesystem protection fail closed.
-
-## Authentication and Connectivity
-
-Read [Bitbucket access and recovery](references/bitbucket-access.md) for initial authorization,
-missing Bitbucket tools, OAuth request failures, and persistent client setup.
-Keep authentication, authorization, tool availability, and a successful repository read separate.
-
-Check the selected connection and credential source first. Reuse working authentication and let
-the owning OAuth client refresh an expired token; a successful refresh needs no user sign-in.
-Assess each requested product independently: Jira-only access is partial authentication when
-Bitbucket or Confluence is also required. A missing product in `resources` or `discover`, or an
-absent dedicated credential cache, starts that product's scoped recovery below; it is not a
-terminal capability blocker. Create missing dedicated metadata under the separate-grant contract
-and start its supported OAuth flow, preserving working product grants and existing cache metadata.
-Do not overwrite conflicting metadata, change the selected provider, or try another credential
-source as an implicit fallback. A hosted connection uses its own Connect/Reconnect control;
-do not claim a local grant repaired it. Honor status-only/no-login instructions and report an
-explicit setup or consent blocker when recovery cannot proceed.
-When interactive authorization is required, start the selected client's supported sign-in flow
-within the task's authorization, honoring any applicable prerequisite login barrier. Use the
-[scoped MCP OAuth flow](references/bitbucket-access.md#establish-scoped-mcp-oauth) for the selected
-local product cache, or the selected hosted connection's own Connect/Reconnect flow. Preserve
-separate Bitbucket and Jira/Confluence grants and request only the product scopes needed by the
-task. Do not substitute a generic Rovo Dev CLI login for MCP consent.
-
-Open the sign-in page in the user's default browser (`open` on macOS, `xdg-open` on Linux,
-`start` on Windows) and promptly give the user a clickable authorization link issued by that
-active flow — the printed link is the fallback when a browser cannot be opened. Name the product and connection and
-say which read will resume; do not wait for a timeout or assume a window appeared. Keep the
-client and callback listener running while the user signs in. Follow the recovery guide's
-[authorization-link handoff](references/bitbucket-access.md#authorization-link-handoff) for URL
-validation, output filtering, and an unavailable or expired link. If the host exposes only a
-Connect/Reconnect control, identify that control; never fabricate a sign-in URL.
-
-Let the client handle credentials and callbacks; never ask for passwords, tokens, authorization
-codes, or callback URLs in chat. If the selected source is a configured API token or Basic header,
-ask the user to renew it through its existing secure credential mechanism; browser OAuth does not
-repair that selected source. Do not bypass credential precedence or silently change auth methods.
-Let the user complete the secure browser prompt and consent. If the flow cannot be started here,
-explain why and provide the actual client's command with resolved cache and metadata paths, or
-the selected host's connection control.
-
-Wait for user completion before dependent reads, then recheck the same source and product grant,
-refresh the MCP connection if needed, and repeat resources, discovery, and the requested bounded
-read. A completion message or successful login alone is not proof of product access. Skip login
-prompts when authentication works; investigate explicit missing scopes or permission failures
-through the separate-grant workflow. For an explicit status-only or no-login request, report the
-blocker and next step without prompting. If login is declined, cancelled, unavailable, or still
-fails revalidation, report the sanitized blocker and stop the requested read without repeated
-login prompts, switching providers, or introducing an ACLI fallback.
+Any primary or deferred v2 tool takes the same form with its live schema:
+`call-tool <toolName> '<jsonArgs>'`. The helper has no project, repository, or workspace default
+and accepts only the official v2 endpoint. Its other options (`--env PATH`, `--mcp-config PATH`,
+`--url URL`), request deadline, cache safeguards, credential order without `--oauth-cache`, and the
+helper-free handshake are in the [helper and handshake reference](references/helper-and-handshake.md).
 
 An explicit `--oauth-cache PATH` selects exactly one valid `mcp-remote` credential and overrides
 inherited authentication. Its required scope defaults to `read:bitbucket:agent-interface`;
 `--oauth-scope SCOPE` explicitly selects one supported Jira or Confluence read/search scope instead
 and requires `--oauth-cache`. Missing, ambiguous, expired, or incorrectly scoped cache entries fail
-without falling back to Basic authentication or the Rovo Dev Keychain.
+rather than switching accounts or falling back to Basic authentication or the Rovo Dev Keychain.
 The OAuth client owns token refresh; repeat the documented client probe when refresh is needed.
 
-Without `--oauth-cache`, the shared helper retains this order:
+## Authentication and Connectivity
 
-1. `ATLASSIAN_MCP_AUTH_HEADER`, containing a complete `Basic` or `Bearer` header.
-2. `MCP_OAUTH_TOKEN`, used as a Bearer token from the process environment.
-3. `ATLASSIAN_MCP_AUTH`, or `ATLASSIAN_MCP_USER` plus `ATLASSIAN_MCP_TOKEN`, encoded as
-   Base64 `user:token` for Basic authentication.
-4. A matching endpoint's `Authorization` header in `~/.rovodev/mcp.json`, or `--mcp-config PATH`.
-   Environment placeholders must resolve before this header can be used.
-5. The macOS Keychain service `rovodev-oauth`, maintained by Rovo Dev. Expired credentials with
-   an `expires_at` value are skipped.
+Read [Bitbucket access and recovery](references/bitbucket-access.md) for initial authorization,
+missing Bitbucket tools, OAuth request failures, Rovo Dev CLI (`acli`) diagnosis, organization
+checks, and persistent client setup.
 
-An explicit `--env PATH` loads these authentication variables, including `MCP_OAUTH_TOKEN`,
-without overriding non-empty process values. It does not search project directories. A matching
-configured Basic header precedes the Keychain token, so refreshing the Keychain alone may not
-change the credential actually sent. Inspect only the selected source, scheme, scopes, and expiry.
+**Assess.** Check the selected connection and credential source first. Reuse working
+authentication and let the owning OAuth client refresh an expired token; a successful refresh
+needs no user sign-in, and working authentication needs no login prompt. Assess each requested
+product independently: Jira-only access is partial authentication when Bitbucket or Confluence is
+also required. Investigate explicit missing scopes or permission failures through the
+[separate-grant workflow](#separate-mcp-grants).
 
-`acli rovodev oauth status` and `acli rovodev doctor` diagnose the Rovo Dev client. Its OAuth token
-can have legacy Bitbucket scopes while lacking `read:bitbucket:agent-interface`; repeatedly
-running `acli rovodev oauth login` does not add the missing MCP grant. Confirm v2 initialization,
-authenticated resources, full tool discovery, and the requested read before declaring access fixed.
+**Recover.** A missing product in `resources` or `discover`, or an absent dedicated credential
+cache, starts that product's scoped recovery; it is not a terminal capability blocker.
+
+- Create missing dedicated metadata under the separate-grant contract and start the selected
+  client's supported sign-in flow within the task's authorization, honoring any applicable
+  prerequisite login barrier: the
+  [scoped MCP OAuth flow](references/bitbucket-access.md#establish-scoped-mcp-oauth) for a local
+  product cache, or a hosted connection's own Connect/Reconnect control. Do not claim a local
+  grant repaired a hosted connection.
+- Preserve working product grants, separate Bitbucket and Jira/Confluence grants, and existing
+  cache metadata; request only the product scopes the task needs. Do not overwrite conflicting
+  metadata, change the selected provider, try another credential source as an implicit fallback,
+  bypass credential precedence, silently change auth methods, or substitute a generic Rovo Dev
+  CLI login for MCP consent.
+- If the selected source is a configured API token or Basic header, ask the user to renew it
+  through its existing secure credential mechanism; browser OAuth does not repair that source.
+- Honor status-only/no-login instructions: report the blocker and next step without prompting.
+  Whenever recovery cannot proceed, report the explicit setup or consent blocker.
+
+**Hand off sign-in.** Open the sign-in page in the user's default browser (`open` on macOS,
+`xdg-open` on Linux, `start` on Windows) and promptly give the user a clickable authorization
+link issued by that active flow — the printed link is the fallback when a browser cannot be
+opened. Name the product and connection and say which read will resume; do not wait for a timeout
+or assume a window appeared. Keep the client and callback listener running while the user signs
+in. Follow the [authorization-link handoff](references/bitbucket-access.md#authorization-link-handoff)
+for URL validation, output filtering, and an unavailable or expired link. If the host exposes
+only a Connect/Reconnect control, identify that control; never fabricate a sign-in URL. If the
+flow cannot be started here, explain why and provide the actual client's command with resolved
+cache and metadata paths, or the selected host's connection control. Let the client handle
+credentials and callbacks and the user complete the secure browser prompt and consent; never ask
+for passwords, tokens, authorization codes, or callback URLs in chat.
+
+**Revalidate.** Wait for user completion before dependent reads, then recheck the same source and
+product grant, refresh the MCP connection if needed, and repeat resources, the complete
+catalog/discovery, and the requested bounded read. A completion message or successful login alone
+is not proof of product access; confirm v2 initialization, authenticated resources, full tool
+discovery, and the requested read before declaring access fixed. If login is declined, cancelled,
+unavailable, or still fails revalidation, report the sanitized blocker and stop the requested read
+without repeated login prompts, switching providers, or introducing an ACLI fallback.
+
+**Report per product.** For every requested product, report authentication, authorization, tool
+availability, and the bounded object read separately, with an observed result or sanitized blocker
+for each. Before declaring a product unavailable, attempt applicable scoped recovery or record the
+precise reason it cannot start. Another product's success never substitutes for re-running a product's
+own resources, complete catalog/discovery, and object probe after consent. Continue independent products while consent or a connection reload is pending, without
+labeling the pending product verified.
 
 For authentication or connectivity requests alone, stop after the requested connection probes
 and report their results. If the user requests a ticket, page, or repository as proof, retrieve
@@ -186,12 +167,12 @@ No write scope is needed for connectivity checks.
 
 Keep each persisted client's metadata path and cache environment aligned. Do not point the
 Bitbucket client at the Jira/Confluence cache or treat access to one product as proof for another.
-For helper calls, supply both the cache and the operation's required scope explicitly:
+For helper calls (`list-tools` included), supply both the cache and the operation's required scope
+explicitly:
 
 ```bash
 ROVO_JIRA_CONFLUENCE_OAUTH_CACHE="$HOME/.mcp-auth/rovo-jira-confluence-v2"
 node "$ROVO_BITBUCKET_HELPER" resources --oauth-cache "$ROVO_JIRA_CONFLUENCE_OAUTH_CACHE" --oauth-scope read:jira:agent-interface
-node "$ROVO_BITBUCKET_HELPER" list-tools --oauth-cache "$ROVO_JIRA_CONFLUENCE_OAUTH_CACHE" --oauth-scope read:confluence:agent-interface
 node "$ROVO_BITBUCKET_HELPER" call-tool getJiraIssue '{"cloudId":"<cloudId>","issueIdOrKey":"<known issue key>","view":"compact"}' --oauth-cache "$ROVO_JIRA_CONFLUENCE_OAUTH_CACHE" --oauth-scope read:jira:agent-interface
 node "$ROVO_BITBUCKET_HELPER" call-tool searchConfluence '{"cloudId":"<cloudId>","cql":"type = page ORDER BY lastmodified DESC","limit":1}' --oauth-cache "$ROVO_JIRA_CONFLUENCE_OAUTH_CACHE" --oauth-scope search:confluence:agent-interface
 node "$ROVO_BITBUCKET_HELPER" call-tool getConfluenceContent '{"cloudId":"<cloudId>","content_id":"<returned page ID>","detail":"summary"}' --oauth-cache "$ROVO_JIRA_CONFLUENCE_OAUTH_CACHE" --oauth-scope read:confluence:agent-interface
@@ -216,13 +197,6 @@ does not by itself establish a scope problem. Keep response bodies and credentia
 Never repeatedly refresh Rovo Dev login to repair missing MCP v2 scopes or substitute ACLI/browser
 results as proof that MCP works. Product creation, editing, transitions, and publishing stay with
 their owning workflows.
-
-For every requested product, report authentication, tool availability, and the bounded object
-read separately, with an observed result or sanitized blocker for each. Before declaring a
-product unavailable, attempt applicable scoped recovery or record the precise reason it cannot
-start. Re-run that product's resources, complete catalog/discovery, and object probe after consent;
-another product's success never substitutes for these checks. Continue independent products
-while consent or a connection reload is pending, without labeling the pending product verified.
 
 ## Bitbucket Workflow
 
@@ -254,21 +228,6 @@ MCP connectivity.
 Stop for ambiguous workspace or repository identity, missing authentication, an unavailable
 permission group, an unexpected mutation, secret-oriented content retrieval without explicit scope,
 or pagination that makes the result incomplete.
-
-## Native MCP Handshake
-
-When operating without the helper:
-
-1. Connect to `https://mcp.atlassian.com/v2/mcp` with HTTP transport and the configured
-   `Authorization` header.
-2. Send `Content-Type: application/json` and `Accept: application/json, text/event-stream`, then
-   send `initialize` with MCP protocol version `2025-03-26`.
-3. Capture and reuse the `Mcp-Session-Id` response header.
-4. Send `notifications/initialized`.
-5. Call `getAccessibleAtlassianResources` and select the intended site before product operations.
-6. Call `tools/list` repeatedly while `nextCursor` is present.
-7. Invoke listed primary reads directly using their live schemas. For deferred reads, call
-   `discover`, then use the returned operation through `executeRead`.
 
 ## Safety
 

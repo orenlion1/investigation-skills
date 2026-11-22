@@ -17,6 +17,10 @@ authorization-start link intended for the user is distinct from those secrets; s
 the [handoff below](#authorization-link-handoff). Filter subprocess output before it reaches tool
 logs; do not forward raw client output.
 
+`acli rovodev oauth status` and `acli rovodev doctor` diagnose the Rovo Dev client. Its OAuth token
+can have legacy Bitbucket scopes while lacking `read:bitbucket:agent-interface`; repeatedly
+running `acli rovodev oauth login` does not add the missing MCP grant.
+
 If discovery exposes only `system` operations or `getContentFormatGuide`, check the selected
 credential and product scope first. This symptom suggests missing authorization; it does not prove
 an absent repository, an unlinked workspace, or an MCP outage. `?tools=all` can check the full
@@ -73,12 +77,9 @@ and expiry without printing credentials. `mcp-remote` owns refresh; the helper r
 cache and does not perform its own OAuth grant. Do not copy a short-lived token into MCP config,
 shell history, a managed source file, or a command argument.
 
-Use `--oauth-cache "$ROVO_BITBUCKET_OAUTH_CACHE"` on each bundled-helper command. This explicit
-selection overrides inherited headers and fails rather than switching accounts or auth methods
-when the cache is unusable. Exactly one valid scoped credential must resolve. The helper accepts
-the official `/v2/mcp` endpoint, including its `?tools=all` catalog variant, for this credential.
-The credential must include a parseable future `expires_at`; a file modification time is not
-evidence of token freshness.
+Use `--oauth-cache "$ROVO_BITBUCKET_OAUTH_CACHE"` on each bundled-helper command; its
+[selection rules](../SKILL.md#quick-start) apply. The credential must include a parseable future
+`expires_at`; a file modification time is not evidence of token freshness.
 
 For Jira and Confluence, use the [separate grant contract](../SKILL.md#separate-mcp-grants).
 Create a distinct `rovo-jira-confluence-v2` cache and its own metadata; preserve the Bitbucket
@@ -132,10 +133,9 @@ When the selected OAuth client requires user interaction:
    mode merely to obtain one. A hosted connector reconnects through its host; local MCP OAuth
    does not renew that hosted grant.
 
-After completion, recheck the same credential source and product grant, reconnect as needed,
-then repeat authenticated resources, the complete tool catalog, discovery, and the requested
-bounded object read. Login completion alone does not prove access. Diagnose missing scopes and
-permission failures separately; a generic 403 does not justify repeated sign-in prompts.
+After completion, [revalidate](../SKILL.md#authentication-and-connectivity) the same credential
+source and product grant. Diagnose missing scopes and permission failures separately; a generic
+403 does not justify repeated sign-in prompts.
 
 ## Persist the working client
 

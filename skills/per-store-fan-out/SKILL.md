@@ -1,53 +1,54 @@
 ---
 name: per-store-fan-out
-description: Fan out multi-store, multi-repository or multi-channel investigations with read-only inspection sub-agents, shared resolved inputs, bounded iteration and auditable manifests. Use when Resources name multiple stores, repositories or Slack channels, when per-store, per-repository or per-channel parallel fan-out is requested, or when delegation must be disabled or degraded.
+description: "Fan out multi-store, multi-repository or multi-channel investigations to read-only sub-agents with shared resolved inputs, bounded iteration and auditable manifests. Use when a task's Resources name multiple stores, repositories or Slack channels, when parallel fan-out is requested, or when delegation must be disabled or degraded."
 ---
 
 # Per-Store Fan-Out
 
 ## Overview
 
-Delegate the gather step of a multi-store or multi-repository investigation: one read-only
-sub-agent per in-scope store and a separate inspection unit for each configured repository, every agent briefed from the same resolved block, all launched before any
-result is awaited, and their candidate evidence folded in by the orchestrating session
-alone. The repository policy's
-[Per-Store Fan-Out Policy](../../AGENTS.md#per-store-fan-out-policy) section
-owns scope and authority; this skill owns activation, the disable switch and run conformity: store resolution, the brief and output contract templates, and the per-store
-iteration bound.
+Delegate the gather step of a multi-store, multi-repository or multi-channel investigation: one
+read-only sub-agent per in-scope store and a separate inspection unit per configured repository
+or effective Slack channel, every agent briefed from the same resolved block, all launched before
+any result is awaited, and their candidate evidence folded in by the orchestrating session alone.
 
-The machinery every delegating skill in this catalog shares — the launch-mode vocabulary, the
-manifest schema, the harness launch and continuation mechanics, the degradation rules, and the
-rule that delegated output is leads until verified — lives in this package's
-[shared delegation contract](references/delegation-contract.md). This skill does not restate it.
+- The repository policy's [Per-Store Fan-Out Policy](../../AGENTS.md#per-store-fan-out-policy)
+  owns scope and authority.
+- The [shared delegation contract](references/delegation-contract.md) owns the launch-mode
+  vocabulary, the manifest schema, the harness launch and continuation mechanics, the degradation
+  rules, and the rule that delegated output is leads until verified. This skill does not restate it.
+- This skill owns activation, the disable switch and run conformity: store resolution, the brief
+  and output contract templates, and the per-store iteration bound.
 
 Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.
 
-When this skill runs as part of an investigation, use the root
+Within an investigation, use the root
 [soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md)
 from request receipt; carry its original start into this work and check it at control boundaries.
 Reuse verified setup and shared evidence; preserve this skill's required coverage and gates.
 
 ## When to Use
 
-Use when a running task's Resources name more than one data store or multiple repositories or Slack channels,
-including repositories on the same provider or channels in the same workspace, or when the user asks to
-fan out, parallelize, or delegate per-store investigation, or when fan-out must be
-disabled (a `Fan-out` Resources value of `disabled`, bare or backticked, or an equivalent
-instruction) or degraded because parallel
-delegation is unavailable. A single-store task with at most one repository and one Slack channel stays inline at the store
-level; Grafana queries still use their nested two-agent workflow unless delegation is disabled. Fan-out
-never widens scope: only named stores and configured repositories receive inspection units.
+Use when a running task's Resources name more than one data store, multiple repositories (even on
+one provider) or multiple Slack channels (even in one workspace); when the user asks to fan out,
+parallelize, or delegate per-store investigation; or when fan-out must be disabled or degraded
+because parallel delegation is unavailable.
 
-The saved task's `Fan-out` value decides, and an absent value means `enabled`. A profile may
-supply it through its `FAN_OUT` setting under Profile Manager's
-[settings contract](../profile-manager/references/profile-store.md#settings-contract); a value
-the user wrote in the task, or a current instruction, wins over the profile.
+- A single-store task with at most one repository and one Slack channel stays inline at the store
+  level; Grafana queries still use their nested two-agent workflow unless delegation is disabled.
+- Fan-out never widens scope: only named stores and configured repositories and channels receive
+  inspection units.
+- The saved task's `Fan-out` Resources value decides. Absent means `enabled`; `disabled` (bare or
+  backticked, in any case) or an equivalent instruction disables. A profile may supply the value
+  through its `FAN_OUT` setting under Profile Manager's
+  [settings contract](../profile-manager/references/profile-store.md#settings-contract); a value
+  the user wrote in the task, or a current instruction, wins over the profile.
 
 ## Store Resolution
 
-A store is an integration skill, not an object. Resolve the task's Resources to at most
-one ordinary store sub-agent per integration. Repository inspection is resolved separately
-below, so several repositories do not create duplicate ordinary store agents:
+A store is an integration skill, not an object. Resolve the task's Resources to at most one
+ordinary store sub-agent per integration; repositories and channels resolve separately below and
+never create duplicate ordinary store agents.
 
 | Store | Integration skill | Covers |
 | --- | --- | --- |
@@ -56,15 +57,18 @@ below, so several repositories do not create duplicate ordinary store agents:
 | Atlassian | rovo-dev-mcp | Bitbucket, Jira and Confluence; repository code ownership follows the repository workflow below |
 | Slack | slack-mcp | Named channels and threads |
 
-Two or more resolved stores trigger store fan-out. Multiple configured repositories
-independently trigger repository fan-out, even when all are on one provider; multiple effective
-Slack channels independently trigger channel fan-out, even in one workspace. A single
-repository keeps its existing inline source-inspection path; other named stores still follow
-store fan-out. A repository plus its Jira ticket does not create two ordinary Atlassian units. Every Grafana query
-request nests the [Parallel Grafana Investigation](../parallel-grafana-investigation/SKILL.md)
-workflow inside the Grafana branch; the request itself carries that authorization. This includes
-exact queries and inventory. Carry parent delegation and Assistant disable settings into the nested
-workflow; internal commands and historical endpoint reads do not recursively launch more pairs.
+- Two or more resolved stores trigger store fan-out.
+- Multiple configured repositories independently trigger repository fan-out, even when all are on
+  one provider; multiple effective Slack channels independently trigger channel fan-out, even in
+  one workspace. Both apply even when no other store is named.
+- A single repository keeps its inline source-inspection path; other named stores still follow
+  store fan-out. A repository plus its Jira ticket never creates two ordinary Atlassian units or
+  manifest rows.
+- Every Grafana query request, including exact queries and inventory, nests the
+  [Parallel Grafana Investigation](../parallel-grafana-investigation/SKILL.md) workflow inside the
+  Grafana branch; the request itself carries that authorization. Carry parent delegation and
+  Assistant disable settings into the nested workflow; internal commands and historical endpoint
+  reads do not recursively launch more pairs.
 
 ## Repository resolution and scheduling
 
@@ -80,12 +84,12 @@ workflow; internal commands and historical endpoint reads do not recursively lau
    names from verified provider context; ambiguous, unsupported and inaccessible entries retain an
    explicit gap. Coalesce aliases of the same resolved repository and record every configured alias
    against its single inspection owner; do not silently drop an input.
-3. **Delegate each distinct configured repository when multiple are present.** This applies even
-   when no other store is named. The parent schedules the repository batch alongside ordinary store
-   and historical endpoint work using the [shared delegation contract](references/delegation-contract.md).
-   It owns the complete resource-to-owner map and capacity allocation. Repository/store agents do
-   not recursively schedule repositories. Use the [repository brief](references/repository-brief.md)
-   with the same resolved block and output contract as the store briefs.
+3. **Delegate each distinct configured repository when multiple are present.** The parent
+   schedules the repository batch alongside ordinary store and historical endpoint work under the
+   [shared delegation contract](references/delegation-contract.md), and owns the complete
+   resource-to-owner map and capacity allocation. Repository/store agents do not recursively
+   schedule repositories. Use the [repository brief](references/repository-brief.md) with the same
+   resolved block and output contract as the store briefs.
 4. **Avoid duplicate inspection.** Remove assigned repository code queries from ordinary store
    briefs. Keep an Atlassian store unit only for remaining named Jira/Confluence or other non-code
    work; do not launch an empty store unit when repository inspections cover its entire workload.
@@ -99,13 +103,8 @@ workflow; internal commands and historical endpoint reads do not recursively lau
    three-round bound as store work. A disabled parent fan-out also disables repository delegation;
    investigation still proceeds under the shared contract's declared degradation rules.
 
-Repository runs use a separate linked manifest under the shared contract. Add only repository-owned
-fields: `repository`, `configured_entries`, `provider`, `provider_scope`, `inspected_revision`,
-`inspection_owner`, `outcome` and `store_manifest` (absent when no ordinary store work remains).
-Each distinct repository gets its own row; unresolved inputs retain their own gap rows. These rows,
-the ordinary store manifest and the resource-to-owner map together cover every configured entry
-without duplicate inspection. Keep authentication, tooling and actual reads distinct as for stores.
-Do not claim an inspection succeeded merely because its profile loaded or its provider authenticated.
+Record repository runs in a separate linked manifest under the shared contract, with the
+repository-owned fields and row rules in the [repository brief](references/repository-brief.md#repository-manifest).
 
 ## Channel resolution and scheduling
 
@@ -122,92 +121,85 @@ Do not claim an inspection succeeded merely because its profile loaded or its pr
    remains in the parent under the Slack MCP skill; do not broaden the workspace or time window.
 3. **Schedule a distinct read-only inspection for each resolved channel when multiple remain.**
    The parent coordinates channel, repository, historical endpoint and ordinary store work under
-   [the shared delegation contract](references/delegation-contract.md), including its capacity and
-   degradation mechanics. Use the [channel brief](references/channel-brief.md) with the identical
-   shared block/output contract. Channel agents do not recursively delegate or read another owner's
-   channel. Remove already-assigned channel/thread queries from ordinary Slack briefs and omit an
-   empty ordinary Slack unit when channel inspections cover its entire workload.
+   the shared delegation contract, including its capacity and degradation mechanics. Use the
+   [channel brief](references/channel-brief.md) with the identical shared block/output contract.
+   Channel agents do not recursively delegate or read another owner's channel. Remove
+   already-assigned channel/thread queries from ordinary Slack briefs and omit an empty ordinary
+   Slack unit when channel inspections cover its entire workload.
 4. **Reconcile channel results in the parent.** Require message/thread references, read timestamps
    and query/window scope. Continue independent channels when one fails. Route cross-channel
    follow-ups through the parent to the existing owner within the same three-round bound; the
    parent verifies material evidence before drawing cross-channel conclusions. Disabled parent
    fan-out disables channel delegation as well; investigation continues under the shared contract.
 
-Use a separate linked channel manifest under the shared contract. Add only channel-owned fields:
-`channel`, `configured_entries`, `workspace`, `inspection_owner`, `outcome`, `store_manifest` and
-`repository_manifest` (omit unrelated links). Each resolved channel gets one row; each unresolved
-input retains a gap row. The parent ownership map covers all channel entries without duplicate
-reads, keeping authentication/tool availability separate from a successful channel query.
+Record channel runs in a separate linked manifest under the shared contract, with the
+channel-owned fields and row rules in the [channel brief](references/channel-brief.md#channel-manifest).
 
 ## Workflow
 
-1. **Resolve shared inputs and repository ownership in the main session.** Apply user
-   precedence, repository scheduling and channel scheduling above. One environment, exact time window and
-   timezone, concrete object identities, and each store's authentication through its own
-   skill. Assess authentication independently of connection/tool availability. When credentials
-   need renewal and the owning skill permits sign-in, start that flow even if its tool or MCP
-   connection is missing; prepare the permitted connection setup alongside recovery. Before
-   declaring a store blocked, attempt both applicable recovery paths or record the explicit
-   blocker for each. Honor no-login instructions, credential ownership, Region limits, and
-   separate approval gates; missing tools never authorize a fallback provider or weaker controls.
-   Interactive sign-in never happens inside a sub-agent. A store that cannot authenticate
-   blocks only its own branch; record the exact blocker and continue independent branches.
+1. **Resolve shared inputs and ownership in the main session.** Apply user precedence, repository
+   scheduling and channel scheduling above. Resolve one environment, exact time window and
+   timezone, concrete object identities, and each store's authentication through its own skill.
+   - Assess authentication independently of connection/tool availability. When credentials need
+     renewal and the owning skill permits sign-in, start that flow even if its tool or MCP
+     connection is missing; prepare the permitted connection setup alongside recovery.
+   - Before declaring a store blocked, attempt both applicable recovery paths or record the
+     explicit blocker for each.
+   - Honor no-login instructions, credential ownership, Region limits, and separate approval
+     gates; missing tools never authorize a fallback provider or weaker controls.
+   - Interactive sign-in never happens inside a sub-agent. A store that cannot authenticate
+     blocks only its own branch; record the exact blocker and continue independent branches.
 2. **Invoke historical search once in the parent when configured.** Consume the selected
    profile's validated endpoint resources via [Profile Manager](../profile-manager/SKILL.md),
    then invoke [Rhyming Incident Search](../rhyming-incident-search/SKILL.md) once with the
    shared question/environment/windows. It owns one read-only sub-agent per endpoint,
    including same-store endpoints, parallel capacity waves, and a separate endpoint manifest.
    Reconcile its leads in the parent; store agents never recursively repeat it.
-   Prepare historical requests before the store batch, but do not await matching results
-   before their designated Assistant owner is scheduled.
-   Before any Assistant prompt starts, prepare its handoff under
-   [Assistant matching](../rhyming-incident-search/references/assistant-search.md). Register the
-   prospective Grafana Assistant branch with exact scope and both windows so the combined
-   initial prompt has one owner. Launch endpoint work and store work with linked execution
-   receipts; do not wait for historical leads before scheduling their unsent Assistant owner.
-   Preserve every endpoint child/row, honor disabled Assistant and never broaden scope to share.
-   An unset field skips history search. Invalid configuration stops endpoint launches; failed
-   providers block only their endpoints. Honor disabled parent fan-out by disabling nested
-   endpoint delegation and recording that limitation. Ordinary inline store work may continue.
+   - Prepare historical requests before the store batch. Before any Assistant prompt starts,
+     prepare its handoff under
+     [Assistant matching](../rhyming-incident-search/references/assistant-search.md): register the
+     prospective Grafana Assistant branch with exact scope and both windows so the combined
+     initial prompt has one owner.
+   - Launch endpoint work and store work with linked execution receipts; do not await historical
+     leads or matching results before scheduling their unsent Assistant owner.
+   - Preserve every endpoint child/row, honor disabled Assistant and never broaden scope to share.
+   - An unset field skips history search. Invalid configuration stops endpoint launches; failed
+     providers block only their endpoints.
+   - Disabled parent fan-out disables nested endpoint delegation; record that limitation.
+     Ordinary inline store work may continue.
 3. **Write briefs for remaining store work** from the templates in
    [references/sub-agent-brief.md](references/sub-agent-brief.md). Every brief carries
    the identical effective resolved block and the output contract verbatim; only the store,
    integration skill, and store-specific questions differ.
-4. **Launch all briefs in one batch** before awaiting any result, through the mechanics in
-   the [shared delegation contract](references/delegation-contract.md), and record the launch
-   in the fan-out manifest it defines.
+4. **Launch all briefs in one batch** before awaiting any result, through the shared contract's
+   mechanics, and record the launch in the fan-out manifest it defines.
 5. **Iterate within bounds.** Route a follow-up by continuing that store's existing
    sub-agent, never by spawning a fresh one. A finding in one store becomes the next
    query in another. Stop after three follow-up rounds without convergence, or whenever
    an iteration would widen the authorized scope, window, or Regions — both return to the
    user instead.
-6. **Fold in, in the orchestrating session only.** Relate returned evidence on the shared
-   timeline, verify material claims directly when they are load-bearing, report
-   disagreements between stores explicitly, and write the report under the repository's
-   Report Evidence rules. Sub-agent output is leads, never verified findings.
+6. **Fold in, in the orchestrating session only,** under the shared contract's
+   leads-versus-findings rule: verify load-bearing material claims directly and report
+   disagreements between stores explicitly. Sub-agent output is leads, never verified findings.
 
 Sub-agents never mutate, acknowledge, message, or publish; those stay separately
 authorized with the orchestrating session.
 
 ## Manifest and Store Branches
 
-Every fan-out run records a manifest under the schema in the
-[shared delegation contract](references/delegation-contract.md), including a degraded or
-disabled run. The report's Source snapshot cites it, so conformity is auditable per run, and it
-stays local and untracked like all investigation output.
+Every fan-out run, including a degraded or disabled one, records a manifest under the shared
+contract's schema; the report's Source snapshot cites it, and it stays local and untracked.
 
-This skill adds only what is specific to stores: each branch row carries `store` and
-`integration_skill` beside the contract's own fields, and at most one row exists per resolved
-integration with remaining ordinary store work. Repository rows live in their linked manifest;
-a repository plus its Jira ticket never duplicates an ordinary Atlassian row. A store that
-cannot authenticate blocks only its own branch; record the exact blocker and continue.
+Store-specific additions to each branch row:
 
-Each store row also records `authentication_status`, `tool_status`, and
-`resource_read_status` separately. Each contains an observed outcome and its evidence or
-sanitized blocker; distinguish pending, verified, failed, unavailable, and operator-disabled
-work. A successful login does not verify a resource read, and a missing tool does not imply
-authentication failed. Update these store-owned fields after recovery and retain unresolved
-steps rather than collapsing them into a single unavailable result.
+- `store` and `integration_skill`, with at most one row per resolved integration that has
+  remaining ordinary store work. Repository and channel rows live in their linked manifests.
+- `authentication_status`, `tool_status`, and `resource_read_status`, recorded separately. Each
+  contains an observed outcome and its evidence or sanitized blocker; distinguish pending,
+  verified, failed, unavailable, and operator-disabled work. A successful login does not verify a
+  resource read, and a missing tool does not imply authentication failed. Update these fields
+  after recovery and retain unresolved steps rather than collapsing them into a single
+  unavailable result.
 
 ## Common Rationalizations
 
@@ -241,11 +233,9 @@ steps rather than collapsing them into a single unavailable result.
   store; each applicable attempt or explicit blocker is recorded separately from resource reads.
 - The report separates per-store leads from orchestrator-verified findings and lists each
   failed branch as an untested area with its exact blocker.
-
 - Every configured repository has a unique inspection owner or an explicit gap, including
   same-provider lists, with user overrides preserved in shared inputs.
 - Store briefs exclude code inspection already assigned to repository units; disabled and
   capacity-limited execution follow the shared contract without losing repository coverage.
-
 - Every effective Slack channel has one inspection owner or an explicit workspace/access gap;
   user overrides are resolved before fan-out activation and remain identical across all briefs.

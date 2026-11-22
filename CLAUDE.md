@@ -28,7 +28,7 @@ blocker rather than substituting direct reads.
 | --- | --- |
 | Generating workflow artifacts or supporting outputs (TASK, REPORT, LOG, diagram assets), artifact naming and collision resolution | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) |
 | `open task`, `edit task`, templated-task editing, continuation, execution, and reports | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) |
-| `add profile`, `remove profile`, `.env` resource profiles, the Resources schema, loading a profile into a task | [Profile Manager](skills/profile-manager/SKILL.md) |
+| `add profile`, `remove profile`, `lint profiles`, `lint task`, `.env` resource profiles, the Resources schema, loading a profile into a task | [Profile Manager](skills/profile-manager/SKILL.md) |
 | Token usage report and report metadata for any investigation report | [Token Usage](skills/token-usage/SKILL.md) |
 | Creating, styling, or verifying diagrams and graphs — themes, caveats, ER and SQL views, flapping-alert graph pair, format consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
 | Evidence index, `Source:` snapshot, citation discipline, and data-pattern-graph coverage for investigation reports | [Report Evidence](skills/report-evidence/SKILL.md) |

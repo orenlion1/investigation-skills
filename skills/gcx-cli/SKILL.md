@@ -1,6 +1,6 @@
 ---
 name: gcx-cli
-description: "Install gcx, prepare and refresh its official skills for Claude or Codex, and authenticate a selected Grafana context with browser sign-in when needed. Use when handling gcx setup, connectivity and expired sessions. Supplies command and query mechanics to parallel-grafana-investigation, which owns all user-requested Grafana resource queries."
+description: "Install gcx and its official Claude or Codex skills, keep them refreshed, and authenticate a selected Grafana context, including browser sign-in. Use when handling gcx setup, Grafana connectivity, or expired sessions. Grafana resource queries belong to parallel-grafana-investigation; this skill supplies their command mechanics."
 ---
 <!-- source: self; self-authored: self; managed-by: https://github.com/orenlion1/dotfiles; sync-from: https://github.com/orenlion1/dotfiles; dotfiles-sync-date: 2026-08-30; dotfiles-sync-commit: 42a3e852aa9d6786e9e7f27e3fc77790fea09ffd -->
 
@@ -31,92 +31,52 @@ Reuse verified setup and shared evidence; preserve this skill's required coverag
 ## When to Use
 
 Use for gcx installation, bundle preparation, authentication, connectivity and command mechanics.
-Route every user-requested Grafana resource query, including exact expressions and inventory, to
-[Parallel Grafana Investigation](../parallel-grafana-investigation/SKILL.md). Internal setup probes
-and commands within its existing branches do not re-enter orchestration. Task-specific authoring
-and incident handling retain their own scope; connecting does not authorize mutations.
+Route every user-requested Grafana resource query to
+[Parallel Grafana Investigation](../parallel-grafana-investigation/SKILL.md), including alerts,
+non-alert troubleshooting, exact expressions, telemetry reads, health checks and inventory. That
+skill owns both parallel branches, shared request scope, manifest, reconciliation, Assistant cost
+controls and verification; this skill supplies setup, bundle refresh, context, authentication
+and gcx command mechanics. Setup-only requests stop after the authorized checks; a resource read
+explicitly requested after setup enters that workflow. Internal setup probes, metadata discovery
+and queries within its existing branches never recursively launch another pair. Task-specific
+authoring and incident handling retain their own scope; connecting does not authorize mutations.
 
-## Ensure gcx is installed
+## Ensure gcx and its skills are ready
 
-Before context discovery or any Grafana query, check `command -v gcx` and
-`gcx --version`. Reuse a working compatible installation. If `gcx` is missing,
-install it by default and continue the requested work **without requesting approval**.
-Required installation and routine user-scoped PATH setup are already authorized;
-do not stop at suggesting installation or asking the user to run it.
+Before context discovery or any Grafana query, check `command -v gcx` and `gcx --version`, and
+reuse a working compatible installation. If `gcx` or the official gcx skill suite for the
+active harness is missing, install it per
+[Install gcx and its agent skills](references/install-and-skills.md) and continue the requested
+work **without requesting approval**: required installation, routine user-scoped PATH setup and
+the full skill suite are already authorized. Do not stop at suggesting installation or asking
+the user to run it. That reference also holds the ask-first safeguards (sudo, weakened
+verification, undocumented sources, credentials, billing, license) and the setup report.
 
-Use the [official installation guide](https://grafana.com/docs/grafana-cloud/ai-tools/gcx/installation/).
-Prefer an existing package manager when it satisfies repository installation
-boundaries. With an eligible existing Homebrew installation, run `brew install gcx`.
-Otherwise use the documented installer or a verified official release at user scope,
-such as `~/.local/bin`. Prefer a released or pinned version; preserve checksum
-verification. Reuse an installed binary outside PATH before installing a duplicate.
+Detect the active host from the session identity and supported environment signals, not from
+which executables or skill folders happen to exist. Codex session identity and its
+`CODEX_THREAD_ID`/`CODEX_CI` signals identify Codex; `CLAUDECODE` or `CLAUDE_CODE` identify
+Claude Code. Inspect only these non-secret identity signals. For ambiguous or conflicting
+signals, use the verified host identity; ask which host to target only if it remains
+unresolved. Prepare that host, not both by default.
 
-Apply only the PATH adjustment needed for the selected executable, preserving
-unrelated shell settings. Verify the resolved path, `gcx --version`, and `gcx --help`,
-then prepare the harness skills below before context resolution and the requested query.
-Report any installation/update, version, source, and runtime configuration changes.
+Before **each operational gcx command** — context checks, authentication, Assistant, discovery,
+and resource/telemetry queries — refresh the detected harness's skills:
 
-Retain repository Required Dependencies safeguards: ask first only when setup would
-require sudo/system-wide changes, weakened signing or certificate verification,
-an undocumented package source, credentials, billing, or a license. Report the exact
-blocker if no permitted installation method works; never bypass these safeguards.
+- **Codex:** `gcx agent skills update` against the selected root (`~/.agents/skills` unless a
+  verified `--dir` differs).
+- **Claude Code:** update only `gcx-marketplace` and its `gcx@gcx-marketplace` plugin through
+  the supported plugin manager. For example, where local help confirms support:
+  `claude plugin marketplace update gcx-marketplace`, then
+  `claude plugin update gcx@gcx-marketplace --scope user`. Honor any actual reload requirement
+  and read the current skill content explicitly when the session catalog has not reloaded yet.
 
-## Detect the harness and prepare all gcx skills
-
-Follow the [official gcx integration reference](https://github.com/grafana/gcx#use-with-your-ai-agent).
-Detect the active host from the session identity and supported environment signals,
-not from which executables or skill folders happen to exist. Codex session identity
-and its `CODEX_THREAD_ID`/`CODEX_CI` signals identify Codex; `CLAUDECODE` or
-`CLAUDE_CODE` identify Claude Code. Inspect only these non-secret identity signals.
-For ambiguous or conflicting signals, use the verified host identity; ask which host
-to target only if it remains unresolved. Install for that host, not both by default.
-
-Inspect installed command help before choosing flags. Install the entire official
-gcx skill suite for the detected harness automatically, without a separate approval
-prompt, preserving unrelated skills and configuration:
-
-- **Codex:** use the portable bundle in `~/.agents/skills`, which Codex discovers.
-  Run `gcx agent skills update`, then `gcx agent skills install --all` to add any
-  missing bundled skills. `update` alone does not install newly bundled skills.
-  Pass the same `--dir` explicitly to install, update, and list when a verified
-  user-scoped installation root differs from the default.
-- **Claude Code:** use the official plugin described in the
-  [Claude integration guide](https://github.com/grafana/gcx/blob/main/claude-plugin/README.md).
-  Check the selected user's plugin/marketplace inventory, then register
-  `grafana/gcx` if absent and install `gcx@gcx-marketplace` at user scope.
-  Use the installed CLI's supported equivalents of these Claude commands:
-
-  ```text
-  /plugin marketplace add grafana/gcx
-  /plugin install gcx@gcx-marketplace
-  ```
-
-  For refresh, update only `gcx-marketplace` and its `gcx@gcx-marketplace`
-  plugin through the supported plugin manager. For example, where local help
-  confirms support: `claude plugin marketplace update gcx-marketplace`, then
-  `claude plugin update gcx@gcx-marketplace --scope user`.
-  `gcx agent skills update` refreshes portable installations, not Claude's
-  plugin cache. Do not create a second portable installation to disguise an
-  unrefreshed plugin. Honor any actual reload requirement and read the current
-  skill content explicitly when the session catalog has not reloaded yet.
-
-Before **each operational gcx command**, refresh the detected harness's skills:
-Codex runs `gcx agent skills update` against the selected root; Claude runs the
-plugin refresh above. This includes context checks, authentication, Assistant,
-discovery, and resource/telemetry queries. Availability/version/help checks and
-skill installation, inventory, refresh, and content-loading commands are bootstrap
-exceptions; they do not recursively trigger another refresh. After a gcx binary
-upgrade, reconcile the full bundle again so newly shipped skills are installed.
-
-Inspect previews/inventory and preserve unexpected symlinks, custom conflicting
-files, and unrelated plugins; do not force overwrite or delete retired skills.
-Check command exit status and verify the installed inventory against the current
-bundle/plugin before claiming setup complete. If installation or refresh fails,
-report the exact sanitized blocker and stop dependent operational commands rather
-than silently using stale guidance. Read only the relevant refreshed skills for
-the requested workflow; installing the suite does not authorize its write actions.
-Report the detected harness, installation source/location, versions or available
-bundle identity, refresh result, and any changes or remaining reload requirement.
+Availability/version/help checks and skill installation, inventory, refresh, and
+content-loading commands are bootstrap exceptions; they do not recursively trigger another
+refresh. After a gcx binary upgrade, reconcile the full bundle again so newly shipped skills
+are installed. If installation or refresh fails, report the exact sanitized blocker and stop
+dependent operational commands rather than silently using stale guidance. Read only the
+relevant refreshed skills for the requested workflow; installing the suite does not authorize
+its write actions.
 
 ## Resolve the Context
 
@@ -174,8 +134,8 @@ gcx config check --context "$GCX_CONTEXT"
 Use existing working authentication and successful automatic token refresh without requesting
 another login. When the user requests authentication or the task requires renewal, check installed
 `gcx login --help` and start the supported flow within that authorization without asking for
-duplicate permission. A status-only or explicit no-login request stops at the diagnostic result.
-For an existing OAuth context the supported command is:
+duplicate permission. A status-only or explicit no-login request stops at the diagnostic result
+and reports the next step without prompting. For an existing OAuth context the supported command is:
 
 ```bash
 gcx login "$GCX_CONTEXT" --oauth
@@ -197,8 +157,15 @@ context and the check or query that will resume; do not assume a window appeared
 for timeout. Verify the URL belongs to the selected flow's provider and preserve its state/PKCE
 parameters. Capture and filter client output: share only the intended sign-in link and sanitized
 status, never raw logs, tokens, authorization codes, or callback URLs. Keep transient links out of
-repository files and reports. Let the client handle credentials and callbacks, and keep that same
-client/listener alive while the user signs in and consents.
+repository files and reports. Let the client handle credentials and callbacks.
+
+Keep that same client and callback listener alive while the user signs in and consents. Poll the
+tracked process in short waits and provide progress updates. Browser opening, elapsed time, or a
+user message does not establish completed login. Proceed only after the client exits
+successfully, then repeat the same explicit-context check and requested bounded read. A
+successful login is not itself query evidence. If the user declines, cancels, cannot sign in, or
+the retry still fails, report the sanitized blocker and stop; do not repeatedly prompt or switch
+contexts.
 
 If the flow ends or expires, say the link is no longer usable; never reuse it. If no link is
 available or the flow cannot run here, explain the limitation and provide the supported command
@@ -214,14 +181,6 @@ are refreshed by the dotfiles secret workflow; preserve that ownership and its r
 state. A Grafana stack token and a Cloud management token serve different APIs: a working stack
 query does not prove Cloud API access, and a missing Cloud token does not justify changing stack
 authentication. Request new permissions only for the actual operation that needs them.
-
-Keep the same client and callback listener alive while the user signs in. Poll the tracked
-process in short waits and provide progress updates. Browser opening, elapsed time, or a user
-message does not establish completed login. Proceed only after the client exits successfully,
-then repeat the same explicit-context check and requested bounded read. A successful login is
-not itself query evidence. If the user declines, cancels, cannot sign in, or the retry
-still fails, report the sanitized blocker and stop; do not repeatedly prompt or switch contexts.
-For an explicit status-only or no-login request, report the next step without prompting.
 
 Treat permission errors, datasource failures, query syntax errors, and empty results separately
 from missing login. A generic `403` is not proof of expired credentials. Respect rate limits and
@@ -243,19 +202,11 @@ A successful listing proves inventory access, not successful Prometheus, Loki, o
 An empty listing is a successful empty response, not a retrieved datasource. Stop after this
 probe for a connectivity-only request; proceed into telemetry queries only when requested.
 
-## Route Grafana query requests
+## Query branch mechanics
 
-Every user-requested Grafana resource query routes to
-[Parallel Grafana Investigation](../parallel-grafana-investigation/SKILL.md), including alerts,
-non-alert troubleshooting, exact expressions, telemetry reads, health checks and inventory.
-That skill owns both parallel branches, shared request scope, manifest, reconciliation,
-Assistant cost controls and verification. This skill supplies setup, bundle refresh, context,
-authentication and gcx command mechanics. Setup-only requests stop after the authorized checks;
-a resource read explicitly requested after setup enters that workflow. Internal setup probes,
-metadata discovery and branch queries never recursively launch another pair.
-
-The workflow's Assistant branch uses `gcx assistant prompt` with explicit `--context` and a fresh
-conversation. Inspect installed help before choosing flags. An example after scope resolution:
+Within the routed workflow, its Assistant branch uses `gcx assistant prompt` with explicit
+`--context` and a fresh conversation. Inspect installed help before choosing flags. An example
+after scope resolution:
 
 ```bash
 gcx assistant prompt --help
@@ -273,60 +224,9 @@ Retain prompt/response identifiers, references and limitations; treat conclusion
 If Assistant fails, record the sanitized blocker and continue authorized direct reads without
 switching context. Changes, acknowledgments, messages and publication need separate authority.
 
-## Query Grafana
-
-1. Resolve the signal, selected context, requested service/resource, and time range. Ask only for
-   missing information that changes the query. Report the timezone and actual interval used.
-2. Discover the datasource with `gcx datasources list`, filtering by `--type` and optionally
-   `--name`, and use the returned UID with `-d`. An ambiguous match needs clarification. A cap
-   is a sample, not a complete inventory; widen discovery within the same context when necessary.
-3. Inspect labels or metadata before inventing selectors. `gcx metrics labels` supports
-   `--metric`, `--match`, and `--label`; `gcx logs labels` supports `--label`. Check installed help:
-   do not assume every discovery command supports time-range or result-limit flags.
-4. Use dedicated signal commands and structured output. Bound time and results; avoid broad log
-   selectors or full trace bodies merely to test a connection. For unknown commands, use
-   `gcx help-tree <group> -o text` and the command's `--help`, not raw API passthrough.
-
-The following templates use task-selected values; replace the UID and selectors after discovery.
-The 15-minute window is an example, not a replacement for the user's requested time range.
-
-```bash
-GCX_PROMETHEUS_UID='<confirmed-prometheus-uid>'
-gcx metrics query --context "$GCX_CONTEXT" -d "$GCX_PROMETHEUS_UID" \
-  'up{job="<discovered-job>"}' --from now-15m --to now --step 1m -o json
-GCX_LOKI_UID='<confirmed-loki-uid>'
-gcx logs query --context "$GCX_CONTEXT" -d "$GCX_LOKI_UID" \
-  '{job="<discovered-job>"}' --since 15m --limit 20 -o json
-GCX_TEMPO_UID='<confirmed-tempo-uid>'
-gcx traces query --context "$GCX_CONTEXT" -d "$GCX_TEMPO_UID" \
-  '{ resource.service.name = "<selected-service>" }' --since 15m --limit 5 -o json
-```
-
-Use a datasource of the matching type for each command; do not reuse a Loki UID for metrics or
-traces. Prometheus instant queries use `--time`; range queries use `--from`/`--to` or `--since`
-with an appropriate `--step`. Do not combine instant and range flags. Metrics queries have no
-`--limit`: narrow selectors or use suitable PromQL aggregation/topk and disclose that choice.
-`--limit 0` on logs or traces is uncapped. Do not truncate output while claiming a complete result.
-
-For inventory, use the relevant dedicated read command with filters and caps:
-
-```bash
-gcx resources get dashboards --context "$GCX_CONTEXT" --limit 20 \
-  --json metadata.name,spec.title
-gcx alert rules list --context "$GCX_CONTEXT" --limit 20 -o json
-```
-
-Use `--share-link` on supported successful signal queries when a Grafana Explore link helps the
-user reproduce the result. Specialized SLO, IRM, Synthetic Monitoring, profiling, or other
-product queries use their installed command groups and task guidance with the same context rule.
-Assistant output does not replace these direct queries or authorize remediation.
-
-Correlate timestamps, resource identifiers, alerts, metrics, logs, and traces across the symptom
-window and a relevant baseline. Test competing explanations. Return observed facts, the
-supported cause or ranked hypotheses, evidence, gaps, and the next discriminating check. State
-when root cause remains unconfirmed; an error string or correlation alone does not establish it.
-For saved investigations, follow repository Report Evidence, Workflow Artifact Naming, Token
-Usage, and required Markdown/PDF report contracts.
+Direct reads follow [gcx query mechanics](references/query-mechanics.md): datasource and label
+discovery, metrics/logs/traces and inventory command forms, instant versus range flags, limits
+and caps, share links, and cross-signal analysis.
 
 ## Verification
 

@@ -3,12 +3,10 @@
 Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.
 
 This file is the single definition of the machinery every fan-out workflow in this catalog
-needs. A caller links here instead of restating it. What stays with each caller is its own
-units, its own questions, and its own bounds — this file deliberately names no data store, no
-integration skill, and no numeric budget, because those are the parts that legitimately differ.
-
-Five rule groups live here: the launch-mode vocabulary, the manifest schema, the harness
-mechanics, the degradation rules, and the leads-versus-findings rule.
+needs: the launch-mode vocabulary, the manifest schema, the harness mechanics, the degradation
+rules, and the leads-versus-findings rule. A caller links here instead of restating it. Each
+caller keeps its own units, questions and bounds; this file names no data store, no integration
+skill, and no numeric budget.
 
 ## Launch-mode vocabulary
 
@@ -128,8 +126,7 @@ object only.
 
 ## What this contract cannot enforce
 
-The repository's delegation check is a literal-token lint. It catches a duplicated schema key, a
-duplicated vocabulary value, and a duplicated harness token — the drift that actually happened
-here. It cannot tell a paraphrase of this contract from a legitimate cross-reference to it,
-because no regular expression can. That half stays with review, and a caller that restates these
-rules in its own words has still broken the contract even when the check passes.
+The repository's delegation check is a literal-token lint. It catches a duplicated schema key,
+vocabulary value, or harness token, but cannot tell a paraphrase of this contract from a
+legitimate cross-reference to it. That half stays with review: a caller that restates these rules
+in its own words has broken the contract even when the check passes.

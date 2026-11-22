@@ -1,4 +1,5 @@
 """Exercise the profile store helper through its public command-line interface."""
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -11,6 +12,20 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / 'skills' / 'profile-manager' / 'scripts' / 'profile_env.py'
 TEMPLATE = ROOT / 'templates' / 'TASK.md'
+
+
+def load_helper():
+    specification = importlib.util.spec_from_file_location('profile_env', HELPER)
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    return module
+
+
+# Assert against the helper's own setting constants rather than repeating their spelling.
+PROFILE_ENV = load_helper()
+ENABLED, DISABLED = PROFILE_ENV.ENABLED, PROFILE_ENV.DISABLED
+TOGGLE_ERROR = PROFILE_ENV.TOGGLE_ERROR.lstrip('; ')
+TOGGLES = tuple(PROFILE_ENV.CONTROL_DEFAULTS)
 
 
 class ProfileStoreTests(unittest.TestCase):
@@ -49,33 +64,33 @@ class ProfileStoreTests(unittest.TestCase):
 
     def test_grafana_assistant_schema_and_profile_roundtrip(self):
         fields = {entry['field']: entry for entry in self.ok('schema')['fields']}
-        self.assertEqual(fields['GRAFANA_ASSISTANT']['enum'], ['enabled', 'disabled'])
-        self.assertEqual(fields['GRAFANA_ASSISTANT']['default'], 'enabled')
+        self.assertEqual(fields['GRAFANA_ASSISTANT']['enum'], [ENABLED, DISABLED])
+        self.assertEqual(fields['GRAFANA_ASSISTANT']['default'], ENABLED)
         self.assertFalse(fields['GRAFANA_ASSISTANT']['resource'])
         self.ignore_and_init()
         self.ok('set', '--profile', 'ops', '--field', 'GRAFANA_CONTEXT=ops')
         self.assertEqual(self.ok('show', '--profile', 'ops')['fields']['GRAFANA_ASSISTANT'],
-                         'enabled')
+                         ENABLED)
         self.ok('set', '--profile', 'ops', '--field', 'GRAFANA_ASSISTANT=disabled')
         self.assertIn('- Grafana Assistant: `disabled`', self.ok('render', '--profile', 'ops'))
         self.ok('set', '--profile', 'ops', '--field', 'REPO=service-a')
         self.assertEqual(self.ok('show', '--profile', 'ops')['fields']['GRAFANA_ASSISTANT'],
-                         'disabled')
+                         DISABLED)
         self.ok('set', '--profile', 'ops', '--field', 'GRAFANA_ASSISTANT=')
         self.assertNotIn('GRAFANA_ASSISTANT', self.ok('show', '--profile', 'ops')['fields'])
         self.assertEqual(self.ok('show', '--profile', 'ops')['effective_grafana_assistant'],
-                         'enabled')
+                         ENABLED)
 
     def test_grafana_assistant_legacy_default_validation_and_no_resource(self):
         self.ignore_and_init()
         self.store.write_text("UNMANAGED='keep'\nPROFILE__OPS__GRAFANA_CONTEXT='ops'\n")
         before = self.store.read_bytes()
         self.assertEqual(self.ok('show', '--profile', 'ops')['effective_grafana_assistant'],
-                         'enabled')
+                         ENABLED)
         self.assertIn('- Grafana Assistant: `enabled`', self.ok('render', '--profile', 'ops'))
         self.assertEqual(self.store.read_bytes(), before)
-        for bad in ('false', 'False', 'DISABLED', 'off', ' disabled'):
-            self.assertIn('expected enabled or disabled', self.fails('set', '--profile', 'ops',
+        for bad in ('false', 'False', 'off', 'no', 'disable'):
+            self.assertIn(TOGGLE_ERROR, self.fails('set', '--profile', 'ops',
                           '--field', 'GRAFANA_ASSISTANT=' + bad))
             self.assertEqual(self.store.read_bytes(), before)
         self.assertIn('no actual resource', self.fails('set', '--profile', 'only',
@@ -86,7 +101,7 @@ class ProfileStoreTests(unittest.TestCase):
         task = self.root / 'TASK.md'; task.write_text('## Resources\n')
         for command in ('show', 'render', 'endpoints', 'load'):
             extra = ('--task', str(task)) if command == 'load' else ()
-            self.assertIn('expected enabled or disabled',
+            self.assertIn(TOGGLE_ERROR,
                           self.fails(command, '--profile', 'ops', *extra))
         self.assertEqual(task.read_text(), '## Resources\n')
 
@@ -105,7 +120,7 @@ class ProfileStoreTests(unittest.TestCase):
                 '--field', 'GRAFANA_ASSISTANT=enabled')
         self.assertIn('- Grafana Assistant: `enabled`', task.read_text())
         self.assertEqual(self.ok('show', '--profile', 'ops')['fields']['GRAFANA_ASSISTANT'],
-                         'enabled')
+                         ENABLED)
         for setting in ('- Grafana Assistant: `off`',
                         '- Grafana Assistant: disabled\n- Grafana Assistant: `enabled`'):
             task.write_text('## Resources\n' + setting + '\n')
@@ -125,13 +140,13 @@ class ProfileStoreTests(unittest.TestCase):
         self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out',
                 '--field', 'GRAFANA_ASSISTANT=disabled')
         self.assertEqual(self.ok('show', '--profile', 'out')['fields']['GRAFANA_ASSISTANT'],
-                         'disabled')
+                         DISABLED)
         self.assertTrue(self.store.read_bytes().startswith(before))
 
     def test_generate_pdf_roundtrip_default_and_task_override(self):
         self.ignore_and_init()
         added = self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
-        self.assertEqual(added['fields']['GENERATE_PDF'], 'enabled')
+        self.assertEqual(added['fields']['GENERATE_PDF'], ENABLED)
         self.ok('set', '--profile', 'example', '--field', 'GENERATE_PDF=disabled')
         self.assertIn('- Generate PDF: `disabled`', self.ok('render', '--profile', 'example'))
         task = self.root / 'TASK.md'
@@ -141,18 +156,18 @@ class ProfileStoreTests(unittest.TestCase):
         first = task.read_bytes()
         self.ok('load', '--profile', 'example', '--task', str(task), '--replace')
         self.assertEqual(task.read_bytes(), first)
-        self.assertEqual(self.ok('show', '--profile', 'example')['fields']['GENERATE_PDF'], 'disabled')
+        self.assertEqual(self.ok('show', '--profile', 'example')['fields']['GENERATE_PDF'], DISABLED)
 
     def test_generate_pdf_legacy_invalid_and_configuration_only(self):
         self.ignore_and_init()
         self.store.write_text('UNMANAGED="keep"\nPROFILE__example__REPO="example-service"\n')
         before = self.store.read_bytes()
         shown = self.ok('show', '--profile', 'example')
-        self.assertEqual(shown['effective_generate_pdf'], 'enabled')
+        self.assertEqual(shown['effective_generate_pdf'], ENABLED)
         self.assertIn('- Generate PDF: `enabled`', self.ok('render', '--profile', 'example'))
         self.assertEqual(self.store.read_bytes(), before)
-        for bad in ('true', 't', 'False', '0', ' enabled', 'Enabled', 'on'):
-            self.assertIn('expected enabled or disabled', self.fails('set', '--profile', 'example',
+        for bad in ('true', 'False', '0', 'on', 'yes', 'enable'):
+            self.assertIn(TOGGLE_ERROR, self.fails('set', '--profile', 'example',
                                                        '--field', 'GENERATE_PDF=' + bad))
             self.assertEqual(self.store.read_bytes(), before)
         self.assertIn('no actual resource', self.fails('set', '--profile', 'only',
@@ -160,7 +175,7 @@ class ProfileStoreTests(unittest.TestCase):
         task = self.root / 'TASK.md'
         task.write_text('# Task Title: demo\n\n## Resources\n\n- Generate PDF: `false`\n')
         original = task.read_bytes()
-        self.assertIn('expected enabled or disabled', self.fails('load', '--profile', 'example',
+        self.assertIn(TOGGLE_ERROR, self.fails('load', '--profile', 'example',
                                                   '--task', str(task), '--replace'))
         self.assertEqual(task.read_bytes(), original)
         task.write_text('# Task Title: demo\n\n## Resources\n\n- Generate PDF: `enabled`\n- Generate PDF: `disabled`\n')
@@ -170,16 +185,16 @@ class ProfileStoreTests(unittest.TestCase):
     def test_toggle_settings_share_one_enabled_disabled_contract(self):
         self.ignore_and_init()
         schema = {field['field']: field for field in self.ok('schema')['fields']}
-        for toggle in ('GENERATE_PDF', 'GRAFANA_ASSISTANT', 'FAN_OUT'):
+        for toggle in TOGGLES:
             self.assertEqual(schema[toggle]['type'], 'enum')
-            self.assertEqual(schema[toggle]['enum'], ['enabled', 'disabled'])
-            self.assertEqual(schema[toggle]['default'], 'enabled')
+            self.assertEqual(schema[toggle]['enum'], list(PROFILE_ENV.TOGGLE_VALUES))
+            self.assertEqual(schema[toggle]['default'], ENABLED)
             self.assertFalse(schema[toggle]['resource'])
             self.ok('set', '--profile', 'example', '--field', 'REPO=example-service',
                     '--field', toggle + '=disabled')
-            self.assertIn('expected enabled or disabled',
+            self.assertIn(TOGGLE_ERROR,
                           self.fails('set', '--profile', 'example', '--field', toggle + '=off'))
-        self.assertEqual(schema['GENERATE_PDF']['legacy_values'], {'T': 'enabled', 'F': 'disabled'})
+        self.assertEqual(schema['GENERATE_PDF']['legacy_values'], {'T': ENABLED, 'F': DISABLED})
         task = self.root / 'TASK.md'
         task.write_text('## Resources\n\n- Generate PDF: enabled\n- Grafana Assistant: enabled\n')
         self.ok('load', '--profile', 'example', '--task', str(task))
@@ -189,8 +204,8 @@ class ProfileStoreTests(unittest.TestCase):
     def test_fan_out_profile_setting_default_task_override_and_unknown_controls(self):
         self.ignore_and_init()
         added = self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
-        self.assertEqual(added['fields']['FAN_OUT'], 'enabled')
-        self.assertEqual(self.ok('show', '--profile', 'example')['effective_fan_out'], 'enabled')
+        self.assertEqual(added['fields']['FAN_OUT'], ENABLED)
+        self.assertEqual(self.ok('show', '--profile', 'example')['effective_fan_out'], ENABLED)
         self.ok('set', '--profile', 'example', '--field', 'FAN_OUT=disabled')
         self.assertIn('- Fan-out: `disabled`', self.ok('render', '--profile', 'example'))
         # The saved task wins over the profile; controls outside the template are preserved.
@@ -204,9 +219,206 @@ class ProfileStoreTests(unittest.TestCase):
         # A profile stored before the setting existed resolves the default without a rewrite.
         self.store.write_text("PROFILE__OLD__REPO='example-service'\n")
         before = self.store.read_bytes()
-        self.assertEqual(self.ok('show', '--profile', 'old')['effective_fan_out'], 'enabled')
+        self.assertEqual(self.ok('show', '--profile', 'old')['effective_fan_out'], ENABLED)
         self.assertIn('- Fan-out: `enabled`', self.ok('render', '--profile', 'old'))
         self.assertEqual(self.store.read_bytes(), before)
+
+    def test_setting_names_and_values_accept_flexible_spelling(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
+        # Names ignore case, spaces, hyphens and underscores; "=" and ":" both delimit.
+        for assignment, stored in (('fan out=disabled', DISABLED), ('fan_out=ENABLED', ENABLED),
+                                   ('FAN OUT: DISABLED', DISABLED), ('Fan-out:enabled', ENABLED),
+                                   ('fanout: Disabled', DISABLED), (' fan out : enabled ', ENABLED)):
+            result = self.ok('set', '--profile', 'example', '--field', assignment)
+            self.assertEqual(result['fields']['FAN_OUT'], stored, assignment)
+        self.assertIn("PROFILE__EXAMPLE__FAN_OUT='enabled'", self.store.read_text())
+        # Template labels work as names, for resources as well as settings.
+        result = self.ok('set', '--profile', 'example', '--field', 'generate pdf: Disabled',
+                         '--field', 'grafana assistant: DISABLED',
+                         '--field', 'slack channel: #example-support',
+                         '--field', 'publish: https://example.atlassian.net/wiki/spaces/OPS')
+        self.assertEqual(result['fields']['GENERATE_PDF'], DISABLED)
+        self.assertEqual(result['fields']['GRAFANA_ASSISTANT'], DISABLED)
+        self.assertEqual(result['fields']['SLACK_CHANNEL'], '#example-support')
+        self.assertEqual(result['fields']['PUBLISH'], 'https://example.atlassian.net/wiki/spaces/OPS')
+        # Legacy spellings translate to the same constants in any case.
+        for spelling, stored in (('T', ENABLED), ('f', DISABLED), (' t ', ENABLED)):
+            result = self.ok('set', '--profile', 'example', '--field', 'generate pdf:' + spelling)
+            self.assertEqual(result['fields']['GENERATE_PDF'], stored)
+        # "=" first keeps a value containing ":" intact; an empty colon value clears.
+        self.ok('set', '--profile', 'example', '--field', 'REPO=ssh://git@example.com/org/repo.git')
+        self.ok('set', '--profile', 'example', '--field', 'slack channel:')
+        shown = self.ok('show', '--profile', 'example')['fields']
+        self.assertEqual(shown['REPO'], 'ssh://git@example.com/org/repo.git')
+        self.assertNotIn('SLACK_CHANNEL', shown)
+        before = self.store.read_bytes()
+        for bad in ('fan out', 'fan out disabled', 'fanned out: disabled', ': disabled',
+                    'fan out: off'):
+            self.fails('set', '--profile', 'example', '--field', bad)
+            self.assertEqual(self.store.read_bytes(), before)
+        # Load overrides and task bullets follow the same rules.
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n\n- fan out: DISABLED\n- GENERATE_PDF: `Enabled`\n')
+        self.ok('load', '--profile', 'example', '--task', str(task),
+                '--field', 'grafana assistant: ENABLED')
+        text = task.read_text()
+        self.assertIn('- Fan-out: `disabled`', text)
+        self.assertIn('- Generate PDF: `enabled`', text)
+        self.assertIn('- Grafana Assistant: `enabled`', text)
+        self.assertEqual(text.count('- Fan-out:'), 1)
+        self.assertNotIn('fan out', text)
+
+    def lint(self, *arguments):
+        result = self.run_helper('lint', *arguments)
+        self.assertIn(result.returncode, (0, 1), result.stderr)
+        report = json.loads(result.stdout)
+        return result.returncode, report, [(item['rule'], item['location'], item['fixable'])
+                                           for item in report['findings']]
+
+    def test_lint_reports_and_fixes_hand_edited_store_settings(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'team', '--field', 'REPO=example-service',
+                '--field', 'FAN_OUT=' + DISABLED)
+        self.assertEqual(self.lint(), (0, self.lint()[1], []))
+        with self.store.open('a') as stream:
+            stream.write('OTHER="keep me"\n'
+                         'PROFILE__team__generate_pdf="F"\n'               # duplicate, differs
+                         "PROFILE__TEAM__Fan_Out='DISABLED'\n"             # duplicate, agrees
+                         'PROFILE__team__slack_channel="#example-support"\n'
+                         'export PROFILE__TEAM__AWS_REGION=us-east-1\n'
+                         "PROFILE__TEAM__NOT_A_FIELD='x'\n"
+                         "PROFILE__TEAM__GRAFANA_CONTEXT='<enter gcx profile>'\n")
+        before = self.store.read_bytes()
+        status, report, rules = self.lint()
+        self.assertEqual(status, 1)
+        self.assertEqual(sorted(rules), sorted([
+            ('conflicting-duplicate', 'store', False), ('duplicate', 'store', True),
+            ('key-spelling', 'store', True), ('formatting', 'store', True),
+            ('unknown-field', 'store', False), ('invalid-value', 'store', False)]))
+        self.assertFalse(report['clean'])
+        self.assertEqual((report['fixable'], report['unfixable'], report['fixed']), (3, 3, 0))
+        # Findings name fields and lines, never stored values.
+        self.assertNotIn('example-support', json.dumps(report))
+        self.assertNotIn('keep me', json.dumps(report))
+        # Reporting and --dry-run never write.
+        self.assertEqual(self.store.read_bytes(), before)
+        self.lint('--fix', '--dry-run')
+        self.assertEqual(self.store.read_bytes(), before)
+        status, report, _ = self.lint('--fix')
+        self.assertEqual((status, report['fixed'], report['clean']), (1, 3, False))
+        text = self.store.read_text()
+        self.assertIn("PROFILE__TEAM__SLACK_CHANNEL='#example-support'\n", text)
+        self.assertIn("PROFILE__TEAM__AWS_REGION='us-east-1'\n", text)
+        self.assertEqual(text.upper().count('__FAN_OUT='), 1)
+        # Unrelated lines and findings only the user can resolve are left exactly as written.
+        self.assertIn('OTHER="keep me"\n', text)
+        self.assertIn('PROFILE__team__generate_pdf="F"\n', text)
+        self.assertIn("PROFILE__TEAM__NOT_A_FIELD='x'\n", text)
+        self.assertEqual(oct(self.store.stat().st_mode & 0o777), '0o600')
+        # A second pass finds only what needs a decision, and is idempotent.
+        fixed = self.store.read_bytes()
+        status, _, rules = self.lint('--fix')
+        self.assertEqual(status, 1)
+        self.assertTrue(all(not fixable for _, _, fixable in rules))
+        self.assertEqual(self.store.read_bytes(), fixed)
+        # --profile limits findings to that profile.
+        self.assertEqual(self.lint('--profile', 'other')[2], [])
+
+    def test_lint_updates_legacy_values_and_other_commands_ask_for_it(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'new', '--field', 'REPO=example-service')
+        self.assertNotIn('lint_notice', self.ok('show', '--profile', 'new'))
+        # A store written before the settings contract holds T and F.
+        self.store.write_text("# profile: old\nPROFILE__OLD__GENERATE_PDF='F'\n"
+                              "PROFILE__OLD__REPO='example-service'\n"
+                              "\n# profile: older\nPROFILE__OLDER__GENERATE_PDF='T'\n"
+                              "PROFILE__OLDER__REPO='other-service'\n")
+        before = self.store.read_bytes()
+        # Every other command still works, reports the store, and leaves it untouched.
+        shown = self.ok('show', '--profile', 'old')
+        self.assertEqual(shown['fields']['GENERATE_PDF'], DISABLED)
+        notice = shown['lint_notice']
+        self.assertEqual((notice['findings'], notice['fixable'], notice['needs_decision']),
+                         (2, 2, 0))
+        self.assertEqual(notice['rules'], ['legacy-value'])
+        self.assertIn('lint profiles', notice['message'])
+        self.assertIn('lint_notice', self.ok('list'))
+        rendered = self.run_helper('render', '--profile', 'old')
+        self.assertEqual(rendered.returncode, 0)
+        self.assertIn('lint profiles', rendered.stderr)
+        self.assertIn('- Generate PDF: `' + DISABLED + '`', rendered.stdout)
+        self.assertEqual(self.store.read_bytes(), before)
+        status, report, rules = self.lint()
+        self.assertEqual((status, rules), (1, [('legacy-value', 'store', True)] * 2))
+        self.assertEqual([item['canonical'] for item in report['findings']], [DISABLED, ENABLED])
+        status, report, _ = self.lint('--fix')
+        self.assertEqual((status, report['clean'], report['fixed']), (0, True, 2))
+        self.assertEqual(self.store.read_text(),
+                         "# profile: old\nPROFILE__OLD__GENERATE_PDF='" + DISABLED + "'\n"
+                         "PROFILE__OLD__REPO='example-service'\n"
+                         "\n# profile: older\nPROFILE__OLDER__GENERATE_PDF='" + ENABLED + "'\n"
+                         "PROFILE__OLDER__REPO='other-service'\n")
+        self.assertNotIn('lint_notice', self.ok('show', '--profile', 'old'))
+
+    def test_store_lint_prompts_for_tasks_with_illegal_values_without_editing_them(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'team', '--field', 'REPO=example-service')
+        self.assertNotIn('task_notice', self.lint()[1])
+        tasks = self.root / 'docs' / 'tasks'
+        tasks.mkdir(parents=True)
+        (tasks / 'TASK.md').write_text('## Resources\n\n- Fan-out: `off`\n- generate pdf: T\n')
+        (tasks / 'TASK-clean.md').write_text('## Resources\n\n- Fan-out: `' + DISABLED + '`\n')
+        (tasks / 'notes.md').write_text('## Resources\n\n- Fan-out: `off`\n')
+        before = (tasks / 'TASK.md').read_bytes()
+        status, report, rules = self.lint('--fix')
+        # The store is clean; the task findings are a prompt, not part of this lint.
+        self.assertEqual((status, rules, report['clean']), (0, [], True))
+        notice = report['task_notice']
+        self.assertEqual(notice['tasks'], [{
+            'task': 'docs/tasks/TASK.md', 'findings': 3, 'fixable': 2, 'needs_decision': 1,
+            'rules': ['invalid-value', 'label-spelling', 'legacy-value']}])
+        self.assertIn('lint task', notice['message'])
+        self.assertIn('legal', notice['message'])
+        self.assertEqual((tasks / 'TASK.md').read_bytes(), before)
+        # Linting the named task fixes what it can and leaves the illegal value for the user.
+        status, report, _ = self.lint('--task', 'docs/tasks/TASK.md', '--fix')
+        self.assertEqual((status, report['fixed'], report['unfixable']), (1, 2, 1))
+        self.assertNotIn('task_notice', report)
+        self.assertEqual((tasks / 'TASK.md').read_text(),
+                         '## Resources\n\n- Fan-out: `off`\n- Generate PDF: `' + ENABLED + '`\n')
+        (tasks / 'TASK.md').write_text('## Resources\n\n- Fan-out: `' + DISABLED + '`\n')
+        self.assertNotIn('task_notice', self.lint()[1])
+
+    def test_lint_reports_and_fixes_hand_edited_task_settings(self):
+        self.ignore_and_init()
+        task = self.root / 'TASK.md'
+        task.write_text('# Task Title: demo\n\n## Resources\n\n- fan out: DISABLED\n'
+                        '- generate_pdf: `F`\n- Slack Channel: `#example-support`\n'
+                        '- Owner: platform\n\n## Notes\n\n- fan out: untouched\n')
+        before = task.read_bytes()
+        status, report, rules = self.lint('--task', str(task))
+        self.assertEqual(status, 1)
+        self.assertEqual(sorted(rules), sorted([('label-spelling', 'task', True)] * 3
+                                               + [('value-spelling', 'task', True),
+                                                  ('legacy-value', 'task', True)]))
+        self.assertEqual(task.read_bytes(), before)
+        status, report, _ = self.lint('--task', str(task), '--fix')
+        self.assertEqual((status, report['clean'], report['fixed']), (0, True, 5))
+        self.assertEqual(task.read_text(),
+                         '# Task Title: demo\n\n## Resources\n\n- Fan-out: `' + DISABLED + '`\n'
+                         '- Generate PDF: `' + DISABLED + '`\n- Slack channel: `#example-support`\n'
+                         '- Owner: platform\n\n## Notes\n\n- fan out: untouched\n')
+        self.assertEqual(self.lint('--task', str(task)), (0, self.lint('--task', str(task))[1], []))
+        # A value that is not a setting value needs the user and is never guessed.
+        task.write_text('## Resources\n\n- Fan-out: `off`\n- Generate PDF: `' + ENABLED + '`\n'
+                        '- Generate PDF: `' + DISABLED + '`\n')
+        before = task.read_bytes()
+        status, _, rules = self.lint('--task', str(task), '--fix')
+        self.assertEqual(status, 1)
+        self.assertEqual(sorted(rules), [('conflicting-duplicate', 'task', False),
+                                         ('invalid-value', 'task', False)])
+        self.assertEqual(task.read_bytes(), before)
 
     def test_generate_pdf_legacy_values_resolve_and_normalize_on_write(self):
         self.ignore_and_init()
@@ -214,8 +426,8 @@ class ProfileStoreTests(unittest.TestCase):
                               "PROFILE__OLD__GENERATE_PDF='F'\n")
         before = self.store.read_bytes()
         shown = self.ok('show', '--profile', 'old')
-        self.assertEqual(shown['fields']['GENERATE_PDF'], 'disabled')
-        self.assertEqual(shown['effective_generate_pdf'], 'disabled')
+        self.assertEqual(shown['fields']['GENERATE_PDF'], DISABLED)
+        self.assertEqual(shown['effective_generate_pdf'], DISABLED)
         self.assertIn('- Generate PDF: `disabled`', self.ok('render', '--profile', 'old'))
         # Reads never migrate the store.
         self.assertEqual(self.store.read_bytes(), before)
@@ -225,7 +437,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertIn('- Generate PDF: `enabled`', task.read_text())
         # A legacy value supplied on a command is stored in canonical form.
         self.assertEqual(self.ok('set', '--profile', 'new', '--field', 'REPO=repo',
-                                 '--field', 'GENERATE_PDF=F')['fields']['GENERATE_PDF'], 'disabled')
+                                 '--field', 'GENERATE_PDF=F')['fields']['GENERATE_PDF'], DISABLED)
         # The next update of a legacy profile rewrites its stored toggle canonically.
         self.ok('set', '--profile', 'old', '--field', 'AWS_REGION=us-east-1')
         self.assertIn("PROFILE__OLD__GENERATE_PDF='disabled'", self.store.read_text())
@@ -283,18 +495,18 @@ class ProfileStoreTests(unittest.TestCase):
         self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
         merged = self.ok('set', '--profile', 'example', '--field', 'GRAFANA_CONTEXT=example')
         self.assertEqual(merged['fields'], {'REPO': 'example-service',
-                                            'GRAFANA_CONTEXT': 'example', 'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_PDF': 'enabled', 'GRAFANA_ASSISTANT': 'enabled', 'FAN_OUT': 'enabled'})
+                                            'GRAFANA_CONTEXT': 'example', 'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_PDF': ENABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
         self.assertEqual(merged['added'], ['GRAFANA_CONTEXT'])
         contents = self.store.read_text(encoding='utf-8')
         self.assertIn('# local only\nUNRELATED_TOKEN="keep me"\n', contents)
         self.assertIn("PROFILE__EXAMPLE__REPO='example-service'", contents)
         replaced = self.ok('set', '--profile', 'example', '--replace',
                            '--field', 'REPO=example-service')
-        self.assertEqual(replaced['fields'], {'REPO': 'example-service', 'GENERATE_PDF': 'enabled', 'GRAFANA_ASSISTANT': 'enabled', 'FAN_OUT': 'enabled'})
+        self.assertEqual(replaced['fields'], {'REPO': 'example-service', 'GENERATE_PDF': ENABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
         self.assertEqual(replaced['cleared'], ['GRAFANA_CONTEXT', 'RHYMING_HISTORICAL_WINDOW_DAYS'])
         cleared = self.ok('set', '--profile', 'example', '--field', 'REPO=other-service',
                           '--field', 'GRAFANA_CONTEXT=')
-        self.assertEqual(cleared['fields'], {'REPO': 'other-service', 'GENERATE_PDF': 'enabled', 'GRAFANA_ASSISTANT': 'enabled', 'FAN_OUT': 'enabled'})
+        self.assertEqual(cleared['fields'], {'REPO': 'other-service', 'GENERATE_PDF': ENABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
         self.assertIn('UNRELATED_TOKEN="keep me"', self.store.read_text(encoding='utf-8'))
 
     def test_dependent_field_requires_its_primary_field(self):
@@ -330,7 +542,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertNotIn('keep me', json.dumps(listed))
         shown = self.ok('show', '--profile', 'example')
         self.assertEqual(shown['fields'], {'REPO': 'example-service',
-                                           'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_PDF': 'enabled', 'GRAFANA_ASSISTANT': 'enabled', 'FAN_OUT': 'enabled'})
+                                           'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_PDF': ENABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
         self.assertIn('PUBLISH', shown['missing_fields'])
         self.assertEqual(shown['unknown_fields'], [])
         self.assertNotIn('keep me', json.dumps(shown))
@@ -538,7 +750,7 @@ class ProfileStoreTests(unittest.TestCase):
         shown = self.ok('show', '--profile', 'combined')['fields']
         self.assertEqual(shown['AWS_ACCOUNT'], 'ops-readonly')
         self.assertEqual(shown['AWS_REGION'], 'us-east-1')
-        self.assertEqual(shown['GENERATE_PDF'], 'enabled')
+        self.assertEqual(shown['GENERATE_PDF'], ENABLED)
         self.assertEqual(oct(self.store.stat().st_mode & 0o777), '0o600')
         target_before = self.store.read_bytes()
         self.assertIn('already exists', self.fails('compose', '--profile', 'prod-us',
@@ -588,7 +800,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.store.write_text("PROFILE__ONE__REPO='a'\nPROFILE__TWO__REPO='b'\n"
                               "PROFILE__TWO__GENERATE_PDF='F'\n")
         self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out')
-        self.assertEqual(self.ok('show', '--profile', 'out')['fields']['GENERATE_PDF'], 'disabled')
+        self.assertEqual(self.ok('show', '--profile', 'out')['fields']['GENERATE_PDF'], DISABLED)
         self.ok('set', '--profile', 'out', '--field', 'SLACK_CHANNEL=#stale')
         self.ok('compose', '--profile', 'one', '--profile', 'two', '--into', 'out', '--replace')
         self.assertNotIn('SLACK_CHANNEL', self.ok('show', '--profile', 'out')['fields'])

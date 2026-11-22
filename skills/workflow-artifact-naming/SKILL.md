@@ -1,6 +1,6 @@
 ---
 name: workflow-artifact-naming
-description: Name and place TASK, SPEC, PLAN, REPORT, LOG and supporting workflow artifacts. Use when resolving artifact paths, creating or updating workflow documents, and scoped artifact renames; exclude production source and test filenames.
+description: "Name and place TASK, SPEC, PLAN, REPORT, LOG and supporting workflow artifacts. Use when resolving artifact paths, creating or updating workflow documents, or renaming artifacts in scope. Excludes production source and test filenames."
 metadata:
   version: "0.2.36"
 ---

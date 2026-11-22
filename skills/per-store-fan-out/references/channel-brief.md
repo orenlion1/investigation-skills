@@ -2,9 +2,9 @@
 
 Use for each parent-resolved channel under the
 [channel workflow](../SKILL.md#channel-resolution-and-scheduling). Keep the resolved block and
-output contract byte-identical to the store/repository templates. Scheduling and manifest
-machinery remain in [the shared delegation contract](delegation-contract.md); this template
-owns only channel identity and questions.
+output contract byte-identical to the [store](sub-agent-brief.md) and
+[repository](repository-brief.md) templates. Scheduling and manifest machinery stay in
+[the shared delegation contract](delegation-contract.md).
 
 ```markdown
 # Investigation brief: <canonical workspace/channel>
@@ -44,5 +44,13 @@ Return exactly these sections:
 Do not draw cross-store conclusions; do not mutate anything.
 ```
 
-Use the skill's channel-owned manifest fields; unresolved channel inputs remain visible. The
-parent verifies material evidence and performs cross-channel correlation.
+## Channel manifest
+
+Channel runs use a separate linked manifest under the delegation contract. Add only these
+channel-owned fields: `channel`, `configured_entries`, `workspace`, `inspection_owner`, `outcome`,
+`store_manifest` and `repository_manifest` (omit unrelated links).
+
+- Each resolved channel gets one row; each unresolved input retains a gap row and stays visible.
+- The parent ownership map covers all channel entries without duplicate reads.
+- Keep authentication/tool availability separate from a successful channel query.
+- The parent verifies material evidence and performs cross-channel correlation.

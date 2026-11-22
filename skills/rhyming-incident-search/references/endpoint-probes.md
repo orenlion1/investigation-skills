@@ -83,8 +83,8 @@ own schema: task and profile identity (never a full profile dump), the shared bl
 start/cutoff, observed capacity, and per endpoint row the endpoint id, kind and target, the
 capacity wave, the finish time, the query and candidate budgets with their actual counts, the
 follow-up rounds, the result status, and the parent's verification reference and time. The
-contract fixes the launch-mode vocabulary and what an unlaunched row looks like; do not restate
-either here. Count all reads, including verification, toward the endpoint budget. Profile and
+contract alone fixes the launch-mode vocabulary and the unlaunched-row shape.
+Count all reads, including verification, toward the endpoint budget. Profile and
 endpoint identities and query excerpts may be sensitive: retain only necessary scope evidence,
 local and untracked.
 
@@ -94,4 +94,4 @@ required sections and retrievability. Never invent omitted times, versions or co
 Prompt endpoint rows additionally link the Assistant execution receipt, owner reference, inclusion
 evidence and unique prompt count under [Assistant matching](assistant-search.md). A configured
 disabled endpoint is a limitation with no fabricated child/receipt; history-only results need no
-Assistant execution object. Preparation output is never a launch manifest or proof of a prompt.
+Assistant execution object.

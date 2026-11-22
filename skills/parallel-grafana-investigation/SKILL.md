@@ -1,6 +1,6 @@
 ---
 name: parallel-grafana-investigation
-description: Handle any Grafana query request with two parallel read-only sub-agents — Grafana Assistant and direct gcx queries using relevant bundled agent skills — then reconcile and verify. Use when handling Grafana alerts, metrics and PromQL, logs and LogQL, traces and TraceQL, dashboards and datasource inventory, SLO health, Synthetic Monitoring, or other Grafana resource reads, including exact queries. Honor disabled Assistant and cost controls. Setup-only requests use gcx-cli; internal commands never recursively launch this workflow.
+description: "Answer any Grafana query with two parallel read-only sub-agents, Grafana Assistant and direct gcx, then reconcile and verify. Use when handling Grafana alerts, metrics and PromQL, logs and LogQL, traces and TraceQL, dashboards, datasource inventory, SLO health, Synthetic Monitoring, or other Grafana resource reads, including exact queries. Honors a disabled Assistant and cost controls; setup-only requests go to gcx-cli."
 ---
 
 # Parallel Grafana Investigation
@@ -141,5 +141,5 @@ acknowledgments, messages and publication require separate authorization.
 - No internal command recursively launched another pair; historical endpoint and parent
   delegation restrictions remained intact.
 
-For a human-readable explanation of the split, bundled skills and context loading, see
-[README.md](README.md). It is supporting documentation, not a required runtime read.
+[README.md](README.md) explains the split for human readers and holds the saved-profile form of
+the Assistant setting; it is not a required runtime read.

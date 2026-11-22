@@ -3,8 +3,8 @@
 Use this guidance only within an explicitly authorized page publication or editing workflow.
 Keep the existing Bitbucket and Jira/Confluence read grants intact. A dedicated publication
 grant needs `write:confluence:agent-interface` alongside the required Confluence read/search
-scopes and ordinary OAuth identity/refresh scopes. Follow the Rovo Dev MCP skill's scoped OAuth recovery
-when necessary; successful authentication alone does not prove publication.
+scopes and ordinary OAuth identity/refresh scopes. Follow the Rovo Dev MCP skill's scoped OAuth
+recovery when necessary; successful authentication alone does not prove publication.
 
 ## Prepare the page
 
@@ -12,7 +12,7 @@ Verify the selected site, space, parent and any existing matching report before 
 Use the caller's resolved destination, not a hard-coded site, space or investigation ID. A matching
 page needs verified artifact identity and destination, not just a similar title. Resume a verified
 owned publication when authorized; resolve competing matches before writing. Preserve unrelated
-existing content and reread on concurrent edits.
+existing content, reread on concurrent edits and stop on conflicting ones.
 Consume the full primary tool catalog and discover deferred operations with their live schemas.
 Load `getContentFormatGuide` for `createConfluencePage` or `updateConfluencePage` through
 `executeRead` before authoring. Prefer its documented HTML patterns. Apply space instructions:
@@ -30,7 +30,11 @@ Retain the returned page identity before dependent work. For classic-page update
 Present the selected report's findings, evidence index, diagrams, adjacent captions and limitations
 as readable page content, preserving the canonical meaning. The page's hierarchy comes from the
 verified destination; its title comes from the selected artifacts or caller, not a generic test
-placeholder. For task-only input, present the task's actual requirements and recorded status.
+placeholder. For task-only input, present the task's actual requirements and recorded status;
+the page identifies its actual scope and includes its task download. For a PDF-only report,
+inspect it with suitable tooling, attach the original and publish a faithful readable summary or
+conversion; disclose any conversion limitation. Do not claim a full rich page if only a file card
+was delivered.
 
 Replace local-only links in the page with published references or native attachment nodes. Use
 short evidence headings such as `<h3>E1</h3>` and same-page links such as `<a href="#E1">E1</a>`;
@@ -108,9 +112,9 @@ For a PDF/file card, use `media-group` with a `media` child. For an inline attac
 upload files, and attachment download URLs are not substitutes for native media embeds.
 
 Attach the available report source, matching PDF and parent TASK through the same upload
-operation, preserving their filenames and bytes.
-For the task, add a clearly labeled **Parent task download** section with a native file card using its
-returned media ID and resolved owning-page collection. Preserve the task's requirements,
+operation, preserving their filenames and bytes. The **Parent task download** section holds a
+native file card using the task's returned media ID and resolved owning-page collection.
+Preserve the task's requirements,
 resource identifiers and provenance; if publication requires redaction, disclose it and retain
 the original locally. Do not silently publish a truncated or rewritten task. A file card alone
 does not prove a usable download: verify its attachment metadata and preview/download, including
@@ -149,9 +153,8 @@ Repeat the shared occurrence gate on this saved published HTML and reconcile the
 ID, published version and source hashes with the preflight. A changed Confluence title suffix is
 acceptable only when origin, space/page identity, query and evidence fragment are unchanged.
 Re-download refreshed Markdown/PDF attachments and compare their SHA-256 values with the exact
-validated originals. Reject local-only links, stale companions and mismatched native-media IDs or
-collections. Verify each media item's adjacent caption/evidence as well as its ID; these checks
-remain separate from the helper's authored-link result.
+validated originals. Reject stale companions and mismatched native-media IDs or collections.
+The media and caption checks remain separate from the helper's authored-link result.
 
 Use the browser for remaining visual acceptance: load every diagram, including lazy-loaded
 ones, verify nonzero image dimensions and inspect readability at the delivered size. Test
@@ -176,4 +179,10 @@ Creating or revising this skill alone does not authorize replaying an earlier pu
 
 ## Conditional PDF inventory
 
-Follow the [saved report format decision](../../open-edit-close-execute/references/investigation-delivery.md#report-formats) before attachment preparation or dependency setup. All Markdown/PDF, file-preview and download instructions above apply only to selected formats. Generate PDF `disabled` publishes the verified Markdown source, available TASK, composed HTML and required diagrams/evidence without requiring or uploading a PDF. Preserve historical PDFs outside the current inventory. Verify current downloads and native media; never skip shared evidence/browser checks. This does not authorize publication, refresh accounting or rerun an investigation.
+Follow the [saved report format decision](../../open-edit-close-execute/references/investigation-delivery.md#report-formats)
+before attachment preparation or dependency setup. All Markdown/PDF, file-preview and download
+instructions above apply only to selected formats. Generate PDF `disabled` publishes the verified
+Markdown source, available TASK, composed HTML and required diagrams/evidence without requiring
+or uploading a PDF. Preserve historical PDFs outside the current inventory. Verify current
+downloads and native media; never skip shared evidence/browser checks. This does not authorize
+publication, refresh accounting or rerun an investigation.

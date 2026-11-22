@@ -33,6 +33,10 @@
       {
         "prompt": "Store the FAN_OUT setting as disabled in my .env resource profile, then load that profile's Resources into my task draft",
         "top_k": 3
+      },
+      {
+        "prompt": "lint profiles: check my .env resource profiles for hand-edited or legacy T/F settings and update them to enabled/disabled",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -108,9 +112,9 @@
       "id": 6,
       "kind": "dialogue",
       "prompt": "Set GENERATE_PDF=disabled in a real resource profile, load a task explicitly set to enabled, then show absent, legacy T/F and invalid settings. Can the toggle alone start an investigation?",
-      "expected_output": "Derives Generate PDF from template; validates exact enabled/disabled under the shared settings contract. Explicit task enabled overrides profile disabled. Missing defaults enabled; legacy T/F resolve to enabled/disabled and reads do not migrate. Toggle alone is configuration; invalid settings fail before writes.",
+      "expected_output": "Derives Generate PDF from template; validates enabled/disabled case-insensitively under the shared settings contract, storing lowercase. Explicit task enabled overrides profile disabled. Missing defaults enabled; legacy T/F resolve to enabled/disabled and reads do not migrate. Toggle alone is configuration; invalid settings fail before writes.",
       "expectations": [
-        "Derives GENERATE_PDF from the template and validates exact enabled/disabled, rejecting invalid stored or task settings",
+        "Derives GENERATE_PDF from the template and validates enabled/disabled case-insensitively, storing lowercase and rejecting other stored or task settings",
         "Uses explicit task over profile over absent enabled, preserving explicit task choice even with replacement",
         "Resolves legacy T and F to enabled and disabled, keeps legacy reads non-mutating and preserves unrelated values",
         "Refuses a toggle alone as an actual resource and does not authorize investigation or publication"
@@ -166,6 +170,28 @@
         "Resolves composition conflicts only by explicit field selection or aligned sources",
         "TASK value overrides the profile; load --field overrides the TASK; invalid or duplicate controls fail before writes",
         "No live Grafana query or Assistant prompt is sent by profile management"
+      ]
+    },
+    {
+      "id": 11,
+      "kind": "dialogue",
+      "prompt": "Store the fan out: DISABLED setting in my team profile. Earlier I wrote it as FAN OUT and fan_out; are those the same setting?",
+      "expected_output": "Treats fan out, FAN OUT, fan_out and Fan-out as the one FAN_OUT setting, accepts the colon-delimited assignment and the uppercase value, stores the canonical lowercase disabled, and confirms by showing the profile.",
+      "expectations": [
+        "Resolves the differently spelled names to the single FAN_OUT setting without asking the user to restate it",
+        "Accepts the colon-delimited assignment and the uppercase value, storing lowercase disabled",
+        "Fails before any write for a name that matches no field instead of guessing"
+      ]
+    },
+    {
+      "id": 12,
+      "kind": "dialogue",
+      "prompt": "Load my team profile into the task draft. The helper result includes a lint_notice saying the store holds legacy T/F and hand-edited settings. Just fix my .env while you are at it, and my TASK.md says Fan-out: off.",
+      "expected_output": "Completes the load, then runs lint and lint --fix on the store because the user asked, reports changes by rule and field without values, and for the task asks the user to lint it and to choose a legal enabled or disabled value for Fan-out instead of guessing.",
+      "expectations": [
+        "Completes the requested load and reports the lint notice rather than silently repairing the store",
+        "Runs lint --fix on the store only on the user's request and reports changes by rule and field, never by stored value",
+        "Does not guess a replacement for the illegal Fan-out value; states the legal values and asks the user"
       ]
     }
   ]

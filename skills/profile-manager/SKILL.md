@@ -1,209 +1,249 @@
 ---
 name: profile-manager
-description: "Maintain the local untracked .env resource-profile store: create, inspect, compose or remove named profiles; store single or multiple repositories, Slack channels and publish destinations; load task Resources; derive the schema from the TASK template. Use when composing environmental/application profiles, managing .env profiles or ignore rules, or loading task Resources; credentials stay in their own stores."
+description: "Maintain the local, untracked .env store of named resource profiles. Create, inspect, compose, lint and remove profiles, derive the profile schema from the TASK template, and load a profile into a task's Resources. Use when managing .env profiles or their ignore rules, storing repositories, Slack channels, publish destinations or settings, composing environment and application profiles, or loading task Resources. Credentials stay in their own stores."
 ---
 
 # Profile Manager
 
 ## Overview
 
-A resource profile is a named set of the values a task's Resources section takes: a
-repository or repository list, a Slack channel or channel list, an AWS profile, a Grafana context, an alert identity, a
-publication parent page, or typed historical-search endpoints. This skill owns that store, its schema, and the ignore rules that
-keep it out of Git. Reach for it when a profile is created, changed, inspected, deleted, or
-loaded into a task; read the [store and schema contract](references/profile-store.md) for
-the file format, parsing rules, and command reference.
+A resource profile is a named set of the values a task's Resources section takes: repositories,
+Slack channels, an AWS profile, a Grafana context, an alert identity, publish destinations,
+typed historical-search endpoints, and run settings. This skill owns the store, its schema, and
+the ignore rules that keep it out of Git. The
+[store and schema contract](references/profile-store.md) holds the file format, value rules,
+limits and per-command behavior; read the linked section before a dependent operation. A tested
+end-to-end run is in [profile-composition-example.md](references/profile-composition-example.md).
 
-The store is a single `.env` file at the repository root. It is local and untracked by
-design: it names one person's accounts, channels, and contexts, which are not reviewed
-repository policy. Only keys in the `PROFILE__` namespace are interpreted, so unrelated
-local environment entries in the same file are preserved byte-for-byte and their values
-are never parsed, printed, or rewritten.
-
-The schema is derived, never hardcoded. Each labeled bullet in the `## Resources` section of
-[the task template](../../templates/TASK.md) produces one field key, and a trailing labeled
-segment on the same bullet produces a dependent field. A template change therefore changes
-the profile schema on the next command, and a field the template does not declare is
-rejected. Verify the derived schema before trusting a stored profile.
-
-The bundled Python 3.8+ [helper](scripts/profile_env.py) uses only the standard library and
-works from any copied skill location with an explicit repository root. Every write supports
-`--dry-run`, reports what it changed, and reads the result back. Resolve paths for saved
-supporting artifacts through [Workflow Artifact Naming](../workflow-artifact-naming/SKILL.md)
-before writing them.
-
-Profiles record which resources are in scope. They are not authorization and not a
-credential store: a stored AWS profile name or Grafana context still authenticates through
-its own skill, and a loaded value is still subject to every gate the requested operation
-has. Values that look like credentials are refused.
+- **Store.** One `.env` at the repository root: local, untracked, owner-only, never committed.
+  It names one person's accounts, channels and contexts, not reviewed repository policy. Only
+  `PROFILE__` keys are interpreted; other entries are preserved byte-for-byte and their values
+  never parsed, printed, or rewritten. Never source `.env` as shell; read it through the helper.
+  See [store format](references/profile-store.md#store-format).
+- **Schema.** Derived, never hardcoded: each labeled bullet in the `## Resources` section of
+  [the task template](../../templates/TASK.md) is one field, and a trailing labeled segment on
+  the same bullet is a dependent field that cannot be stored or rendered without its primary.
+  A template change changes the schema on the next command; an undeclared field is rejected.
+  Verify the derived schema before trusting a stored profile. See
+  [schema derivation](references/profile-store.md#schema-derivation).
+- **Helper.** The bundled Python 3.8+ [helper](scripts/profile_env.py) uses only the standard
+  library and works from any copied skill location with an explicit repository root. Every
+  write supports `--dry-run`, reports what it changed, and reads the result back. Resolve paths
+  for saved supporting artifacts through
+  [Workflow Artifact Naming](../workflow-artifact-naming/SKILL.md) before writing them.
+- **Not authorization, not a credential store.** A stored AWS profile name or Grafana context
+  still authenticates through its own skill, and a loaded value stays subject to every gate the
+  requested operation has. Credential-shaped values are refused.
 
 ## When to Use
 
-- Adding, updating, inspecting, or removing a named profile in the local `.env` store.
+- Adding, updating, inspecting, composing, or removing a named profile in the local `.env` store.
 - Creating or deleting that `.env` store, or making sure Git ignores it.
 - Filling a task's Resources section from a saved profile instead of retyping identifiers.
 - Checking which profile fields exist, because the TASK template's Resources section changed.
+- `lint profiles` or `lint task <path>`: updating hand-edited or legacy settings.
 
-## Derive the schema
+## Commands
 
-Read the schema before a dependent read or write, and name the template explicitly when it
-is not the repository default.
+Every command is run as below; the later forms show only what follows `--repository-root .`.
+Name the template with `--template` when it is not the repository default. Options, write
+guards and scope are in the [command reference](references/profile-store.md#commands).
 
 ```sh
 python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . schema
 ```
 
-Each field reports its `label`, its optional `sublabel`, and the field it `requires`. A
-dependent field cannot be stored or rendered without its primary field. Report an unknown
-field against the template rather than inventing a key for it.
+```text
+schema
+ignore [--dry-run]
+init
+set --profile example --field REPO=example-service --field GRAFANA_CONTEXT=example [--replace]
+list
+show --profile example
+render --profile example
+endpoints --profile example
+compose --profile prod-us --profile app-alpha --into prod-us-app-alpha [--field F=v] [--replace] [--dry-run]
+load --profile example --task docs/tasks/TASK.md [--field F=v] [--replace] [--dry-run]
+lint [--profile example] [--task docs/tasks/TASK.md] [--fix] [--dry-run]
+remove --profile example
+remove-env [--dry-run] [--force]
+```
+
+## Derive the schema
+
+Read `schema` before a dependent read or write. Each field reports its `label`, optional
+`sublabel`, and the field it `requires`. Report an unknown field against the template rather
+than inventing a key for it.
 
 ## Keep the store out of Git, then create it
 
-Ignore coverage comes first: a store created before it is ignored can be staged by an
-unrelated `git add`. The helper enforces that order and refuses to write a store that Git
-does not ignore, or one that Git already tracks.
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . ignore --dry-run
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . ignore
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . init
-```
-
-`ignore` appends the `.env` patterns only when the path is not already ignored, keeps an
-existing `.env.example` trackable, and verifies coverage afterward. An already-tracked store
-is a repository problem, not a profile problem: untrack it and confirm its history before
-storing anything. Every write leaves the store owner-only, tightening one that was looser;
-`.gitignore` and the task are ordinary repository files and keep the mode they have.
+Ignore coverage comes first, because a store created before it is ignored can be staged by an
+unrelated `git add`: run `ignore --dry-run`, `ignore`, then `init`. The helper refuses to write
+a store that Git does not ignore or already tracks. `ignore` appends the `.env` patterns only
+when the path is not already ignored, keeps an existing `.env.example` trackable, and verifies
+coverage afterward. An already-tracked store is a repository problem, not a profile problem:
+untrack it and confirm its history before storing anything.
 
 ## Add, update, inspect, and remove a profile
 
-Profile names are lowercase kebab-case. `set` merges by default, `--replace` discards the
-fields it does not mention, and an empty value clears one field.
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  set --profile example --field REPO=example-service --field GRAFANA_CONTEXT=example
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . list
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile example
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . remove --profile example
-```
-
-`list` reports the stored profile names, whether the store exists, and its ignore and
-tracking status; it never prints a value. `show` prints the values of schema fields for one
-profile and names anything stored outside the schema without interpreting it. `remove`
-deletes only that profile's keys and its own comment marker.
+Profile names are lowercase kebab-case. `list` never prints a value; `show` names anything
+stored outside the schema without interpreting it.
 
 Supply actual resources. Placeholder-shaped values, example values from the template, and
-credential-shaped values are refused, because a placeholder in a task's Resources section is
-not a resource. The same rule gates task execution: loading a profile supplies Resources
-values only — it does not satisfy the actual-resource requirement with a placeholder,
-authenticate an integration, close an editor barrier, or authorize a gated operation.
+credential-shaped values are refused ([value rules](references/profile-store.md#value-rules)):
+ask for the actual value rather than inventing one. Loading a profile supplies Resources values
+only: it does not satisfy the actual-resource requirement with a placeholder, authenticate an
+integration, close an editor barrier, or authorize a gated operation.
+
+Accept the spelling the user gives: field names match by key or template label regardless of
+case, spaces, hyphens and underscores (`fan out`, `fan_out`, `FAN OUT`, `Fan-out`), and an
+assignment may be `FIELD=value` or `field: value`. Pass the user's wording to `--field` rather
+than asking them to restate it; an unknown or ambiguous name fails before any write. See
+[field names and assignments](references/profile-store.md#field-names-and-assignments).
 
 ## Delete the store
 
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . remove-env --dry-run
-```
-
-Deleting the file removes every profile in it at once and is not recoverable from the
-repository, since the store is untracked. Preview it first, confirm with the user, and keep
-`--force` for a store they have agreed to delete whole: without it, a store holding keys
+Deleting the file removes every profile at once and is not recoverable from the repository,
+since the store is untracked. Preview with `remove-env --dry-run`, confirm with the user, and
+keep `--force` for a store they have agreed to delete whole: without it, a store holding keys
 outside the `PROFILE__` namespace is preserved and those key names are reported.
 
-## Load a profile into a task
+## Lint hand-edited and legacy settings
 
-`REPO`, `SLACK_CHANNEL` and `PUBLISH` accept an existing scalar or a JSON array of 1–16 unique strings (512 characters
-per entry, 8192 UTF-8 bytes total). Arrays render as repeated Repo, Slack channel or Publish bullets; never drop all
-but the first entry. All commands validate stored arrays before returning resources. Reads
-never migrate the store. See [repository values](references/profile-store.md#repository-values).
+The store and task files are the user's, and people edit them by hand. `lint` finds settings
+in a legacy or non-canonical form and `lint --fix` updates them; rules and exit statuses are in
+the [lint reference](references/profile-store.md#lint).
+
+- **Never repair implicitly.** When any helper result carries `lint_notice` (or `render`
+  prints it), finish the requested operation, then tell the user their `.env` holds legacy or
+  hand-edited settings and ask them to run `lint profiles`. Do not run `lint --fix` on your
+  own initiative.
+- **`lint profiles`** is the user's request to update their `.env`: run `lint`, then
+  `lint --fix`, and report what changed by rule and field, never by value.
+- **Tasks are linted separately.** When a store lint returns `task_notice`, name each listed
+  task and ask the user to run `lint task <path>`; on that request run
+  `lint --task <path> --fix`. A finalized task stays subject to the editor contract.
+- **Findings that need a decision** (`invalid-value`, `conflicting-duplicate`,
+  `unknown-field`) are never guessed. Show the field and line, state the legal values, and ask
+  the user to choose; apply their answer with `set` or by the task edit they request.
+
+## List fields
+
+`REPO`, `SLACK_CHANNEL` and `PUBLISH` each keep their key and accept a scalar or a JSON array
+of 1–16 unique strings, for example `--field 'SLACK_CHANNEL=["#ops-alpha","#app-alpha"]'`.
+Arrays render and load as one bullet per entry; never drop all but the first. Limits, entry
+rules and validation are in [list fields](references/profile-store.md#list-fields).
+
+- `set` replaces the field; it never appends. To add an entry to a list that already has one,
+  read the stored value with `show` and set the complete array, keeping every existing entry
+  unless the user asked to remove it.
+- `PUBLISH` may name Confluence parent pages, GitHub or Bitbucket repositories, or both.
+  Profile operations never contact a destination and storing one authorizes nothing;
+  [Publish It](../publish-it/SKILL.md#destinations) resolves each saved bullet's kind, identity
+  and access when the user asks to publish.
+- Profile operations never query Slack. The parent resolves actual workspace/channel
+  identities and cardinality after user overrides, then routes multiple channels to
+  [Per-Store Fan-Out](../per-store-fan-out/SKILL.md#channel-resolution-and-scheduling).
 
 ## Compose environmental and application profiles
 
-Use ordered sources to persist a named combined snapshot in `.env`, then load it into a TASK:
+`compose` persists a named combined snapshot of ordered sources in `.env`; preview it with
+`--dry-run`, then `load` the snapshot into a TASK. Display names “Prod US” and “App Alpha” use
+CLI identifiers `prod-us` and `app-alpha`. Source, target, union, `--replace` and snapshot
+rules are in [profile composition](references/profile-store.md#profile-composition).
 
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  compose --profile prod-us --profile app-alpha --into prod-us-app-alpha --dry-run
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  compose --profile prod-us --profile app-alpha --into prod-us-app-alpha
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  load --profile prod-us-app-alpha --task docs/tasks/TASK.md --dry-run
-```
-
-Display names “Prod US” and “App Alpha” use CLI identifiers `prod-us` and `app-alpha`.
-Supply at least two unique sources and a target distinct from them. Repository and Slack channel lists form an
-ordered union with exact duplicates removed; other stored fields must agree when overlapping.
-Conflicts fail before writes, naming the field without its values. This includes stored PDF
-and history defaults; align or clear conflicting source settings explicitly before retrying.
-Missing defaults apply after composition; unknown fields fail. Sources and unrelated `.env`
-bytes are preserved. An existing target requires `--replace`, which replaces its fields
-wholesale. A snapshot does not track later source edits; recompose explicitly to refresh it.
-Compose does not export shell variables, load a TASK, authenticate, or run an investigation.
+- List fields form an ordered union; every other stored field, including stored PDF and
+  history defaults, must agree. A conflict fails before any write, naming the field without its
+  values. Never pick a winner: align or clear the conflicting source setting, or resolve that
+  one field with `--field`.
+- Compose does not export shell variables, load a TASK, authenticate, or run an investigation.
 
 ## User configuration takes precedence
 
-Explicit user configuration wins over injected profiles. Resolve current user instructions
-before investigation shared inputs; never reload a profile over a user-selected resource.
-For helper loading, the order is load `--field FIELD=value`, existing explicit TASK fields,
-selected profile fields, then defaults. This applies to Slack, repositories, AWS, Grafana,
-publication and dependent fields, not only PDF. Existing TASK values are treated as user
-configuration on later loads. Task bullets whose label is not in the template are preserved.
+Explicit user configuration wins over injected profiles, for every field (Slack, repositories,
+AWS, Grafana, publication and dependent fields, not only PDF). Order, highest first: current
+user instructions; `--field FIELD=value` overrides; explicit values already in the TASK;
+selected profile fields; defaults. Resolve current user instructions before investigation
+shared inputs, and never reload a profile over a user-selected resource. Existing TASK values
+count as user configuration on later loads. Details are in
+[precedence](references/profile-store.md#precedence).
 
-Compose/load accept repeated `--field` overrides, validated against the same schema. An
-explicit compose field resolves conflicts only for that field; others still fail. Explicit
-REPO, SLACK_CHANNEL or PUBLISH replaces its inherited list. Sources remain unchanged. Load overrides change only TASK;
-compose overrides persist only in the named target. Empty/duplicate override assignments and
-invalid scalar duplicates or duplicate list entries in known TASK settings fail before writing. The supplied-resource guard remains:
-use load `--replace` to permit rewriting an already-populated Resources section, while retaining
-user values. It never authorizes investigation, editor closure, or scope expansion.
+- `compose` and `load` accept repeated `--field` overrides, validated against the same schema.
+  A compose override resolves a conflict only for that field (others still fail) and persists
+  only in the named target; a load override changes only the TASK. Sources remain unchanged.
+- An explicit `REPO`, `SLACK_CHANNEL` or `PUBLISH`, from a command or a saved TASK, replaces
+  the inherited list rather than appending to it.
+- Empty or duplicate override assignments, invalid scalar duplicates and duplicate list entries
+  in known TASK settings fail before writing.
+- The supplied-resource guard remains: `load --replace` only permits rewriting an
+  already-populated Resources section while retaining user values. It never authorizes
+  investigation, editor closure, or scope expansion.
 
 ## Load resolved resources
 
-`load` writes effective Resources in template order after layering user fields above the
-profile, omitting unset fields and preserving unrecognized task controls, then reads them back.
+`load` writes the effective Resources (user fields layered above the profile) and reads them
+back; preview with `--dry-run`. Its guards are in the
+[command reference](references/profile-store.md#commands).
 
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  load --profile example --task docs/tasks/TASK.md --dry-run
-```
+- Load into the draft the repository created for `open task`, before the editor opens, so the
+  person edits resolved values rather than placeholders. The editor and check barrier stays
+  with [Open/Edit/Close/Execute](../open-edit-close-execute/SKILL.md); loading a profile is
+  not a close signal and does not start execution.
+- A saved finalized task is an existing artifact: change its resources through that editor
+  route, at its actual path, and never rename it.
 
-Load into the draft the repository created for `open task`, before the editor opens, so the
-person edits resolved values rather than placeholders. The editor and check barrier stays
-with [Open/Edit/Close/Execute](../open-edit-close-execute/SKILL.md); loading a profile is
-not a close signal and does not start execution. A saved finalized task is an existing
-artifact: change its resources through that editor route, at its actual path, and never
-rename it.
+## Toggle settings
 
-A task whose Resources section already carries real values is preserved unless `--replace`
-is passed to permit a section rewrite; explicit user fields still take precedence. A profile that resolves to
-no actual resource is refused rather than written, because an executable task needs at least
-one.
+`GENERATE_PDF`, `GRAFANA_ASSISTANT` and `FAN_OUT` derive from the template's **Generate PDF**,
+**Grafana Assistant** and **Fan-out** bullets and share one
+[settings contract](references/profile-store.md#settings-contract): `enabled` or `disabled`,
+default `enabled`, input case-insensitive and stored lowercase; `GENERATE_PDF` also accepts
+legacy `T` and `F`. Set one with, for example, `set --profile team --field FAN_OUT=disabled`,
+then confirm with `show`, which reports the `effective_*` value beside the stored fields;
+render and load include the effective value alongside actual resources. The contract owns persistence, defaults on read, task forms, failure cases and what `disabled`
+means for a run ([Generate PDF](references/profile-store.md#generate-pdf),
+[Fan-out](references/profile-store.md#fan-out)).
+
+A toggle or historical-window setting alone is configuration: never an actual resource, never
+a trigger for the supplied-resource overwrite guard, never scope or authorization for an
+investigation, query or publication. The profile must already contain or be supplied with an
+actual resource. Differing stored settings are a composition conflict like any other field.
+
+## Grafana Assistant
+
+Grafana Assistant incurs additional cost. `GRAFANA_ASSISTANT=disabled` means zero prompts,
+including indirect prompts from bundled guidance: Grafana work uses only gcx and relevant gcx
+agent skills. The setting is never permission to query Grafana, and profile commands
+themselves never prompt Assistant or query Grafana. It follows
+[Toggle settings](#toggle-settings); see also the
+[reference](references/profile-store.md#grafana-assistant).
 
 ## Rhyming endpoint resources
 
-`RHYMING_ENDPOINTS` is the optional JSON array declared by the template's
-`Rhyming endpoints` bullet. Validate it through the helper; never source `.env` as shell.
-Read the [endpoint contract](references/profile-store.md#rhyming-endpoints) before storing it.
-Each object names an endpoint, not a credential or authorization. Old profiles need no change.
+`RHYMING_ENDPOINTS` is the optional JSON array declared by the template's `Rhyming endpoints`
+bullet. Read the [endpoint contract](references/profile-store.md#rhyming-endpoints) before
+storing it, and validate it through the helper. Each object names an endpoint, not a
+credential or authorization. Old profiles need no change.
 
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . endpoints --profile example
-```
+- `endpoints --profile NAME` returns only that profile's validated endpoint list, or an empty
+  list when unset, without network queries or authentication.
+- The kinds include `grafana-assistant-search` (id/kind/target/context) for a scoped Assistant
+  matching request. Profile operations do not send prompts; history-only kinds retain list/get
+  behavior.
+- Use [Rhyming Incident Search](../rhyming-incident-search/SKILL.md) to dispatch these
+  endpoints, one read-only agent each. Profile management never starts a history search.
+- Configuring endpoints needs only the Python 3.8+ standard library and Git, no integration
+  connection. Executing them needs the integrations their kinds select; authentication belongs
+  to those integrations, and a dependency absent during execution is reported per endpoint.
 
-`endpoints` returns only the selected profile's validated endpoint list, or an empty list when
-unset. It verifies the store is ignored and untracked and refuses unknown fields or malformed
-stored endpoints before returning anything. It performs no network queries or authentication.
-Use [Rhyming Incident Search](../rhyming-incident-search/SKILL.md) to dispatch these endpoints,
-one read-only agent each.
+## Rhyming historical window
 
-## Dependencies
-
-Profile management and endpoint validation require Python 3.8+ standard library and Git;
-no integration connection is required to configure them. Historical endpoint execution
-additionally requires the rhyming incident search skill, native agent delegation, and only
-the integrations selected by endpoint kind: gcx-cli for Grafana, rovo-dev-mcp for Confluence
-and Bitbucket, slack-mcp for Slack, and GitHub tooling for GitHub repositories. Authentication
-belongs to those integrations. Dependency absence during execution is reported per endpoint.
+The template-derived `RHYMING_HISTORICAL_WINDOW_DAYS` field takes positive integer days,
+default `7`, persisted in a new profile when omitted; override it with
+`--field RHYMING_HISTORICAL_WINDOW_DAYS=30`. Render and load inject it into task Resources
+only when validated `RHYMING_ENDPOINTS` exist; alone it is configuration, never an actual
+resource. Persistence, reset, validation and the `endpoints` output are in
+[the window contract](references/profile-store.md#rhyming-historical-window).
 
 ## Common Rationalizations
 
@@ -229,140 +269,3 @@ belongs to those integrations. Dependency absence during execution is reported p
 - Unmanaged lines in the store are unchanged, and no profile value is a placeholder, example, or credential.
 - The written store or task Resources section was read back and matches the reported result.
 - Deletions were previewed, explicitly agreed, and confirmed as applied.
-
-## Rhyming historical window
-
-The template-derived `RHYMING_HISTORICAL_WINDOW_DAYS` field takes positive integer days.
-New profiles persist `7` in `.env` when the field is omitted. `set` preserves an explicit
-value and appends a missing default on updates to legacy endpoint profiles. Use
-`--field RHYMING_HISTORICAL_WINDOW_DAYS=30` to create or update an override; read-only
-commands never migrate the store. A custom template must declare this field to enable it.
-
-Render/load inject `Rhyming historical window days` into task Resources only when validated
-`RHYMING_ENDPOINTS` exist. A stored duration alone is configuration, never an actual resource.
-The `endpoints` command also returns `historical_window_days` as an integer when endpoints
-exist (`null` otherwise); legacy endpoint profiles resolve seven days without a store write.
-Read [the window contract](references/profile-store.md#rhyming-historical-window) for reset
-and validation behavior. Profile management never starts a history search.
-
-The endpoint kinds include `grafana-assistant-search` (id/kind/target/context) for a scoped
-Assistant matching request. See [the endpoint schema](references/profile-store.md#rhyming-endpoints).
-Profile operations do not send prompts; history-only kinds retain list/get behavior.
-
-## Generate PDF
-
-`GENERATE_PDF` derives from the template's **Generate PDF** Resources bullet and follows the
-[settings contract](references/profile-store.md#settings-contract): exact `enabled` or `disabled`, default `enabled`.
-The earlier `T` and `F` values remain accepted as legacy input and resolve to `enabled` and
-`disabled`; they are never written again.
-
-Profiles without the field resolve `enabled` on show/render/load without rewriting the store.
-`show` distinguishes stored `fields` from `effective_generate_pdf`; custom templates without
-the field do not materialize it. Invalid stored settings fail before writes, including when a
-task overrides. A toggle or historical-window setting alone is configuration, never an actual
-resource.
-
-Render includes the effective choice alongside actual resources. Load preserves an explicit
-task `Generate PDF` value even with `--replace`; duplicate or invalid task values fail
-before mutation. A template placeholder is absent. An explicit toggle alone does not trigger
-the supplied-resource overwrite guard; other existing Resources still require `--replace`.
-Loading a finalized task remains subject to the editor contract. Repeated loads with the
-same inputs and `--replace` produce the same bytes. Unrelated store lines remain untouched.
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field GENERATE_PDF=disabled
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
-```
-
-Resolve this choice before report dependencies: `enabled` generates/verifies the current PDF;
-`disabled` retains verified Markdown, evidence and required graphs, skips PDF-only tooling/checks,
-and preserves older PDFs as historical. Record the choice with the saved report so later
-publication honors it without attaching stale companions. Configuration never authorizes
-an investigation or publication.
-
-
-## Multiple Slack channels
-
-Keep the SLACK_CHANNEL key. Store a scalar for compatibility or a JSON array of 1–16 unique
-strings, bounded to 512 characters each and 8192 UTF-8 bytes per field. The shared resource-list
-parser validates set/show/render/load and composition; readers never migrate stored arrays.
-Render/load emit a separate Slack channel bullet for each entry. Compose uses a stable ordered
-union for every list field; explicit command or saved user TASK selections replace inherited
-lists rather than appending to them. All sources remain validated and unchanged.
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  set --profile app-alpha --field 'SLACK_CHANNEL=["#ops-alpha","#app-alpha"]'
-```
-
-## Multiple publish destinations
-
-PUBLISH takes the same scalar-or-array shape and limits, so one profile can name every place an
-investigation is published: Confluence parent pages, GitHub or Bitbucket repositories, or both.
-Render/load emit a separate Publish bullet for each entry; compose forms the same ordered union;
-explicit command or saved user TASK destinations replace the inherited list.
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . \
-  set --profile prod-us \
-  --field 'PUBLISH=["https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations","https://github.com/example-org/example-reports"]'
-```
-
-`set` replaces the field; it never appends. To add a destination to a profile that already
-has one, read the stored value with `show` and set the complete array, keeping every existing
-entry unless the user asked to remove it.
-
-Profile operations never contact a destination and storing one authorizes nothing.
-[Publish It](../publish-it/SKILL.md#destinations) resolves each saved bullet's kind, identity
-and access when the user asks to publish.
-
-Profile operations never query Slack. The parent resolves actual workspace/channel identities
-and cardinality after user overrides, then routes multiple channels to
-[Per-Store Fan-Out](../per-store-fan-out/SKILL.md#channel-resolution-and-scheduling).
-
-## Fan-out
-
-`FAN_OUT` derives from the template's **Fan-out** bullet and follows the
-[settings contract](references/profile-store.md#settings-contract): exact `enabled` or `disabled`, default `enabled`. `disabled`
-makes the investigation run inline instead of fanning out;
-[Per-Store Fan-Out](../per-store-fan-out/SKILL.md) owns what that means for a run. `show`
-distinguishes stored fields from `effective_fan_out`. Profiles stored before the setting
-existed resolve `enabled` without a store rewrite. This is configuration, never an actual
-resource, and it creates no scope or authority.
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field FAN_OUT=disabled
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
-```
-
-## Grafana Assistant
-
-`GRAFANA_ASSISTANT` derives from the template's **Grafana Assistant** bullet and follows the
-[settings contract](references/profile-store.md#settings-contract) shared by every toggle:
-exact `enabled` or `disabled`, default `enabled`. New or updated
-nonempty profiles persist a missing default, except when explicitly cleared with an empty
-`set` value. Legacy read-only operations resolve the default without rewriting the store.
-`show` distinguishes stored fields from `effective_grafana_assistant`; custom templates
-without the field do not acquire it. This is configuration, never an actual resource or
-permission to query Grafana.
-
-```sh
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field GRAFANA_ASSISTANT=disabled
-python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
-```
-
-The profile must already contain or be supplied with an actual resource. Omitted fields
-remain unchanged. Composition treats conflicting stored settings as scalar conflicts;
-resolve one explicitly with `--field GRAFANA_ASSISTANT=disabled` or align the sources.
-The target changes while source profiles and unmanaged store bytes remain unchanged.
-
-Load uses command `--field` overrides above explicit TASK values, above profile values,
-above the default. It accepts both `- Grafana Assistant: disabled` and the backticked
-value form, and renders the canonical backticked form. A setting alone does not trigger
-the supplied-resource overwrite guard. Invalid or duplicate TASK settings fail before
-writes; repeated loads with the same effective inputs and `--replace` are byte-stable.
-Invalid stored settings also fail before an override can mask them.
-
-Grafana Assistant incurs additional cost. `disabled` means zero prompts, including
-indirect prompts from bundled guidance: Grafana work uses only gcx and relevant gcx agent
-skills. Profile commands themselves never prompt Assistant or query Grafana.

@@ -1,6 +1,6 @@
 ---
 name: slack-mcp
-description: Inspect Slack MCP configuration, diagnose OAuth or permission errors, discover available Slack capabilities, and validate connectivity with bounded workspace or profile reads. Use when asked to check a Slack connection or troubleshoot MCP access; keep message composition and broader Slack workflows with their owning task.
+description: "Inspect Slack MCP configuration, diagnose OAuth or permission errors, discover available Slack capabilities, and validate connectivity with bounded reads. Use when asked to check a Slack connection or troubleshoot Slack MCP access. Message composition and other Slack workflows stay with their owning task."
 ---
 <!-- source: self; self-authored: self; managed-by: https://github.com/orenlion1/dotfiles; sync-from: https://github.com/orenlion1/dotfiles; dotfiles-sync-date: 2026-10-15; dotfiles-sync-commit: b79db3e29956b7262bf1b990471eb3844c854df2 -->
 

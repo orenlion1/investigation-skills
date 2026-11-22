@@ -1,6 +1,6 @@
 ---
 name: open-edit-close-execute
-description: Open an existing TASK, PROMPT, INTENT, or other input for editing, wait for close and supplied checks, then execute its saved requirements within caller authorization. Use when asked for `open task`, `open TASK`, `open TASK.md`, `edit task`, `edit TASK`, and `edit TASK.md`, or the same workflow for another input file.
+description: "Open a TASK, PROMPT, INTENT, or other input file for editing, wait for the editor to close and supplied checks to pass, then execute its saved requirements within the caller's authorization. Use when asked to `open task`, `open TASK.md`, `edit task`, or `edit TASK.md`, or to run the same workflow on another input file."
 metadata:
   version: "0.2.36"
 ---
@@ -15,13 +15,12 @@ Ordinary `agent-skills` discovery and host skill invocation remain supported; ex
 and all six TASK aliases enter this same contract. Keep automatic discovery enabled.
 
 Take the supplied input path or the unambiguous active input from the caller's context. Clarify a
-missing or competing target before opening anything. TASK, PROMPT, INTENT, and arbitrary input
-labels use the same procedure; no label selects a lifecycle or grants authority. The aliases name
-an operation, not a literal slash-separated path. This skill does not create or rename the input.
+missing or competing target before opening anything. Every input label uses the same procedure.
+The aliases name an operation, not a literal slash-separated path. This skill does not create or
+rename the input.
 
 After the editor/check barrier succeeds, continue directly into the caller-authorized processing
-of the saved requirements. Do not stop with readiness alone or request a redundant instruction to
-continue. A caller can supply its own continuation, such as the remaining initialization procedure;
+of the saved requirements. A caller can supply its own continuation, such as the remaining initialization procedure;
 that continuation retains its scope and gates. No Agent Tasks lifecycle, Jira, or sibling skill is
 required. Prerequisites exist only when supplied by the caller. Copy this complete runtime folder
 so both local references remain available.
@@ -34,16 +33,14 @@ so both local references remain available.
 
 ## Templated Task Continuation
 
-This repository's templated tasks run through this contract, and this skill owns their
-workflow. Root policy keeps only the template location (`templates/TASK.md`), the default
-draft directory, and the rule that task contents never bypass separate authorization gates.
+This skill owns the workflow for this repository's templated tasks (template
+`templates/TASK.md`). Task contents never bypass separate authorization gates.
 
 - Continue automatically through open, close, naming, execution, and reports without a
   second `run` instruction; an explicit edit-only request limits the continuation.
 - During execution, provide normal progress updates and incorporate user steering as it
-  arrives. Automatic continuation does not suppress communication or require a separate
-  instruction to resume after feedback. Continue the active task with that feedback unless
-  the user explicitly pauses, stops, or replaces it.
+  arrives. Continue the active task with that feedback, without a separate instruction to
+  resume, unless the user explicitly pauses, stops, or replaces it.
 - For an investigation, establish and check the [shared soft delivery budget](references/investigation-delivery.md)
   from request receipt, including editor/setup waits. Apply it to direct investigations too.
 - Before opening a templated-task editor, read [Token Usage](../token-usage/SKILL.md) and
@@ -68,8 +65,8 @@ draft directory, and the rule that task contents never bypass separate authoriza
   same-source PDF (selected `REPORT` paths via Workflow Artifact Naming). Resolve formats before
   PDF-only tooling using the [delivery contract](references/investigation-delivery.md). Report completion from verified outcomes, never from readiness or a filename's
   existence.
-- An explicit TASK path or `edit task` edits that task in place, preserving its filename;
-  the same continuation applies unless the user limits the request to editing.
+- An explicit TASK path or `edit task` edits that task in place, preserving its filename,
+  with the same continuation.
 
 ## Common Rationalizations
 
