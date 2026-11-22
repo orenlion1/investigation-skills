@@ -10,7 +10,8 @@ description: "Answer any Grafana query with two parallel read-only sub-agents, G
 For every user-requested Grafana query, launch a Grafana Assistant agent and a direct gcx
 agent in parallel. Both answer the same request within the same resolved scope. An exact
 query or inventory read stays that size; two methods do not authorize a broader investigation.
-The repository's [Grafana Policy](../../AGENTS.md#grafana-policy) owns routing and authorization.
+The repository's [routing table](../../AGENTS.md#routing) sends every Grafana query here; its
+[Grafana Policy](../../AGENTS.md#grafana-policy) owns the Assistant cost and disable rule.
 Within [per-store fan-out](../per-store-fan-out/SKILL.md), this pattern nests inside the
 Grafana branch, including for non-alert requests.
 
