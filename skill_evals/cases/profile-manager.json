@@ -29,6 +29,10 @@
       {
         "prompt": "Save GRAFANA_ASSISTANT=disabled in my named resource profile and load its Grafana Assistant setting into the task",
         "top_k": 3
+      },
+      {
+        "prompt": "Store the FAN_OUT setting as disabled in my .env resource profile, then load that profile's Resources into my task draft",
+        "top_k": 3
       }
     ],
     "negative": [

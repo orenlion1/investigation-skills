@@ -32,10 +32,16 @@ Reuse verified setup and shared evidence; preserve this skill's required coverag
 Use when a running task's Resources name more than one data store or multiple repositories or Slack channels,
 including repositories on the same provider or channels in the same workspace, or when the user asks to
 fan out, parallelize, or delegate per-store investigation, or when fan-out must be
-disabled (`Fan-out: disabled` or an equivalent instruction) or degraded because parallel
+disabled (a `Fan-out` Resources value of `disabled`, bare or backticked, or an equivalent
+instruction) or degraded because parallel
 delegation is unavailable. A single-store task with at most one repository and one Slack channel stays inline at the store
 level; Grafana queries still use their nested two-agent workflow unless delegation is disabled. Fan-out
 never widens scope: only named stores and configured repositories receive inspection units.
+
+The saved task's `Fan-out` value decides, and an absent value means `enabled`. A profile may
+supply it through its `FAN_OUT` setting under Profile Manager's
+[settings contract](../profile-manager/references/profile-store.md#settings-contract); a value
+the user wrote in the task, or a current instruction, wins over the profile.
 
 ## Store Resolution
 

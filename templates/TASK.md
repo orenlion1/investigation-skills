@@ -33,3 +33,4 @@ section. Each Publish bullet is one destination: a Confluence page or a reposito
        grafana-assistant-conversations remains history-only. Assistant disabled suppresses prompts. -->
 - Rhyming historical window days: `<positive integer days>`
 - Generate PDF: `<enabled or disabled>`
+- Fan-out: `<enabled or disabled>`

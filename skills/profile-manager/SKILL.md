@@ -147,7 +147,7 @@ before investigation shared inputs; never reload a profile over a user-selected 
 For helper loading, the order is load `--field FIELD=value`, existing explicit TASK fields,
 selected profile fields, then defaults. This applies to Slack, repositories, AWS, Grafana,
 publication and dependent fields, not only PDF. Existing TASK values are treated as user
-configuration on later loads. Unknown task controls such as `Fan-out: disabled` are preserved.
+configuration on later loads. Task bullets whose label is not in the template are preserved.
 
 Compose/load accept repeated `--field` overrides, validated against the same schema. An
 explicit compose field resolves conflicts only for that field; others still fail. Explicit
@@ -319,6 +319,21 @@ and access when the user asks to publish.
 Profile operations never query Slack. The parent resolves actual workspace/channel identities
 and cardinality after user overrides, then routes multiple channels to
 [Per-Store Fan-Out](../per-store-fan-out/SKILL.md#channel-resolution-and-scheduling).
+
+## Fan-out
+
+`FAN_OUT` derives from the template's **Fan-out** bullet and follows the
+[settings contract](references/profile-store.md#settings-contract): exact `enabled` or `disabled`, default `enabled`. `disabled`
+makes the investigation run inline instead of fanning out;
+[Per-Store Fan-Out](../per-store-fan-out/SKILL.md) owns what that means for a run. `show`
+distinguishes stored fields from `effective_fan_out`. Profiles stored before the setting
+existed resolve `enabled` without a store rewrite. This is configuration, never an actual
+resource, and it creates no scope or authority.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field FAN_OUT=disabled
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
+```
 
 ## Grafana Assistant
 

@@ -202,6 +202,7 @@ Template bullets are either **resources** (what to investigate or where to publi
 | --- | --- | --- | --- |
 | `GENERATE_PDF` | `Generate PDF` | `enabled` | `T` = `enabled`, `F` = `disabled` |
 | `GRAFANA_ASSISTANT` | `Grafana Assistant` | `enabled` | none |
+| `FAN_OUT` | `Fan-out` | `enabled` | none |
 
 - **Values.** Only exact lowercase `enabled` or `disabled`. Other case, boolean words,
   numbers and surrounding whitespace are errors and fail before any write.
@@ -221,8 +222,7 @@ Template bullets are either **resources** (what to investigate or where to publi
   an investigation, a query or a publication.
 
 A new on/off setting joins this contract by adding its template bullet and its entry in the
-helper's toggle table; it does not define its own value vocabulary. Task-only controls owned
-by other skills, such as `Fan-out: disabled`, use the same two words.
+helper's toggle table; it does not define its own value vocabulary.
 
 ## Generate PDF
 
@@ -374,6 +374,7 @@ The effective task Resources are:
 - Rhyming endpoints: `[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]`
 - Rhyming historical window days: `7`
 - Generate PDF: `enabled`
+- Fan-out: `enabled`
 ```
 
 
@@ -382,8 +383,8 @@ The effective task Resources are:
 User-specified values win over Profile Manager injection. For `load`, layer explicit repeated
 `--field FIELD=value` overrides above saved TASK Resources, above profile fields, above defaults.
 The existing guard requires `--replace` when Resources already contain actual values, but
-replacement now retains all explicit user fields rather than only Generate PDF. Preserve unknown
-settings such as `Fan-out: disabled`. Known scalar duplicates, malformed bullets and invalid
+replacement now retains all explicit user fields rather than only Generate PDF. Preserve task
+bullets whose label is not in the template. Known scalar duplicates, malformed bullets and invalid
 values fail before writes; repeated repository bullets form one validated list. Subsequent loads
 treat saved task values as user configuration. Change them in the editor or use a newer explicit
 command field. TASK user fields do not modify the profile store.
@@ -435,6 +436,21 @@ limits. User --field overrides and existing explicit TASK Publish bullets replac
 lists. Repeated TASK Publish bullets form one validated list. A single resulting destination
 uses scalar form. Successful storage proves neither access nor permission to publish; an
 explicit publish request remains required.
+
+## Fan-out
+
+`FAN_OUT` derives from the template's **Fan-out** bullet and follows the
+[settings contract](#settings-contract): exact `enabled` or `disabled`, default `enabled`. `disabled`
+makes the investigation run inline instead of fanning out;
+[Per-Store Fan-Out](../../per-store-fan-out/SKILL.md) owns what that means for a run. `show`
+distinguishes stored fields from `effective_fan_out`. Profiles stored before the setting
+existed resolve `enabled` without a store rewrite. This is configuration, never an actual
+resource, and it creates no scope or authority.
+
+```sh
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set --profile team --field FAN_OUT=disabled
+python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
+```
 
 ## Grafana Assistant
 

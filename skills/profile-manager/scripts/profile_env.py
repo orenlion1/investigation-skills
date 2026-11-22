@@ -35,8 +35,11 @@ GRAFANA_ASSISTANT = 'GRAFANA_ASSISTANT'
 TOGGLE_VALUES = ('enabled', 'disabled')
 DEFAULT_GENERATE_PDF = 'enabled'
 DEFAULT_GRAFANA_ASSISTANT = 'enabled'
+FAN_OUT = 'FAN_OUT'
+DEFAULT_FAN_OUT = 'enabled'
 CONTROL_DEFAULTS = {GENERATE_PDF: DEFAULT_GENERATE_PDF,
-                    GRAFANA_ASSISTANT: DEFAULT_GRAFANA_ASSISTANT}
+                    GRAFANA_ASSISTANT: DEFAULT_GRAFANA_ASSISTANT,
+                    FAN_OUT: DEFAULT_FAN_OUT}
 # Values written before the contract; accepted on input and stored as their canonical value.
 LEGACY_TOGGLE_VALUES = {GENERATE_PDF: {'T': 'enabled', 'F': 'disabled'}}
 ENDPOINT_KINDS = ('grafana-investigations', 'grafana-assistant-conversations',
@@ -543,7 +546,9 @@ def command_show(arguments, context):
             if GENERATE_PDF in context['schema']['fields'] else None,
             'effective_grafana_assistant': known.get(GRAFANA_ASSISTANT,
                                                     DEFAULT_GRAFANA_ASSISTANT)
-            if GRAFANA_ASSISTANT in context['schema']['fields'] else None}
+            if GRAFANA_ASSISTANT in context['schema']['fields'] else None,
+            'effective_fan_out': known.get(FAN_OUT, DEFAULT_FAN_OUT)
+            if FAN_OUT in context['schema']['fields'] else None}
 
 
 def command_set(arguments, context):
@@ -773,7 +778,8 @@ def command_load(arguments, context):
     known.update(explicit_fields(arguments.field, context['schema']))
     bullets = render_section(context['schema'], known)
     supplied = supplied_values([line for line in section
-                                if not line.startswith(('- Generate PDF:', '- Grafana Assistant:'))])
+                                if not line.startswith(('- Generate PDF:', '- Grafana Assistant:',
+                                                         '- Fan-out:'))])
     if supplied and not arguments.replace:
         raise ProfileError('task Resources already supplies ' + ', '.join(supplied) +
                            '; re-run with --replace to rewrite while preserving user fields')
