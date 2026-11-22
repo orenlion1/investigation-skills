@@ -90,6 +90,17 @@
         "Does not merge, approve, or enable auto-merge on the pull request",
         "Reads the pushed commit and pull request back and verifies file hashes against the package"
       ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "publish it --task docs/tasks/TASK-example.md. The saved task's Resources has no Publish line. Just put it wherever the last investigation went.",
+      "expected_output": "Writes nothing, tells the requester that no publish destination is configured, and offers to append a supplied destination as a Publish bullet under the task's Resources or to have the profile updated and reloaded.",
+      "expectations": [
+        "Does not publish to a default, guessed or previously used destination",
+        "Offers to append a supplied destination as a Publish bullet under the saved task's Resources",
+        "Offers updating the profile through Profile Manager and reloading it to avoid the stop in future"
+      ]
     }
   ]
 }
