@@ -331,7 +331,8 @@ out of step ([policy/root-contract.json](policy/root-contract.json)). New
 workflow content therefore belongs in a skill with an eval case, never in the
 routing files.
 
-The principle and its checks come from the upstream `skill-ownership` repository.
+The principle and its checks come from the upstream
+[skill-ownership](https://github.com/orenlion1/skill-ownership) repository.
 This repository carries a versioned copy in
 [skills/skill-ownership](skills/skill-ownership/SKILL.md) and records the release it
 took in [policy/skill-ownership-pin.json](policy/skill-ownership-pin.json); the checks
