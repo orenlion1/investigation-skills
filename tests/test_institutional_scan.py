@@ -39,10 +39,14 @@ class InstitutionalScanTests(unittest.TestCase):
         self.git('add', '-A')
         self.git('commit', '-qm', message)
 
-    def scan(self, *args, repo=None, policy=POLICY):
+    def scan(self, *args, repo=None, policy=POLICY, private=None):
+        environment = {k: v for k, v in os.environ.items() if k != 'DISCLOSURE_PRIVATE_FINGERPRINTS'}
+        if private is not None:
+            environment['DISCLOSURE_PRIVATE_FINGERPRINTS'] = private
         return subprocess.run(
             [sys.executable, str(SCANNER), '--repository', str(repo or self.repo),
-             '--policy', str(policy), *args], capture_output=True, text=True, timeout=30)
+             '--policy', str(policy), *args], capture_output=True, text=True, timeout=30,
+            env=environment)
 
     def test_public_source_and_reserved_examples_pass(self):
         self.write('example.md', '\n'.join([
@@ -178,6 +182,28 @@ class InstitutionalScanTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn('institution-fingerprint', result.stdout)
         self.assertNotIn('SYNTHETIC', result.stdout + result.stderr)
+
+    def test_private_fingerprints_come_from_the_environment(self):
+        canonical = 'syntheticinstitution'
+        private = json.dumps([{
+            'length': len(canonical), 'sha256': hashlib.sha256(canonical.encode()).hexdigest()}])
+        self.write('note.md', 'SYNTHETIC-Institution internal details')
+        self.git('add', '.')
+        self.assertEqual(self.scan('--staged').returncode, 0)
+        result = self.scan('--staged', private=private)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('institution-fingerprint', result.stdout)
+        self.assertNotIn('SYNTHETIC', result.stdout + result.stderr)
+
+    def test_required_private_fingerprints_fail_closed(self):
+        self.write('note.md', 'Public text.\n')
+        self.git('add', '.')
+        self.assertEqual(self.scan('--staged', '--require-private-fingerprints').returncode, 2)
+        for invalid in ('not json', '[]', '{}', '[{"length": 2, "sha256": "x"}]'):
+            with self.subTest(invalid=invalid):
+                result = self.scan('--staged', private=invalid)
+                self.assertEqual(result.returncode, 2)
+                self.assertNotIn(invalid, result.stdout + result.stderr)
 
     def test_encoded_institution_in_public_url_is_blocked(self):
         policy = json.loads(POLICY.read_text())

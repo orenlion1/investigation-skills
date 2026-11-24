@@ -21,6 +21,9 @@ URL = re.compile(r'https?://[^\s<>"\x27`]+', re.I)
 ACCOUNT = re.compile(r'(?<![\w])\d{12}(?![\w])')
 TICKET = re.compile(r'\b[A-Z][A-Z0-9]{1,9}-[1-9]\d+\b')
 PUBLIC_STANDARDS = {'SHA-256', 'SHA-512', 'UTF-16', 'UTF-32', 'ISO-8601'}
+# Real institution fingerprints stay out of the public policy: a short, unsalted digest of a
+# guessable name confirms that guess. CI reads them from a secret; local runs from a file.
+PRIVATE_FINGERPRINTS = 'DISCLOSURE_PRIVATE_FINGERPRINTS'
 
 
 def normalize(text):
@@ -35,10 +38,18 @@ def reserved(host):
         for suffix in ('example', 'invalid', 'test', 'example.com', 'example.net', 'example.org'))
 
 
-def load_policy(path):
+def load_policy(path, require_private=False):
     policy = json.loads(path.read_text())
     if policy.get('version') != 1 or not policy.get('blocked_fingerprints'):
         raise ValueError('invalid policy')
+    private = os.environ.get(PRIVATE_FINGERPRINTS, '').strip()
+    if private:
+        extra = json.loads(private)
+        if not isinstance(extra, list) or not extra or not all(isinstance(e, dict) for e in extra):
+            raise ValueError('invalid private fingerprints')
+        policy['blocked_fingerprints'] = policy['blocked_fingerprints'] + extra
+    elif require_private:
+        raise ValueError('private fingerprints required')
     for entry in policy['blocked_fingerprints']:
         if (type(entry['length']) is not int or not 3 <= entry['length'] <= 128
                 or not re.fullmatch('[a-f0-9]{64}', entry['sha256'])):
@@ -222,9 +233,12 @@ def main():
     parser.add_argument('--repository', type=Path, default=Path('.'))
     parser.add_argument('--policy', type=Path, default=DEFAULT_POLICY)
     parser.add_argument('--staged', action='store_true', help='Index only; permits an unborn initial commit')
+    parser.add_argument('--require-private-fingerprints', action='store_true',
+                        help=f'Fail closed unless {PRIVATE_FINGERPRINTS} supplies fingerprints')
     args = parser.parse_args()
     try:
-        return Scanner(args.repository, load_policy(args.policy)).scan(args.staged)
+        return Scanner(args.repository, load_policy(
+            args.policy, args.require_private_fingerprints)).scan(args.staged)
     except (OSError, ValueError, KeyError, TypeError, subprocess.CalledProcessError):
         print('Disclosure scan could not complete: verify Git, complete history, index, and policy; details omitted.',
               file=sys.stderr)
