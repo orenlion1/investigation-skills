@@ -2,8 +2,8 @@
   "version": 1,
   "blocked_fingerprints": [
     {
-      "length": 12,
-      "sha256": "fcde830ff0fb0aae78dbcf35b3407456d204132e64bbcbbf0244e5befdc70329"
+      "length": 32,
+      "sha256": "410ee9f3f3d84844b1dcf5b89fd0239fad0529fd8c77aaef0eb6ada7ac2b408e"
     }
   ],
   "public_url_hosts": [

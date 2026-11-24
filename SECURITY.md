@@ -72,8 +72,13 @@ not approve other addresses at its domain.
 Institution fingerprints use SHA-256 of NFKC-normalized, case-folded ASCII letters/digits,
 plus the normalized length. The scanner hashes sliding windows, detecting names embedded in
 domains, longer identifiers, or punctuation-separated text. Fingerprints avoid committing the
-literal names; they do not hide easily guessed names from dictionary attacks. Add identifiers
-locally and commit only their lengths and digests. Do not submit the original values to a
+literal names; they do not hide easily guessed names from dictionary attacks, so real
+fingerprints are never committed. The public policy holds only a placeholder. The scanner adds
+a JSON list of `{"length", "sha256"}` entries from `DISCLOSURE_PRIVATE_FINGERPRINTS`: CI
+reads it from the repository secret of that name and requires it except on fork and
+Dependabot pull requests, which GitHub runs without secrets; `scripts/check-disclosure.sh`
+reads it from `~/.config/disclosure/private-fingerprints.json` (or
+`DISCLOSURE_PRIVATE_FINGERPRINTS_FILE`) and warns when it is absent. Do not submit the original values to a
 public issue, PR discussion, workflow variable, test fixture, or scan log.
 
 Private paths (`docs`, `logs`, `outputs`, `inputs`, tool caches, real environment files, key
