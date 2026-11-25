@@ -90,6 +90,9 @@ counts. Unavailable provenance and unverified navigation remain explicit incompl
 
 ## Data Pattern Graphs
 
+When Pyroscope profiles support a finding, apply the
+[profiling evidence contract](references/profiling-evidence.md) before delivery.
+
 - Every reported data pattern must be supported by an evidence-backed graph: trends,
   spikes, recurrence, flapping, state transitions, distributions, comparisons, and
   correlations. One graph may support several claims when each pattern is clearly visible.

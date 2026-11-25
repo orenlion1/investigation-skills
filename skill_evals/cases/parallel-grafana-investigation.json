@@ -267,6 +267,17 @@
         "Records the user-scope profiling exclusion in local audit evidence without adding prose to values-only output",
         "Does not treat the profiling decision as authority to expand resources, window or context"
       ]
+    },
+    {
+      "id": 18,
+      "kind": "dialogue",
+      "prompt": "The direct branch has finished Pyroscope reads and retained CPU stacks, labels, exact window and sampling metadata. The parser hotspot supports a report finding but not a proven defect. What is the reporting handoff? Do not launch new agents or queries.",
+      "expected_output": "Hands saved evidence to Report Authoring for flame-graph coverage and placement, with Diagramming Style owning rendering.",
+      "expectations": [
+        "Hands retained stack data and metadata to Report Authoring for its profiling evidence requirement",
+        "Names Diagramming Style as rendering/presentation owner without duplicating rendering rules into the query workflow",
+        "Preserves the hotspot-versus-defect distinction and performs no new query or delegation"
+      ]
     }
   ]
 }

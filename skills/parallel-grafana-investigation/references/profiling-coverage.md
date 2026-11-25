@@ -58,3 +58,7 @@ recorded. An unexplored signal is an incomplete coverage gap, never silent succe
 the alert's threshold/reset/notification mechanism separately from the workload CPU driver.
 If the latter or its source link remains unconfirmed, deliver the verified findings with that
 gap and the evidence needed to close it; do not invent certainty or withhold useful findings.
+
+Hand the retained profile results and metadata to
+[Report Authoring's profiling evidence contract](../../report-authoring/references/profiling-evidence.md)
+when they support a report finding; that owner decides graph coverage and placement.

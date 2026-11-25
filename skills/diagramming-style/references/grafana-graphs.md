@@ -46,3 +46,28 @@ dependency, execution order, or root cause.
 Grafana enrichment is optional to this portable package. Installing or copying the
 diagramming skill does not itself require a Grafana account, sibling skill, server, or host
 with interactive graph support, and it grants no additional resource or publication authority.
+
+## Profiling views
+
+When the report owner requires a Pyroscope flame graph, render the actual inspected stack
+results or a verified export. Preserve caller/callee nesting, inclusive widths, self values,
+units and sampling semantics. Do not sum overlapping ancestor/descendant shares. Ordinary
+frame rectangles encode sample weight and are meaningful structure, not decorative boxes.
+
+Use a readable full stack or a clearly identified subtree focus. Keep the original profile
+and a reproducible rendering source; record focus, depth limits, omitted frames and the
+percentage denominator in linked evidence detail. Retain tiny frame widths when omitting
+unreadable labels. An aggregate symbol list cannot reconstruct caller relationships; if only
+such a list is available, report that limitation instead of inventing a flame graph.
+
+Lead the caption with what the profile establishes about the investigated problem, followed
+by the material uncertainty and an evidence link. Prefer one or two short sentences. Do not
+narrate the image, explain colors or reading direction, or repeat query metadata there;
+place those details in the linked Evidence index or methods. Keep an essential scope or
+normalization qualification adjacent when omitting it would mislead. Accessible alt text
+still identifies the stack/finding without copying a long caption.
+
+For example: "S3 parsing accounts for 85% of sampled CPU during the incident. The profile
+locates the hot path; duplicate replay remains unverified. [E1]" This is illustrative, not
+a production observation. Apply this guide's existing theme, delivery-size and static-format
+checks; stack evidence must remain readable in each selected output.
