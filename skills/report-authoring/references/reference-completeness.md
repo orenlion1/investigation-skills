@@ -167,3 +167,10 @@ Separate demonstrated assembly omissions, traced workflow/code causes and remain
 state precisely which artifacts, versions and reference population were audited and what remains
 unexamined. A missing-reference gate added here is not proof that all historical publication paths
 have been audited or that every existing report is repaired.
+
+## Audit-only responses
+
+When asked to audit without editing, return the occurrence table with each unresolved
+location and its exact source-derived destination, or explicit unavailable provenance.
+Saying an anchor exists, reporting only counts, or linking a source elsewhere does not give
+the caller the missing destinations. Keep authored-link matching separate from navigation.

@@ -20,6 +20,10 @@ topic reference when the task matches:
 | Relevant Grafana data available within the authorized scope | [Grafana data and interactive graphs](references/grafana-graphs.md) | Enrich diagrams and reports with evidence-backed graphs from Grafana CLI and interactive views supported by the current host, following its scoped queries, provenance, theme checks, and matching static report views. Use the graphs to explain the findings; record unavailable capabilities and continue with verified data rather than making Grafana a prerequisite for ordinary diagramming. |
 | Origin of the conventions | [Reference provenance](references/provenance.md) | Background only. |
 
+Before returning a caption-only or prose edit, inspect **both theme exports themselves**
+(read SVG text or view raster images). Name both checked files and the title/caveat result
+in delivery. A file listing, unchanged DOT source or unchanged bytes is not that inspection.
+
 Core rules, detailed in the guide:
 
 - Use plain labels, whitespace, and restrained typography. Avoid decorative node boxes,
@@ -87,8 +91,7 @@ naming conventions without changing the skill package's standard filenames.
   backgrounds, and overlaps; source settings alone do not prove clearance.
 - Run [scripts/check_diagram_overlaps.py](scripts/check_diagram_overlaps.py) on the Graphviz
   SVG renders. Its text extents are estimates, so a pass supplements, never replaces, visual
-  inspection. For caption-only or prose edits, inspect the rendered text in both theme exports
-  and name each checked file and result; unchanged bytes alone are not verification. After changing the checker, run `python3 -m unittest discover -s <skill>/tests`.
+  inspection. After changing the checker, run `python3 -m unittest discover -s <skill>/tests`.
 - Verify the same delivered Markdown document in both host themes, including selected images
   and canvas colors; standalone exports alone are not acceptance, and a fixed light diagram
   displayed in dark mode fails. Count primary rendered diagrams against the inventory,
