@@ -46,6 +46,27 @@ class FlameGraphTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.flame.decode({'names': [], 'levels': [], 'total': 0})
 
+    def test_names_and_levels_must_be_native_arrays(self):
+        for field, value in [('names', 'abcd'), ('levels', 'not-levels')]:
+            data = profile()
+            data['flamegraph'][field] = value
+            with self.assertRaises(ValueError):
+                self.flame.decode(data)
+
+    def test_cli_rejects_invalid_xml_names_before_creating_outputs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            data = profile()
+            data['flamegraph']['names'][1] = 'bad\x00name'
+            source = root / 'profile.json'
+            source.write_text(json.dumps(data))
+            result = subprocess.run([sys.executable, str(SCRIPT), '--input', str(source),
+                                     '--light', str(root / 'light.svg'), '--dark', str(root / 'dark.svg')],
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse((root / 'light.svg').exists())
+            self.assertFalse((root / 'dark.svg').exists())
+
     def test_themes_have_identical_geometry_and_safe_labels(self):
         data = profile()
         data['flamegraph']['names'][1] = '</text><script>alert(1)</script>'

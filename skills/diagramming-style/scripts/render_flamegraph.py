@@ -24,11 +24,15 @@ def decode(data):
     if not isinstance(graph, dict):
         raise ValueError('flamegraph must be a JSON object')
     names, levels = graph['names'], graph['levels']
+    if not isinstance(names, list) or not isinstance(levels, list):
+        raise ValueError('names and levels must be native JSON arrays')
     total = integer(graph['total'])
     if total <= 0 or not levels or not names or not all(isinstance(n, str) for n in names):
         raise ValueError('a nonempty sampled profile and names table are required')
     frames, parents = [], []
     for depth, level in enumerate(levels):
+        if not isinstance(level, dict) or not isinstance(level.get('values'), list):
+            raise ValueError('each level must contain a values array')
         values = level['values']
         if len(values) % 4:
             raise ValueError('each level must contain gap/total/self/name-index tuples')
@@ -111,7 +115,9 @@ def render(data, theme, focus=None, max_depth=16):
                 'focus_share_percent': root['total'] / total * 100,
                 'displayed_frames': len(shown), 'omitted_descendant_frames': len(subtree) - len(shown),
                 'max_depth': max_depth}
-    return ET.tostring(svg, encoding='utf-8', xml_declaration=True), metadata
+    content = ET.tostring(svg, encoding='utf-8', xml_declaration=True)
+    ET.fromstring(content)  # Reject invalid XML characters before either output is created.
+    return content, metadata
 
 
 def main(argv=None):
@@ -134,7 +140,7 @@ def main(argv=None):
             with path.open('xb') as handle:
                 handle.write(content)
         print(json.dumps({**rendered[0][1], 'source_sha256': hashlib.sha256(raw).hexdigest()}))
-    except (ValueError, KeyError, TypeError, OSError) as error:
+    except (ValueError, KeyError, TypeError, OSError, ET.ParseError) as error:
         parser.exit(1, f'error: {error}\n')
     return 0
 
