@@ -41,6 +41,11 @@ jobs:
   skills:
     name: Resolve requested skills and calculate spend
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The budget check reads earlier runs' spend artifacts through the Actions API.
+    permissions:
+      contents: read
+      actions: read
     outputs:
       skills: ${{ steps.list.outputs.skills }}
       evals: ${{ steps.list.outputs.evals }}
@@ -94,8 +99,8 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 6
-    matrix:
-      skill: ${{ fromJSON(needs.skills.outputs.skills) }}
+      matrix:
+        skill: ${{ fromJSON(needs.skills.outputs.skills) }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
