@@ -151,6 +151,14 @@ def month_spend(repository, workflow, current_run, token, now):
     return sum_spend_zips(blobs)
 
 
+def allot(remaining, evals):
+    """Split the remaining budget across skills in proportion to their eval counts."""
+    total = sum(max(int(n), 0) for n in evals.values())
+    if total <= 0:
+        return {skill: 0.0 for skill in evals}
+    return {skill: round(max(remaining, 0) * max(int(n), 0) / total, 4) for skill, n in evals.items()}
+
+
 def output(**values):
     target = os.environ.get('GITHUB_OUTPUT')
     lines = ''.join(f'{k}={v}\n' for k, v in values.items())
@@ -165,7 +173,8 @@ def main(argv=None):
     sub = parser.add_subparsers(dest='command', required=True)
     m = sub.add_parser('month', help='check the monthly budget before a run')
     m.add_argument('--budget', type=float, required=True)
-    m.add_argument('--jobs', type=int, required=True)
+    m.add_argument('--evals', required=True,
+                   help='JSON object mapping each skill in this run to its eval count')
     m.add_argument('--repository', required=True)
     m.add_argument('--workflow', required=True)
     m.add_argument('--run-id', required=True)
@@ -183,8 +192,9 @@ def main(argv=None):
             raise SystemExit('GITHUB_TOKEN is required to read earlier spend')
         spent, files = month_spend(args.repository, args.workflow, args.run_id, token, now)
         remaining = round(args.budget - spent, 6)
-        per_job = round(remaining / max(args.jobs, 1), 6)
-        output(spent=f'{spent:.4f}', remaining=f'{remaining:.4f}', per_job=f'{per_job:.4f}', artifacts=files)
+        shares = allot(remaining, json.loads(args.evals))
+        output(spent=f'{spent:.4f}', remaining=f'{remaining:.4f}', artifacts=files,
+               shares=json.dumps(shares, separators=(',', ':')))
         if remaining <= 0:
             print(f'::error::Live evals are paused: ${spent:.2f} of the ${args.budget:.2f} budget for '
                   f'{now:%B %Y} is spent. They resume on the first of next month (UTC).')

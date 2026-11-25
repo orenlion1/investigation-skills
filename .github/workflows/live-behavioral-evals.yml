@@ -47,7 +47,7 @@ jobs:
       actions: read
     outputs:
       skills: ${{ steps.list.outputs.skills }}
-      per_job: ${{ steps.budget.outputs.per_job }}
+      shares: ${{ steps.budget.outputs.shares }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -73,16 +73,17 @@ jobs:
           PY
           )
           printf 'skills=%s\n' "$skills" >>"$GITHUB_OUTPUT"
-          printf 'count=%s\n' "$(python3 -c 'import json, sys; print(len(json.loads(sys.argv[1])))' "$skills")" >>"$GITHUB_OUTPUT"
+          evals=$(python3 -c 'import json, sys; print(json.dumps({s: len(json.load(open(f"skill_evals/cases/{s}.json"))["evals"]) for s in json.loads(sys.argv[1])}, separators=(",", ":")))' "$skills")
+          printf 'evals=%s\n' "$evals" >>"$GITHUB_OUTPUT"
 
       - name: Check this month's spend
         id: budget
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          JOBS: ${{ steps.list.outputs.count }}
+          EVALS: ${{ steps.list.outputs.evals }}
         run: |
           set -euo pipefail
-          python3 scripts/live_eval_spend.py month --budget "$MONTHLY_BUDGET_USD" --jobs "$JOBS" \
+          python3 scripts/live_eval_spend.py month --budget "$MONTHLY_BUDGET_USD" --evals "$EVALS" \
             --repository "$GITHUB_REPOSITORY" --workflow live-behavioral-evals.yml --run-id "$GITHUB_RUN_ID"
 
   live-evals:
@@ -121,7 +122,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_MODEL: ${{ inputs.model }}
           SKILL: ${{ matrix.skill }}
-          LIVE_EVAL_JOB_BUDGET_USD: ${{ needs.skills.outputs.per_job }}
+          LIVE_EVAL_JOB_BUDGET_USD: ${{ fromJSON(needs.skills.outputs.shares)[matrix.skill] }}
         run: |
           set -o pipefail
           results="$RUNNER_TEMP/live-eval-results"
