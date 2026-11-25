@@ -87,8 +87,8 @@ naming conventions without changing the skill package's standard filenames.
   backgrounds, and overlaps; source settings alone do not prove clearance.
 - Run [scripts/check_diagram_overlaps.py](scripts/check_diagram_overlaps.py) on the Graphviz
   SVG renders. Its text extents are estimates, so a pass supplements, never replaces, visual
-  inspection. When only captions or prose change, still inspect both theme exports' rendered
-  text and report what you checked. After changing the checker, run `python3 -m unittest discover -s <skill>/tests`.
+  inspection. For caption-only or prose edits, inspect the rendered text in both theme exports
+  and name each checked file and result; unchanged bytes alone are not verification. After changing the checker, run `python3 -m unittest discover -s <skill>/tests`.
 - Verify the same delivered Markdown document in both host themes, including selected images
   and canvas colors; standalone exports alone are not acceptance, and a fixed light diagram
   displayed in dark mode fails. Count primary rendered diagrams against the inventory,

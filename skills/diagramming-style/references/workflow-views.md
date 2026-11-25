@@ -104,7 +104,9 @@ Invisible edges stabilize peer placement only; they convey no integration order 
 parallel-execution guarantee. Move a group heading below the nodes when incoming arrows
 would cross it. Check the render rather than assuming a cluster protects its heading.
 
-Keep artifact details and qualifications in adjacent prose: the example's stages produce
+Update adjacent prose as well as the caption/alt text to retain artifact details, as-needed
+integration selection and separate Publish authorization. Keep artifact details and qualifications
+in adjacent prose: the example's stages produce
 a draft task, saved task, findings/evidence, and Markdown/PDF reports. Integrations are
 selected as needed for the task. `Report → Publish` depicts a possible authorized handoff;
 it neither authorizes publication nor makes it automatic. Use a different lifecycle when

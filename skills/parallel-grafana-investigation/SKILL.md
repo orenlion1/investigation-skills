@@ -104,6 +104,7 @@ it does not replace this orchestration or widen the user's scope.
    When the requested output excludes prose or citations (for example values-only or JSON),
    write that Source snapshot, citing the manifest path, to a local audit file beside the
    manifest instead, and keep the reply to the requested format (or the bare limitation).
+   Keep launch summaries, audit notes and local file paths out of that reply.
    Record an explicit user exclusion of profiling or source reads there as a scope limitation.
 4. **Reconcile and verify.** Check that both agents used the same resolved inputs. Verify
    material claims against direct evidence and report disagreements, gaps and limitations.

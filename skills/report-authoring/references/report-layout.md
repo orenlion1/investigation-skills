@@ -61,7 +61,8 @@ delivery and accounting; token usage details.
   the old-to-new numbering in the continuation record.
 - **Hold the opening to the first 20%.** Measure where the opening ends in each selected
   format (rendered page height for HTML, page count for PDF) and record the figures in the
-  validation receipt. When required graphs make 20% unreachable, keep the bottom line, both
+  validation receipt. For Markdown-only delivery, report the opening's ending line and its
+  fraction of nonblank source lines as a source-length proxy, not rendered-layout acceptance. When required graphs make 20% unreachable, keep the bottom line, both
   tables and the first graph inside it and record the overage. Do not drop a required graph
   or caption to meet the number.
 - **Restructuring moves text verbatim.** Limit wording changes to figure numbers,

@@ -125,7 +125,7 @@
       "expectations": [
         "Creates and embeds an actual evidence-backed flame graph next to the profiling finding, with matching static light/dark variants under Diagramming Style",
         "Preserves the saved stack relationships and reports the loader as 85 percent of the whole sampled profile without summing ancestor shares",
-        "Uses a short takeaway caption and evidence link; puts rendering mechanics and extended query metadata in linked evidence detail",
+        "Uses one or two takeaway sentences with an E1 link as the caption; rendering mechanics and query metadata stay in linked evidence detail. Grade the caption and evidence detail here, independently of required report-layout tables elsewhere",
         "Leaves the triggering defect and duplicate replay unverified; no new provider query, publication, HTML or PDF is performed"
       ],
       "files": [
