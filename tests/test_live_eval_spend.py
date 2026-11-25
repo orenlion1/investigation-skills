@@ -47,7 +47,8 @@ class LiveEvalSpendTests(unittest.TestCase):
     def test_records_session_cost_and_passes_output_through(self):
         result = self.call('-p', '--output-format', 'stream-json')
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), 'stub output -p --output-format stream-json')
+        self.assertEqual(result.stdout.strip(), 'stub output -p --output-format stream-json '
+                         '--strict-mcp-config --disallowedTools WebFetch WebSearch')
         entries = spend.read_ledger(self.ledger)
         self.assertEqual(entries[0]['cost_usd'], 0.25)
         self.assertEqual(entries[0]['role'], 'executor')

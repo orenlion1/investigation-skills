@@ -24,6 +24,8 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+import live_eval_sandbox
+
 SPEND_ARTIFACT_PREFIX = 'live-evals-spend-'
 # GitHub's variables for minting OIDC tokens. The shim uses them; the model under test never
 # receives them, so it cannot mint tokens of its own.
@@ -115,27 +117,40 @@ def run_metered(argv, real, ledger, projects, budget, stdin=None, env=None):
     if reason:
         print(f'live-eval budget reached: {reason}; no model call was made.', file=sys.stderr)
         return REFUSED_EXIT
+    user = env.get('LIVE_EVAL_ISOLATION_USER')
+    if env.get('GITHUB_ACTIONS') == 'true' and not user:
+        print('live-eval isolation: LIVE_EVAL_ISOLATION_USER is not set in CI; no model call was made.',
+              file=sys.stderr)
+        return REFUSED_EXIT
     audience = env.get('LIVE_EVAL_OIDC_AUDIENCE')
-    token_dir = None
-    token_file = None
+    token = None
     if audience:
         if not all(env.get(name) for name in OIDC_REQUEST_VARIABLES):
             print('live-eval OIDC: the job has no id-token: write permission; no model call was made.',
                   file=sys.stderr)
             return REFUSED_EXIT
-        token_dir = tempfile.mkdtemp(prefix='live-eval-oidc-')
-        token_file = Path(token_dir) / 'identity-token'
-        fd = os.open(token_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        with os.fdopen(fd, 'w', encoding='utf-8') as handle:
-            handle.write(mint_identity_token(audience, env))
+        token = mint_identity_token(audience, env)
+    args = [*argv, *live_eval_sandbox.isolation_flags(argv)]
     before = snapshot(projects)
     started = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    try:
-        code = subprocess.run([real, *argv], stdin=stdin, check=False,
-                              env=child_environment(env, token_file)).returncode
-    finally:
-        if token_dir:
-            shutil.rmtree(token_dir, ignore_errors=True)
+    if user:
+        code = live_eval_sandbox.run_isolated(user, env['LIVE_EVAL_PROXY'], real, args, env, projects,
+                                              token=token, stdin=stdin)
+    else:
+        token_dir = None
+        token_file = None
+        if token is not None:
+            token_dir = tempfile.mkdtemp(prefix='live-eval-oidc-')
+            token_file = Path(token_dir) / 'identity-token'
+            fd = os.open(token_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, 'w', encoding='utf-8') as handle:
+                handle.write(token)
+        try:
+            code = subprocess.run([real, *args], stdin=stdin, check=False,
+                                  env=child_environment(env, token_file)).returncode
+        finally:
+            if token_dir:
+                shutil.rmtree(token_dir, ignore_errors=True)
     after = snapshot(projects)
     touched = [p for p, mtime in after.items() if before.get(p) != mtime]
     cost, models = None, set()
