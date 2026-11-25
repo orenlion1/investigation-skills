@@ -127,8 +127,28 @@ jobs:
       - name: Install the pinned Claude Code runner
         run: |
           set -euo pipefail
-          npm install --global --no-fund --no-audit @anthropic-ai/claude-code@2.1.332
-          claude --version
+          # Outside the runner's home, so the isolated eval user can run it.
+          sudo "$(command -v npm)" install --global --prefix /opt/claude-code --no-fund --no-audit \
+            @anthropic-ai/claude-code@2.1.332
+          /opt/claude-code/bin/claude --version
+
+      # Every model call runs as an unprivileged user that cannot read the runner's checkout or
+      # home, and whose only network path is a proxy that tunnels to the Anthropic API alone.
+      - name: Isolate the agent under test
+        run: |
+          set -euo pipefail
+          sudo useradd --system --no-create-home --shell /usr/sbin/nologin live-eval
+          chmod 700 "$HOME"
+          nohup python3 scripts/live_eval_proxy.py --listen 127.0.0.1:3128 --allow api.anthropic.com:443 \
+            >"$RUNNER_TEMP/live-eval-proxy.log" 2>&1 &
+          uid=$(id -u live-eval)
+          for table in iptables ip6tables; do
+            sudo "$table" -A OUTPUT -m owner --uid-owner "$uid" -o lo -p tcp --dport 3128 -j ACCEPT
+            sudo "$table" -A OUTPUT -m owner --uid-owner "$uid" -j REJECT
+          done
+          sleep 1
+          python3 scripts/live_eval_sandbox.py selftest --user live-eval --proxy http://localhost:3128 \
+            --private-path "$GITHUB_WORKSPACE/README.md" --claude /opt/claude-code/bin/claude
 
       - name: Execute the skill's behavioral evals
         env:
@@ -145,7 +165,10 @@ jobs:
           set -o pipefail
           results="$RUNNER_TEMP/live-eval-results"
           mkdir -p "$results"
-          LIVE_EVAL_REAL_CLAUDE=$(command -v claude)
+          LIVE_EVAL_REAL_CLAUDE=/opt/claude-code/bin/claude
+          LIVE_EVAL_ISOLATION_USER=live-eval
+          LIVE_EVAL_PROXY=http://localhost:3128
+          export LIVE_EVAL_ISOLATION_USER LIVE_EVAL_PROXY
           LIVE_EVAL_LEDGER="$RUNNER_TEMP/live-eval-ledger.jsonl"
           export LIVE_EVAL_REAL_CLAUDE LIVE_EVAL_LEDGER
           echo "This job may spend up to \$$LIVE_EVAL_JOB_BUDGET_USD."
@@ -166,6 +189,7 @@ jobs:
             --output "$RUNNER_TEMP/live-eval-spend/spend.json" \
             --skill "$SKILL" --model "$MODEL" --run-id "$GITHUB_RUN_ID"
           cp "$ledger" "$RUNNER_TEMP/live-eval-results/ledger.jsonl"
+          cp "$RUNNER_TEMP/live-eval-proxy.log" "$RUNNER_TEMP/live-eval-results/proxy.log" 2>/dev/null || true
           if [ -d "$HOME/.claude/projects" ]; then
             cp -R "$HOME/.claude/projects" "$RUNNER_TEMP/live-eval-results/sessions"
           fi

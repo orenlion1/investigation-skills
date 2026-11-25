@@ -129,7 +129,8 @@ pull requests, merge queues, and pushes to `main`. The Live Behavioral Evals wor
 executes behavioral evals against a model only when someone starts it, for one skill or the
 whole catalog and with a chosen model; it is opt-in, spends model usage, and authenticates to
 Anthropic through GitHub OIDC workload identity federation scoped to this repository.
-It meters every model call and pauses once the month's spend reaches the
+Each model call runs as an unprivileged user that cannot read the runner's checkout and can
+reach only the Anthropic API. It meters every model call and pauses once the month's spend reaches the
 `LIVE_EVALS_MONTHLY_BUDGET_USD` repository variable, $10 when unset. Every skill needs a case file in
 `skill_evals/cases/<name>.json` with at least 3 positive triggers, 2 negatives, and
 1 behavioral eval.

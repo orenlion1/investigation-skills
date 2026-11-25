@@ -37,6 +37,9 @@ class LiveEvalSpendTests(unittest.TestCase):
         self.ledger = self.tmp / 'ledger.jsonl'
         self.env = {**os.environ, 'LIVE_EVAL_REAL_CLAUDE': str(self.real), 'LIVE_EVAL_LEDGER': str(self.ledger),
                     'LIVE_EVAL_PROJECTS': str(self.tmp / 'projects')}
+        # These tests exercise the unisolated path; CI runners set GITHUB_ACTIONS themselves.
+        for name in ('GITHUB_ACTIONS', 'LIVE_EVAL_ISOLATION_USER'):
+            self.env.pop(name, None)
 
     def call(self, *args, cost='0.25', budget=None):
         env = {**self.env, 'STUB_COST': cost}
@@ -47,7 +50,8 @@ class LiveEvalSpendTests(unittest.TestCase):
     def test_records_session_cost_and_passes_output_through(self):
         result = self.call('-p', '--output-format', 'stream-json')
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), 'stub output -p --output-format stream-json')
+        self.assertEqual(result.stdout.strip(), 'stub output -p --output-format stream-json '
+                         '--strict-mcp-config --disallowedTools WebFetch WebSearch')
         entries = spend.read_ledger(self.ledger)
         self.assertEqual(entries[0]['cost_usd'], 0.25)
         self.assertEqual(entries[0]['role'], 'executor')
