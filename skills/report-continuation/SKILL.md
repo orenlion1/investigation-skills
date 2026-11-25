@@ -27,9 +27,15 @@ Before planning or querying for an existing investigation, read and apply the
 question/answer coverage, task/report reconciliation, the resume checkpoint and transfer
 readiness. Apply it again before handoff; unavailable history is an explicit context gap.
 Keep current requirements in the task and questions, answers, evidence and history in the
-report. In the dependency inventory, name [Publish It](../publish-it/SKILL.md) as the owner that
-packages each unavailable dependency once authorized and Report Authoring as the owner of evidence
-checks; a handoff never uploads, publishes or copies credentials.
+report. An unqualified rerun continues outstanding work without repeating completed checks. An
+explicit fresh rerun reruns only the requested scope, records its new observation window and its
+verification results separately in the same canonical report, preserves historical findings and
+reconciles any revised conclusion in the opening; say which of the two you are doing.
+
+Give the dependency inventory an owner column and name both owners in it, even when you only
+reference them: [Publish It](../publish-it/SKILL.md) packages each unavailable dependency once
+authorized, and [Report Authoring](../report-authoring/SKILL.md) owns evidence and reference
+checks. A handoff never uploads, publishes or copies credentials.
 
 ## Resolve the canonical report
 
@@ -91,10 +97,14 @@ re-date old evidence, count old usage as new, invent totals or silently refresh 
 Use the existing [delivery contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats)
 and selected format owners to regenerate enabled companions from the updated canonical content
 before final delivery. A format conversion does not create new findings or a new canonical report.
-Record current versus stale/historical outputs. After writing, read the saved revision back and
-run Report Authoring's evidence checks and the delivery contract's format checks on it, recording
-each as passed or pending with its reason; do not invent rendering rules. Source content may be internal when Markdown delivery is disabled; canonical
-identity belongs to the investigation, not a required extension.
+Record current versus stale/historical outputs. Source content may be internal when Markdown
+delivery is disabled; canonical identity belongs to the investigation, not a required extension.
+
+After your last write, open the saved file with a read tool (a write confirmation is not a
+read-back), then run Report Authoring's evidence checks and the delivery contract's format checks
+on what you read. Record a check as passed only when you ran it on that read-back; record any
+check you could not run, including one whose owner's rules are unavailable to you, as pending
+with its reason. Do not invent your own rendering rules.
 
 For explicitly authorized fragmentation repair, integrate relevant earlier follow-up content
 into the chosen report, repair authorized task links and identify preserved follow-up artifacts

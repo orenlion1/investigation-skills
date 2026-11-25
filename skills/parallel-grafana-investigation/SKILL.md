@@ -55,7 +55,9 @@ it does not replace this orchestration or widen the user's scope.
    state. Only a compatible branch owns one combined initial prompt; retain separate endpoint
    children and manifest rows linked to its execution receipt. Do not broaden scope to combine
    requests. A late matching request does not automatically start another prompt.
-2. **Launch both sub-agents before awaiting either result:**
+2. **Launch both sub-agents before awaiting either result.** Each brief, the direct one included,
+   states the shared inputs as its own explicit fields (context, exact expression, window or
+   instant, timezone, output constraint), not only inside an embedded command line:
    - **Grafana Assistant agent:** send the same request through `gcx assistant prompt` with
      explicit `--context`, a fresh conversation and the shared read-only scope. For an exact
      query, retain the expression, parameters and requested output; do not substitute an
@@ -102,9 +104,9 @@ it does not replace this orchestration or widen the user's scope.
    launch times, or nulls when never launched. Record which bundled skills the
    direct branch used. The report or response's Source snapshot cites the local manifest.
    When the requested output excludes prose or citations (for example values-only or JSON),
-   write that Source snapshot, citing the manifest path, to a local audit file beside the
-   manifest instead, and keep the reply to the requested format (or the bare limitation).
-   Keep launch summaries, audit notes and local file paths out of that reply.
+   write that Source snapshot, citing the manifest by its absolute path, to a local audit file
+   beside the manifest instead. The reply then holds only the requested format or the bare
+   limitation: no launch summaries, brief recap, file locations, snapshot or contract notes.
    Record an explicit user exclusion of profiling or source reads there as a scope limitation.
 4. **Reconcile and verify.** Check that both agents used the same resolved inputs. Verify
    material claims against direct evidence and report disagreements, gaps and limitations.
@@ -113,6 +115,10 @@ it does not replace this orchestration or widen the user's scope.
    A successful connection is not query success; an empty result is not proof of health.
    Apply the profiling coverage check before delivery. Explain alert recurrence separately
    from its workload driver; unresolved driver or source evidence stays an explicit gap.
+   When retained profile stacks support a report finding, the reporting handoff gives the
+   stacks, labels, window and sampling metadata to [Report Authoring](../report-authoring/SKILL.md)
+   for its profiling evidence requirement; [Diagramming Style](../diagramming-style/SKILL.md)
+   owns their rendering. Source leads still go to Source Investigation.
 
 ## Cost controls and failures
 

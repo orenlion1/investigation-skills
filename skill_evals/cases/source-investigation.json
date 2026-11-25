@@ -64,7 +64,7 @@
     "Plans the search for relevant repositories within the verified provider host and account/workspace using approved read-only tooling, without asking for a second repository URL or approval already covered by policy",
     "Names the service/profile symbols it would use to select candidate implementation and consumer repositories, and plans to inspect them instead of stopping at the unrelated seed repository",
     "Records search scope, queries, bounds, candidates, source revisions and any concrete access or discovery gaps",
-    "States that discovered repositories go to their existing parent inspection owner, creating no duplicate repository unit, and that discovery does not edit task Resources",
+    "States all three: discovered repositories go to their existing parent inspection owner, no duplicate repository inspection unit is created, and discovery does not edit task Resources",
     "Separates a candidate replay amplification mechanism from confirmed incident execution, traffic cutover or deadlock and verifies or discloses deployed revision provenance",
     "Uses sanitized examples without organizational names, literal source paths or organizational URLs"
    ]

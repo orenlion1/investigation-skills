@@ -58,8 +58,8 @@
         "Uses canonical user response_item proofs and explicitly verified continuation ancestry",
         "Requires child lineage and exposes missing expected sources without summing snapshots",
         "Preserves historical cutoffs and never fabricates historical checkpoint evidence",
-        "Keeps collection failures distinct from genuinely unavailable or partial telemetry",
-        "Renders numeric totals and session/model rows from saved validated collector data"
+        "Keeps collector failures (for example the cutoff validation blocker, saved as a separate failure) distinct from genuinely unavailable or partial telemetry",
+        "States that numeric totals and session/model rows are rendered only from saved successful collector data, never from hand-authored values or a hard-coded unavailable fallback"
       ]
     }
   ]

@@ -36,6 +36,8 @@ Core rules, detailed in the guide:
   edges, notes, and legends. Preserve current/proposed identity and essential domain
   semantics. Explain conditional constraints and the applicable schema scope beside the
   diagram; keep truthful annotations within that scope and omit any that remain misleading.
+  After moving a caveat out, read the text of both theme exports and report that neither
+  contains it and the rendered title is unchanged, even when no export was edited.
 - Organize complex subjects from overview to detail, with neutral defaults, defined accents,
   and stable comparison layouts. Check contrast in each theme; a color value alone does not
   establish accessibility.
@@ -52,8 +54,13 @@ Core rules, detailed in the guide:
   edge change, regenerate every delivered variant from the one source (light, dark and any
   adaptive SVG), update captions and alt text, and recheck theme parity and overlaps. Update
   captions and alt text even when rendering is blocked, and report stale exports rather than
-  hand-writing SVG. A lifecycle-with-integrations view keeps artifact details, as-needed
-  integration selection and Publish's separate authorization in adjacent prose.
+  hand-writing SVG. For a lifecycle-with-integrations view, edit the prose beside the diagram
+  to state artifact details, as-needed integration selection and Publish's separate
+  authorization, keeping all three out of the diagram.
+- Flame graph captions: one or two sentences leading with what the profile establishes, then
+  the material uncertainty and an evidence reference (for example `[E1]`). Move colors, reading
+  direction, widths, query arguments and export commands to the linked evidence or methods;
+  details and profiling rules are in [Grafana graphs](references/grafana-graphs.md#profiling-views).
 - Keep the complete diagram inventory consistent across the requested formats. Use native
   inline diagrams as the primary presentation only when their theme behavior is verified on
   the delivery host; otherwise use paired light/dark images in a primary `picture` element,

@@ -43,6 +43,11 @@ the reference's skeleton for a new report and its checklist before delivery.
   a graph that moved, renumber figures in order of appearance, measure where the opening ends
   in every selected format, regenerate those formats, and record the restructure in the
   continuation record.
+- Measure the opening's end yourself after writing: for Markdown, the line where the opening
+  ends against the file's total line count (for example with `grep -n` and `wc -l`); for HTML,
+  rendered page height; for PDF, page count. Record the result in the validation gate and
+  report it. When required graphs push the opening past 20%, keep the bottom line, both tables
+  and the first graph inside it and record the overage; never drop a graph or caption.
 - A revision or publication note never goes above the title. Record what changed in the
   continuation record, and hand page composition and the version message to
   [Publish It](../publish-it/SKILL.md), which owns both.
@@ -92,7 +97,17 @@ counts. Unavailable provenance and unverified navigation remain explicit incompl
 ## Data Pattern Graphs
 
 When Pyroscope profiles support a finding, apply the
-[profiling evidence contract](references/profiling-evidence.md) before delivery.
+[profiling evidence contract](references/profiling-evidence.md) before delivery:
+
+- Render the inspected profile's saved stack as a flame graph beside that finding, with
+  matching static light and dark variants under Diagramming Style. Preserve caller/callee
+  nesting; state each share against the whole sampled profile and never sum a frame with its
+  ancestors. A percentage table, self-time bar chart or dashboard link does not replace it.
+- Keep its caption to the measured takeaway and causal limit, linked to the evidence
+  identifier. Put the datasource, selector, profile type/units, window, limits and rendering
+  provenance in that identifier's Evidence index entry, not the caption.
+- If stack data or rendering is unavailable, state the gap beside the finding and mark the
+  visualization incomplete; never invent frames or substitute a schematic.
 
 - Every reported data pattern must be supported by an evidence-backed graph: trends,
   spikes, recurrence, flapping, state transitions, distributions, comparisons, and

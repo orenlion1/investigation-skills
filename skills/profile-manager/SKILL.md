@@ -74,8 +74,10 @@ remove-env [--dry-run] [--force]
 Read `schema` before a dependent read or write. Each field reports its `label`, optional
 `sublabel`, and the field it `requires`. Report an unknown field against the template rather
 than inventing a key for it. A planned command sequence starts with `schema` and names fields
-by their keys; each write is previewed with `--dry-run`, read back, and states which guards
-(invalid or duplicate values, conflicts) would stop it before any write.
+by their keys; each write is previewed with `--dry-run` and read back. For each field a plan
+touches, state what `schema` reports (legal values, default, and whether it is configuration or
+an actual resource), and that an invalid or duplicate value in a profile, the TASK or a
+`--field` override, or a conflict, stops the command before any write.
 
 ## Keep the store out of Git, then create it
 
@@ -102,9 +104,10 @@ integration, close an editor barrier, or authorize a gated operation.
 Accept the spelling the user gives: field names match by key or template label regardless of
 case, spaces, hyphens and underscores (`fan out`, `fan_out`, `FAN OUT`, `Fan-out`), and an
 assignment may be `FIELD=value` or `field: value`. Pass the user's assignment to `--field` as written, delimiter and case included
-(`--field 'fan out: DISABLED'`), rather than asking them to restate it. A name that matches no
-key or label, even one resembling a field, fails before any write: say so and ask, never
-substitute the field you think was meant. See
+(`--field 'fan out: DISABLED'`), rather than asking them to restate it. Matching is that
+normalization only: a name that matches no key or label, even a synonym or reworded label,
+fails before any write and blocks every assignment in that command. Say it matches no field
+and ask; never substitute the field you think was meant or plan its stored value. See
 [field names and assignments](references/profile-store.md#field-names-and-assignments).
 
 ## Delete the store
@@ -188,9 +191,13 @@ count as user configuration on later loads. Details are in
   the template does not declare. Sources and effective values are validated before writing.
 - Empty or duplicate override assignments, invalid scalar duplicates and duplicate list entries
   in known TASK settings fail before writing.
-- The supplied-resource guard remains: `load --replace` only permits rewriting an
-  already-populated Resources section while retaining user values. It never authorizes
-  investigation, editor closure, or scope expansion.
+- The supplied-resource guard remains: reloading into a Resources section that already holds
+  actual resources fails without `load --replace` (settings alone do not count). Say that
+  `--replace` only permits rewriting that already-populated section while retaining user
+  values; it never authorizes investigation, editor closure, or scope expansion.
+- In a plan, say which value wins at each step and why, naming the higher source that would
+  change it: a newer `load --field` overrides a TASK value, and a TASK value overrides the
+  profile.
 
 ## Load resolved resources
 
@@ -220,7 +227,8 @@ Set with `set --profile team --field GENERATE_HTML=enabled`, then confirm the st
 The contract owns persistence, defaults, task forms, validation and disabled behavior.
 Any one output can be the only enabled format; a disabled format is never required, generated
 or attached. Every enabled format keeps the same findings, evidence and accounting cutoff, and
-changing a toggle never reruns the investigation.
+choosing or changing formats never reruns the investigation; state both when answering about
+formats.
 For HTML appearance, use the independent `HTML_THEME`
 ([HTML theme](references/profile-store.md#html-theme)) setting from the template: `light`,
 `dark` or `system` (default); other values fail before writing. A fixed theme

@@ -60,7 +60,7 @@
         "Refuses to run ad hoc inline queries in place of briefed branches",
         "Shows the same templated briefs, each carrying an identical resolved block, to be executed one after another instead of ad hoc queries",
         "Records or shows a fan-out manifest whose launch mode is `unavailable` when this session runs the briefs itself, or `sequential` only if real agents run one at a time; not `disabled` (the user claimed missing capability, not a disabled fan-out) and never an invented value",
-        "States that the report's Source snapshot will declare the degradation (the launch mode and its reason), not merely cite the manifest"
+        "States that the report's Source snapshot will name the recorded launch mode and the reason for the degradation (the missing parallel sub-agents), not merely cite the manifest or say it states the degradation"
       ]
     },
     {
@@ -169,7 +169,7 @@
         "Uses the explicit user single channel over the profile channel list",
         "Selects delegation from effective Resources, not the raw profile cardinality",
         "Does not launch agents for channels the user replaced",
-        "Keeps the shared resolved inputs identical across briefs, naming only #my-channel",
+        "States that the frozen shared resolved inputs, carried identically by any brief or the inline owner, name only #my-channel and not the replaced profile channels",
         "States that the source profile is not modified by the override"
       ]
     },
@@ -184,7 +184,7 @@
         "Records ambiguous or denied inputs explicitly and continues unaffected channel/repository/store work",
         "Excludes channel/thread reads already owned by channel units from any ordinary Slack brief, or omits an empty ordinary Slack unit",
         "States, in the plan or the channel briefs, that channel inspection agents do not launch further agents",
-        "Parent verifies message/thread references and timestamps before cross-channel conclusions"
+        "States that the parent re-checks the channel units' cited message/thread references and read timestamps before drawing cross-channel conclusions"
       ]
     },
     {
@@ -196,7 +196,7 @@
         "Disabled parent fan-out disables channel delegation while preserving investigation",
         "Uses shared-contract capacity/degradation rules and does not fabricate agent identities",
         "Keeps every channel outcome and shared window/scope visible",
-        "Never messages, acknowledges or publishes from channel inspection units"
+        "States that channel inspection, whether by channel units or inline in the parent, stays read-only and never messages, acknowledges or publishes, and does none of those"
       ]
     }
   ]
