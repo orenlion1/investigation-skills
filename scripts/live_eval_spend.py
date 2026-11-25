@@ -35,6 +35,8 @@ OIDC_REQUEST_VARIABLES = ('ACTIONS_ID_TOKEN_REQUEST_URL', 'ACTIONS_ID_TOKEN_REQU
 REFUSED_EXIT = 75
 TOKEN_ATTEMPTS = 5
 TOKEN_RETRY_SECONDS = 2
+GITHUB_ATTEMPTS = 5
+GITHUB_RETRY_SECONDS = 2
 
 
 def snapshot(projects):
@@ -206,8 +208,18 @@ def github(path, token, raw=False):
     request.add_header('X-GitHub-Api-Version', '2022-11-28')
     # Not forwarded on the redirect to the pre-signed artifact download URL.
     request.add_unredirected_header('Authorization', 'Bearer ' + token)
-    with urllib.request.urlopen(request, timeout=60) as response:
-        body = response.read()
+    for attempt in range(GITHUB_ATTEMPTS):
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                body = response.read()
+            break
+        except urllib.error.HTTPError as error:
+            if error.code < 500 or attempt == GITHUB_ATTEMPTS - 1:
+                raise
+        except urllib.error.URLError:
+            if attempt == GITHUB_ATTEMPTS - 1:
+                raise
+        time.sleep(GITHUB_RETRY_SECONDS * 2 ** attempt)
     return body if raw else json.loads(body)
 
 

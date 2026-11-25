@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import MagicMock, patch
 import zipfile
 from pathlib import Path
 
@@ -147,6 +148,43 @@ print(json.dumps({'token': Path(path).read_text() if path else None,
         result = subprocess.run([sys.executable, str(SHIM), '-p'], input='x', capture_output=True, text=True, env=env)
         self.assertEqual(result.returncode, spend.REFUSED_EXIT)
         self.assertIn('id-token: write', result.stderr)
+
+
+class GitHubReadTests(unittest.TestCase):
+    def test_transient_artifact_and_network_errors_retry_without_changing_auth(self):
+        errors = [spend.urllib.error.HTTPError('https://api.github.com/test', 503, 'unavailable', {}, None),
+                  spend.urllib.error.URLError('connection reset')]
+        for error in errors:
+            with self.subTest(error=type(error).__name__):
+                response = MagicMock()
+                response.__enter__.return_value.read.return_value = b'zip bytes'
+                with patch.object(spend.urllib.request, 'urlopen', side_effect=[error, response]) as get, \
+                        patch.object(spend.time, 'sleep') as sleep:
+                    self.assertEqual(spend.github('test', 'not-a-real-token', raw=True), b'zip bytes')
+                self.assertEqual(get.call_count, 2)
+                sleep.assert_called_once_with(2)
+                for call in get.call_args_list:
+                    request = call.args[0]
+                    self.assertEqual(request.unredirected_hdrs['Authorization'], 'Bearer not-a-real-token')
+                    self.assertNotIn('Authorization', request.headers)
+
+    def test_permanent_permission_failure_is_not_retried(self):
+        error = spend.urllib.error.HTTPError('https://api.github.com/test', 403, 'forbidden', {}, None)
+        with patch.object(spend.urllib.request, 'urlopen', side_effect=error) as get, \
+                patch.object(spend.time, 'sleep') as sleep:
+            with self.assertRaises(spend.urllib.error.HTTPError):
+                spend.github('test', 'not-a-real-token')
+        self.assertEqual(get.call_count, 1)
+        sleep.assert_not_called()
+
+    def test_retry_exhaustion_propagates_unknown_spend_instead_of_returning_zero(self):
+        error = spend.urllib.error.HTTPError('https://api.github.com/test', 503, 'unavailable', {}, None)
+        with patch.object(spend.urllib.request, 'urlopen', side_effect=error) as get, \
+                patch.object(spend.time, 'sleep') as sleep:
+            with self.assertRaises(spend.urllib.error.HTTPError):
+                spend.github('test', 'not-a-real-token')
+        self.assertEqual(get.call_count, 5)
+        self.assertEqual([c.args[0] for c in sleep.call_args_list], [2, 4, 8, 16])
 
 if __name__ == '__main__':
     unittest.main()
