@@ -44,6 +44,9 @@ barrier. Verify the final copy before removing the owned draft, then pass the ve
 file to the caller's execution and reporting continuation. Existing-task edits preserve their
 established names and use that actual saved path.
 
+For an existing investigation, defer report identity and continuation to
+[Report Continuation](../report-continuation/SKILL.md) before resolving a new report path.
+
 ## When to Use
 
 - Resolving the name, type, extension, or destination of a TASK, SPEC, PLAN, REPORT, or LOG artifact.

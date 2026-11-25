@@ -292,6 +292,7 @@ fails, the others still publish.
 | [Parallel Grafana Investigation](skills/parallel-grafana-investigation/SKILL.md) | Answer Grafana queries with Assistant and direct `gcx` agents, then reconcile. |
 | [Rhyming Incident Search](skills/rhyming-incident-search/SKILL.md) | Find related prior incidents. |
 | [Source Investigation](skills/source-investigation/SKILL.md) | Trace a problem to source code, root cause, and a proposed fix. |
+| [Report Continuation](skills/report-continuation/SKILL.md) | Keep one canonical report updated and preserve task context for another user or agent to resume. |
 | [Report Evidence](skills/report-evidence/SKILL.md) | Evidence index, citations, and stated limitations. |
 | [Diagramming Style](skills/diagramming-style/SKILL.md) | Readable diagrams in light and dark themes. |
 | [AWS Architecture Diagrams](skills/aws-architecture-diagrams/SKILL.md) | AWS architecture and data-flow diagrams. |
@@ -306,7 +307,7 @@ fails, the others still publish.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/DIAGRAM-investigation-skill-routing-dark.png">
-  <img alt="Initialize in Open and Edit mode invokes the naming, editor, and profile skills; Investigate in Close and Execute mode routes to the orchestration skills, Per-Store Fan-Out, Parallel Grafana Investigation, and Rhyming Incident Search, which invoke the resource skills including Source Investigation; Report invokes the naming, token usage, report evidence, diagramming, and AWS architecture diagram skills; Publish invokes Publish It, Release It, and Rovo Dev MCP, which deliver the artifact to a repository or content system where the next lifecycle step picks it up." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
+  <img alt="Initialize in Open and Edit mode invokes the naming, editor, and profile skills; Investigate in Close and Execute mode routes to the orchestration skills, Per-Store Fan-Out, Parallel Grafana Investigation, and Rhyming Incident Search, which invoke the resource skills including Source Investigation; Report invokes Report Continuation, naming, token usage, report evidence, diagramming, and AWS architecture diagram skills; Publish invokes Publish It, Release It, and Rovo Dev MCP, which deliver the artifact to a repository or content system where the next lifecycle step picks it up." src="diagrams/DIAGRAM-investigation-skill-routing-light.png">
 </picture>
 
 **Figure 2 — Skill routing.** The lifecycle of Figure 1 expanded into the skill

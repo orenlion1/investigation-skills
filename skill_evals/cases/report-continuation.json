@@ -1,0 +1,141 @@
+{
+  "skill_name": "report-continuation",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Continue this investigation: add my follow-on question, the agent answer and new findings to its existing canonical report instead of another report",
+        "top_k": 3
+      },
+      {
+        "prompt": "I added a repository and changed task resource settings; progressively update the same investigation report with the questions, decisions and findings",
+        "top_k": 3
+      },
+      {
+        "prompt": "Repair fragmented reports for this task: integrate the follow-up into the original canonical report and preserve the follow-up as historical evidence",
+        "top_k": 3
+      },
+      {
+        "prompt": "Run this existing investigation on another agent using its saved task, report and prior questions and answers without the original conversation",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Resolve the filename and destination for a brand-new TASK artifact",
+        "owner": "workflow-artifact-naming"
+      },
+      {
+        "prompt": "Verify E1 citations and reference completeness for this saved report",
+        "owner": "report-evidence"
+      },
+      {
+        "prompt": "Open the existing TASK in the editor and wait for close before executing",
+        "owner": "open-edit-close-execute"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "The source task already has an investigation report. After its first delivery I asked whether replay caused the CPU problem, the agent gave a provisional answer, I added the application repository and requested code validation. We have new profiling evidence but code inspection is pending. Update the report now.",
+      "expected_output": "Resolves the existing canonical report and updates it progressively with dated questions, responses, evidence and task resource changes, leaving code validation open.",
+      "expectations": [
+        "Updates the existing owned report rather than inventing a suffixed report",
+        "Records the user replay question and material provisional agent answer with its evidence/disposition",
+        "Reflects the added application repository and pending code-validation question without treating task configuration as proof of execution",
+        "Reconciles the main conclusion with observed profiling and preserves earlier alert evidence",
+        "Marks the draft and missing source/format checks as incomplete instead of delaying all report updates until final findings",
+        "Excludes unrelated editor and delivery conversation from the incident narrative"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "The original report and its later follow-up cover the same incident. The task now links only the follow-up because an earlier agent added it. I explicitly select the original report as canonical. Apply continuation, keep historical artifacts, and preserve all existing resource settings.",
+      "expected_output": "Uses the explicit original report selection, integrates relevant follow-up evidence and Q&A there, and repairs the task report link without deleting the historical follow-up or rewriting task resources.",
+      "expectations": [
+        "Honors explicit canonical identity over recency, suffixes and the newer task link",
+        "Integrates findings into the main conclusion and relevant sections without retaining contradictory current conclusions",
+        "Preserves the separate follow-up artifact as historical and maintains retrievable provenance",
+        "Updates only authorized task links and preserves every resource/configuration setting",
+        "Does not publish or delete artifacts implicitly"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "A follow-on question disproved the earlier replay-deadlock explanation. Update the same report. The original metrics, original accounting cutoff and original published page must remain auditable.",
+      "expected_output": "Corrects the conclusion with dated evidence, retains prior observations and identifies the superseded hypothesis while preserving historical accounting and publication boundaries.",
+      "expectations": [
+        "Progressively updates the canonical report and records the new question, answer and why the hypothesis was superseded",
+        "Does not silently delete earlier evidence or change its observation window",
+        "Delegates accounting treatment to Token Usage rather than inventing new totals or rolling old usage into the new revision",
+        "Keeps external publication unchanged without publication authorization"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "dialogue",
+      "prompt": "This is a different incident affecting a different environment and evidence window; I explicitly want a separate report linked to the earlier investigation.",
+      "expected_output": "Creates a distinct report through the naming owner with the user-selected scope and relationship rather than forcibly consolidating separate investigations.",
+      "expectations": [
+        "Honors the explicit request for a distinct report and records its relationship to the earlier one",
+        "Does not overwrite the earlier investigation",
+        "Uses the naming and evidence owners without inventing a numeric collision suffix"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "For the same investigation, HTML is now the only selected deliverable and there is no Markdown report file. New findings just arrived; continue the canonical report.",
+      "expected_output": "Maintains canonical investigation identity while updating internal content and regenerating only the selected format through its existing owners.",
+      "expectations": [
+        "Does not require or create a delivered Markdown report when disabled",
+        "Distinguishes format conversion from new findings and keeps one canonical investigation identity",
+        "Regenerates selected companions from the updated content and labels stale or unverified outputs explicitly",
+        "Uses the existing format delivery and evidence checks rather than inventing rendering rules"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "Use the synthetic transferred task/report package under evals/fixtures/report-continuation-transfer. A different user runs its existing investigation. The report includes prior questions, a corrected agent answer, a user-added requirement not yet reflected in the task, and an unavailable evidence attachment. No original conversation is available. Resume the task using Report Continuation. Stay offline and preserve evidence.",
+      "expected_output": "Loads saved context before planning or querying, reconciles the explicit requirement, preserves the corrected answer and historical evidence, and reports the attachment gap and next feasible action.",
+      "expectations": [
+        "Reads the task, canonical report, continuation record, checkpoint and necessary declared dependencies before proposing an investigation plan or issuing queries",
+        "Recovers every recorded question and its disposition, including the rationale and superseded agent answer, without inventing missing turns",
+        "Reconciles the explicit user-added requirement into the current task while leaving unaccepted agent proposals as proposals",
+        "Identifies unavailable evidence and its effect; completes independent work without claiming ready handoff or complete context",
+        "Treats the unqualified run as continuation rather than rerunning all completed checks or creating a new report",
+        "Uses the receiving user authorization and access instead of inheriting historical approvals or sessions"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "dialogue",
+      "prompt": "Prepare this continuing investigation for another user. You have the latest turns, an unanswered user question, an older report summary, and local-only evidence outside the checkout. No upload or publication is authorized.",
+      "expected_output": "Records all available investigation questions and responses, updates the resume checkpoint and dependency inventory, and describes partial transfer readiness without external writes.",
+      "expectations": [
+        "Accounts for every investigation question, correction, constraint and configuration decision, marking the unanswered question pending rather than dropping it",
+        "States the coverage boundary and known missing earlier history instead of calling the summary complete",
+        "Includes established and provisional findings, attempted checks, blockers and dependency-ordered next actions in a report checkpoint linked from the task",
+        "Inventories local-only evidence as unavailable to the recipient until packaged or retrievable, even if the path is relative",
+        "Routes packaging and evidence validation to existing owners without uploading or copying credentials",
+        "Keeps current requirements in the task and answers/evidence/history in the report rather than duplicating a transcript"
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "dialogue",
+      "prompt": "Rerun the same investigation from scratch for a new observation window. Preserve the existing report and prior questions/answers; no new separate report was requested.",
+      "expected_output": "Honors the explicit fresh scope, separates new observations from historical findings in the same canonical report, and records which conclusions were revalidated.",
+      "expectations": [
+        "Distinguishes the explicit fresh rerun from default continuation and performs only the requested current scope",
+        "Preserves historical windows, revisions, Q&A corrections and original accounting instead of relabeling old data as fresh",
+        "Records current verification results separately and reconciles any revised conclusion in the canonical report",
+        "Uses current user authorization and records unavailable source access without inheriting prior credentials"
+      ]
+    }
+  ]
+}
