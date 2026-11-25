@@ -57,7 +57,7 @@ never create duplicate ordinary store agents.
 | Store | Integration skill | Covers |
 | --- | --- | --- |
 | Grafana | gcx-cli | Datasources, dashboards, alerts, metrics, logs, traces |
-| AWS | aws-mcp | Resource state, CloudWatch, quotas, within allowed Regions |
+| AWS | aws-mcp | Resource state, CloudWatch, quotas, within the task's Regions |
 | Atlassian | rovo-dev-mcp | Bitbucket, Jira and Confluence; repository code ownership follows the repository workflow below |
 | Slack | slack-mcp | Named channels and threads |
 
@@ -116,7 +116,8 @@ repository-owned fields and row rules in the [repository brief](references/repos
    bullet from SLACK_CHANNEL scalar/array resources. Apply explicit user overrides before counting
    channels; a user-selected single channel replaces an inherited list and retains the existing
    inline or ordinary store owner. Freeze the same effective Resources block used by repository
-   and store briefs. Never reinject profile channels inside a branch.
+   and store briefs. Never reinject profile channels inside a branch, and never edit the source
+   profile: an override changes only this run's effective Resources.
 2. **Resolve each channel's workspace, canonical ID and access through Slack MCP.** Names, IDs
    and URLs are identifiers, not credentials or authorization. Use verified workspace context;
    unresolved names, ambiguous workspace matches, unsupported identifiers and inaccessible channels
@@ -178,12 +179,15 @@ channel-owned fields and row rules in the [channel brief](references/channel-bri
 4. **Launch all briefs in one batch** before awaiting any result, through the shared contract's
    mechanics, and record the launch in the fan-out manifest it defines.
 5. **Iterate within bounds.** Route a follow-up by continuing that store's existing
-   sub-agent, never by spawning a fresh one. A finding in one store becomes the next
+   sub-agent, never by spawning a fresh one, even when a fresh agent is requested. A finding in one store becomes the next
    query in another. Stop after three follow-up rounds without convergence, or whenever
    an iteration would widen the authorized scope, window, or Regions — both return to the
-   user instead.
+   user instead. AWS work stays in the Region or Regions the task's Resources name. When
+   none is named, stop and ask. Refuse any other Region, even when asked in chat: the
+   Resources line has to change first.
 6. **Fold in, in the orchestrating session only,** under the shared contract's
-   leads-versus-findings rule: verify load-bearing material claims directly and report
+   leads-versus-findings rule: verify load-bearing material claims directly, including
+   commit-pinned source citations for repository claims, and report
    disagreements between stores explicitly. Sub-agent output is leads, never verified findings.
 
 Sub-agents never mutate, acknowledge, message, or publish; those stay separately
@@ -209,6 +213,13 @@ Store-specific additions to each branch row:
 
 - "The harness can't parallelize, so the fan-out rules don't apply." Degradation changes
   the launch mode, never the briefs, the output contract, or the manifest.
+- "Inline there is nothing to hand off, so skip the briefs." Execute the same briefs one after
+  another; ad hoc queries are a violation, not a degraded run. Record only a contract launch-mode
+  value — `sequential` for real agents run one at a time, `unavailable` when this session ran the
+  briefs — and state the degradation in the report's Source snapshot.
+- "The repositories share one provider, so it is one store and the first is enough." Repository
+  fan-out counts configured repositories; keep each with an owner or explicit gap unless the
+  user removes it from the Resources.
 - "The Grafana results will tell us whether AWS is worth querying." Launch order is not a
   triage tool; all in-scope branches launch before any result is awaited.
 - "Widening the window one hour is still the same investigation." Scope, window, and
@@ -222,6 +233,7 @@ Store-specific additions to each branch row:
   instruction.
 - Briefs that differ in window, timezone, environment, or constraints between stores.
 - A fresh sub-agent spawned for a store that already has one.
+- A channel or repository agent that launches further agents.
 - Duplicate ordinary Atlassian store agents, duplicate repository inspection owners, or a
   branch for a resource the effective Resources never named.
 - A report that presents sub-agent conclusions without orchestrator verification.

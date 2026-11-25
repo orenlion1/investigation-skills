@@ -67,12 +67,19 @@ This skill owns the workflow for this repository's templated tasks (template
   observed results in the selected formats: Markdown, PDF or HTML, with `REPORT` paths via
   Workflow Artifact Naming. Resolve formats before tooling using the [delivery contract](references/investigation-delivery.md). Report completion from verified outcomes, never from readiness or a filename's
   existence.
+- Say how each format setting resolved (explicit task, then loaded profile, then defaults:
+  Markdown and PDF enabled, HTML disabled) before any renderer or dependency setup. A disabled
+  format gets no renderer, dependency, check or attachment; an older file of that format stays
+  historical, outside the current companions and delivery links. Record the effective settings
+  and produced/skipped formats in delivery metadata; recording them authorizes no publication.
+- Delivering or publishing an existing investigation reuses its frozen evidence window and
+  token-accounting cutoff; say so, and never rerun the investigation to deliver it.
 - An explicit TASK path or `edit task` edits that task in place, preserving its filename,
   with the same continuation.
 
 ## Common Rationalizations
 
-- "The launcher exited, so editing is done." A launcher exit, saving alone, elapsed time, or a timeout is not closure; require a tracked close or explicit confirmation.
+- "The launcher exited, so editing is done." A launcher exit, saving alone, elapsed time, or a timeout is not closure; require a tracked close or explicit confirmation. "Treat it as closed" after a launcher exit is not that confirmation: say the exit is not a close signal, ask whether the file is saved and closed (or reopen with a waiting editor), and only then reread and run it.
 - "The file looks ready; execution can start." Execution begins only after the close signal and all supplied checks succeed.
 - "Readiness is a fine stopping point." Continue into the caller-authorized processing without a second instruction.
 

@@ -18,29 +18,24 @@ discovery and follow-ups; use the normal gcx setup, refresh and query mechanics.
 
 ## Gather and interpret
 
-Discover the selected context's profiling datasource, service identity, available profile
-types, labels and time coverage. Inspect relevant CPU stacks for the affected workload and
-time windows. Compare a suitable baseline or recovery period and other affected pods when
-those comparisons are available inside the authorized scope; state missing comparisons.
-Do not assume profile labels match metric labels. Verify workload identity from returned
-labels and corroborating signals, recording any attribution gap.
+SKILL.md Workflow step 2 owns the discovery, comparison, retention and handoff steps; this
+section adds their interpretation. Include service identity in discovery. Do not assume
+profile labels match metric labels. Verify workload identity from returned labels and
+corroborating signals, recording any attribution gap.
 
-Retain datasource UID, selector, profile type, exact timestamps/timezone, limits/truncation,
-observed stacks and sampling/scaling metadata with the result. Distinguish inclusive from
-self values; do not sum overlapping ancestor shares or convert sampled totals into actual
-CPU utilization without verified normalization. Compare like-for-like windows and expose
+Retained metadata covers datasource UID, selector, profile type, exact timestamps/timezone,
+limits/truncation, observed stacks and sampling/scaling. Do not sum overlapping ancestor
+shares or convert sampled totals into actual CPU utilization without verified normalization. Compare like-for-like windows and expose
 uncontrolled workload, sampling and aggregation differences.
 
-When deadlock is suspected, inspect available contention/blocking or wall profiles alongside
-CPU profiles. Active CPU frames do not prove nonprogress or deadlock, and absent/short sampled
-contention does not exclude unfinished waits. A restart followed by improvement establishes
+Active CPU frames do not prove nonprogress or deadlock, and absent/short sampled contention
+does not exclude unfinished waits. A restart followed by improvement establishes
 temporal association; it does not establish the triggering defect or state that was cleared.
 
 ## Hand off source leads
 
-When profiles identify application hotspots and a task supplies a VCS repository, pass the
-verified service/symbols, identity caveats and windows to the orchestrating session's
-[Source Investigation](../../source-investigation/SKILL.md) workflow. Its owner discovers
+The handoff to [Source Investigation](../../source-investigation/SKILL.md) carries the
+verified service/symbols, identity caveats and windows. Its owner discovers
 relevant repositories, traces callers, scheduling/retry behavior and progress guarantees,
 and checks the deployed revision. Keep the direct branch's gcx-only boundary. Candidate code
 defects remain hypotheses until connected to incident execution; do not turn an observed

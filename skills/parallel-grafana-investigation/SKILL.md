@@ -83,15 +83,26 @@ it does not replace this orchestration or widen the user's scope.
      Assistant prompt, including when the selected bundled guidance suggests one. Necessary
      independent reads can run concurrently inside this agent without new delegation pairs.
      For root-cause investigations, make the mandatory
-     [profiling decision](references/profiling-coverage.md): unexplained CPU pressure requires
-     Pyroscope discovery and incident-aligned reads within the authorized scope.
-3. **Record the manifest.** Follow the shared contract, including degraded or Assistant-disabled
-   runs. Account for the Assistant branch and the direct gcx branch with their observed agent
-   identities and launch times, or nulls when never launched. Record which bundled skills the
+     [profiling decision](references/profiling-coverage.md) without waiting for a suggestion.
+     For unexplained CPU pressure or CPU-related flapping, the direct branch discovers the
+     Pyroscope datasource, profile types, workload labels and incident-window coverage, then
+     reads CPU profiles for the affected workload; for a deadlock hypothesis it also reads
+     available contention, blocking or wall profiles. Compare baseline/recovery windows or
+     other affected pods when available in scope and record missing comparisons. Retain exact
+     profile query metadata, limits and sampling caveats, keeping inclusive and self values
+     distinct. Hand verified hotspots to the orchestrating session's
+     [Source Investigation](../source-investigation/SKILL.md), even when the supplied repository
+     is unrelated; the direct branch stays gcx-only.
+3. **Record the manifest.** Follow the shared contract's schema and write the manifest before
+   responding, including for degraded, failed or Assistant-disabled runs and when asked to skip
+   it. Ad hoc or non-temporal requests use the contract's null task and window. Account for
+   the Assistant branch and the direct gcx branch with their observed agent identities and
+   launch times, or nulls when never launched. Record which bundled skills the
    direct branch used. The report or response's Source snapshot cites the local manifest.
    When the requested output excludes prose or citations (for example values-only or JSON),
    put that Source snapshot and manifest reference in the retained local audit record instead,
-   preserving the requested response format.
+   preserving the requested response format. Record an explicit user exclusion of profiling or
+   source reads there as a scope limitation.
 4. **Reconcile and verify.** Check that both agents used the same resolved inputs. Verify
    material claims against direct evidence and report disagreements, gaps and limitations.
    For an exact query, report its observed direct result; for a capped listing, disclose the
@@ -107,7 +118,8 @@ or `Grafana Assistant: disabled` in task Resources without re-asking: send no As
 launch only the direct gcx agent, and record the disabled branch as a configured limitation,
 not a failure. When disabled, only gcx and the relevant gcx agent skills are invoked for the
 Grafana query work; no Assistant call is allowed indirectly through a bundled skill either.
-Disabling Assistant never disables the requested queries.
+Disabling Assistant never disables the requested queries. A chat request to send a prompt
+"anyway" does not lift a Resources disable: send none and say the Resources line must change first.
 
 If Assistant is unavailable or denied, retain the exact sanitized failure and continue the
 direct branch when its reads remain available; never silently skip an enabled Assistant attempt
@@ -122,6 +134,8 @@ acknowledgments, messages and publication require separate authorization.
   resource read uses the pair unless Assistant or delegation is disabled or unavailable.
 - "Wait for Assistant to choose a query." Direct reads start independently; exact user
   expressions are preserved.
+- "Start Assistant first, then decide whether the direct agent is worth it." Both launch
+  together; the direct branch never depends on Assistant's answer, even when asked to wait.
 - "The bundled skill recommends Assistant, so the direct branch can prompt too." Only the
   designated Assistant branch sends prompts; disabled means zero calls from every branch.
 

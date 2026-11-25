@@ -119,7 +119,8 @@ cache, starts that product's scoped recovery; it is not a terminal capability bl
 **Hand off sign-in.** Open the sign-in page in the user's default browser (`open` on macOS,
 `xdg-open` on Linux, `start` on Windows) and promptly give the user a clickable authorization
 link issued by that active flow — the printed link is the fallback when a browser cannot be
-opened. Name the product and connection and say which read will resume; do not wait for a timeout
+opened. Name the product and connection and say which read will resume, and that resources, the catalog
+and that read repeat after sign-in before access is claimed; do not wait for a timeout
 or assume a window appeared. Keep the client and callback listener running while the user signs
 in. Follow the [authorization-link handoff](references/bitbucket-access.md#authorization-link-handoff)
 for URL validation, output filtering, and an unavailable or expired link. If the host exposes
@@ -142,7 +143,8 @@ availability, and the bounded object read separately, with an observed result or
 for each. Before declaring a product unavailable, attempt applicable scoped recovery or record the
 precise reason it cannot start. Another product's success never substitutes for re-running a product's
 own resources, complete catalog/discovery, and object probe after consent. Continue independent products while consent or a connection reload is pending, without
-labeling the pending product verified.
+labeling the pending product verified: start each missing grant's own flow without waiting for
+another product's consent. Label access the user reports but you did not probe as reported, not verified.
 
 For authentication or connectivity requests alone, stop after the requested connection probes
 and report their results. If the user requests a ticket, page, or repository as proof, retrieve

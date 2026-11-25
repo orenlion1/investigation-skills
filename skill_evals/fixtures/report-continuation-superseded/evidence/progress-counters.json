@@ -1,0 +1,5 @@
+{"synthetic": true, "captured": "2026-11-20", "window": {"start": "2026-11-03T07:30:00Z", "end": "2026-11-03T09:30:00Z"},
+ "note": "Retained internal progress counters for the same window, read on 2026-11-20",
+ "lock_wait_cycles_detected": 0,
+ "replay_files_completed": [{"at": "2026-11-03T08:10:00Z", "total": 310}, {"at": "2026-11-03T08:20:00Z", "total": 655}, {"at": "2026-11-03T08:30:00Z", "total": 1004}],
+ "output_queue": "throughput metric counts only files published to the output queue; replayed files bypass that queue"}

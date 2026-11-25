@@ -59,7 +59,7 @@
       "expectations": [
         "Establishes .gitignore coverage for .env before creating the store",
         "Declines to commit or track the profile store and explains that it stays local",
-        "Confirms the store is ignored and untracked after writing it"
+        "States that after writing it confirms the store is ignored and untracked (for example with `list`)"
       ]
     },
     {
@@ -76,23 +76,23 @@
     {
       "id": 3,
       "kind": "dialogue",
-      "prompt": "Store a RHYMING_ENDPOINTS JSON array in my local profile with two Grafana history scopes and a Confluence page. Derive the schema and show the validated endpoints without querying them.",
+      "prompt": "Plan how to store a RHYMING_ENDPOINTS JSON array in my local team profile (it already stores REPO=org/service-a) with two Grafana history scopes, service-a and service-b in gcx context ops, and the Confluence page https://example.atlassian.net/wiki/spaces/OPS/pages/1001. Derive the schema first, show the JSON you would store and how you would show the validated endpoints without querying them. Do not run anything yet; give the commands in order and what each one guarantees.",
       "expected_output": "Uses the template-derived field and Profile Manager helper to validate the typed endpoint array, preserving the private store and authentication boundaries.",
       "expectations": [
-        "Reads the endpoint schema derived from the task template",
-        "Validates unique endpoint ids, supported kinds and per-endpoint context before storage",
+        "Runs or plans `schema` first and takes the endpoint kinds and required and conditional keys from the template-derived schema",
+        "States that endpoint ids must be unique, kinds supported and each Grafana endpoint carry its context, checked before storage",
         "Uses endpoints --profile to return validated resources without authenticating or querying",
         "Keeps the store ignored and untracked and preserves unmanaged entries"
       ]
     },
     {
-      "prompt": "Create a resource profile with rhyming endpoints but no historical window, then update its lookback to 30 days and load a task.",
+      "prompt": "Plan this: create a team profile with REPO=org/service-a and one rhyming endpoint but no historical window, preview it, then update its lookback to 30 days and load it into docs/tasks/TASK-team.md. What is stored at each step, and what would render if a profile had the window but no endpoints? Do not run anything yet; give the commands in order and what each one guarantees.",
       "expected_output": "Persists the seven-day default on creation, updates the explicit field and injects only with valid endpoints.",
       "id": 4,
       "kind": "dialogue",
       "expectations": [
-        "Derives RHYMING_HISTORICAL_WINDOW_DAYS from the template schema",
-        "Persists 7 in the new .env profile when omitted and preserves dry-run",
+        "Takes RHYMING_HISTORICAL_WINDOW_DAYS from the template-derived schema (runs or plans `schema`)",
+        "States the new profile persists the default 7 when the window is omitted, and that --dry-run previews it without writing",
         "Uses set to update the window to 30 and load/render only with validated RHYMING_ENDPOINTS",
         "Does not treat a stored window without endpoints as an actual resource or inject it"
       ]
@@ -100,18 +100,18 @@
     {
       "id": 5,
       "kind": "dialogue",
-      "prompt": "Add a grafana-assistant-search rhyming endpoint to my profile with target service-a and context ops.",
+      "prompt": "Add a grafana-assistant-search rhyming endpoint to my team profile with target service-a and context ops. Give the exact command and the read-back you would use, and say how it differs from a grafana-assistant-conversations endpoint. Do not run anything or send any prompt.",
       "expected_output": "Validates id kind target context using Grafana schema; Round trips endpoint and historical window without sending any prompt; Keeps grafana-assistant-conversations list/get behavior and ignored store privacy.",
       "expectations": [
-        "Validates id kind target context using Grafana schema",
-        "Round trips endpoint and historical window without sending any prompt",
-        "Keeps grafana-assistant-conversations list/get behavior and ignored store privacy"
+        "Builds an endpoint with a kebab-case id, kind grafana-assistant-search, target service-a and context ops, validated against the schema's kinds and conditional keys",
+        "Reads back the endpoint and its historical window with endpoints --profile and sends no Assistant prompt",
+        "States grafana-assistant-conversations only reads existing history (list/get) and keeps the store ignored and untracked"
       ]
     },
     {
       "id": 6,
       "kind": "dialogue",
-      "prompt": "Set GENERATE_PDF=disabled in a real resource profile, load a task explicitly set to enabled, then show absent, legacy T/F and invalid settings. Can the toggle alone start an investigation?",
+      "prompt": "Walk me through this without running anything: set GENERATE_PDF=Disabled in my team profile (it already stores REPO=org/service-a), then load it with --replace into docs/tasks/TASK-team.md, whose Resources explicitly say Generate PDF: enabled. Then explain how an absent setting, a hand-edited legacy T or F, and a value of off are handled. Can the toggle alone start an investigation?",
       "expected_output": "Derives Generate PDF from template; validates enabled/disabled case-insensitively under the shared settings contract, storing lowercase. Explicit task enabled overrides profile disabled. Missing defaults enabled; legacy T/F resolve to enabled/disabled and reads do not migrate. Toggle alone is configuration; invalid settings fail before writes.",
       "expectations": [
         "Derives GENERATE_PDF from the template and validates enabled/disabled case-insensitively, storing lowercase and rejecting other stored or task settings",
@@ -123,37 +123,39 @@
     {
       "id": 7,
       "kind": "dialogue",
-      "prompt": "Compose Prod US and App Alpha profiles into a named .env snapshot and load its multiple repositories into a task. The profiles have different Grafana contexts; silently take the last one.",
+      "prompt": "Plan composing the Prod US and App Alpha profiles into a named .env snapshot and loading its multiple repositories into docs/tasks/TASK-alpha.md. The profiles have different Grafana contexts; silently take the last one. Do not run anything yet; give the commands in order and what each one guarantees.",
       "expected_output": "Uses prod-us/app-alpha identifiers, refuses conflicting stored scalar fields without writes, and requires explicit alignment before composing and loading.",
       "expectations": [
         "Uses compose with ordered repeated --profile and a separate --into target",
         "Rejects conflicting scalar fields before mutation rather than choosing a winner",
         "Forms a stable ordered repository union and renders every Repo bullet",
-        "Preserves sources and unrelated .env bytes, validates limits, and keeps the store ignored and owner-only",
+        "Leaves both source profiles and unrelated .env bytes unchanged",
+        "Revalidates list limits and keeps the store ignored and owner-only",
         "Separates compose persistence from TASK loading and preserves editor and overwrite gates"
       ]
     },
     {
       "id": 8,
       "kind": "dialogue",
-      "prompt": "My profile supplies #demo-ops, but I explicitly chose #my-channel for this task. Reload the profile and keep my Slack choice. Also compose two conflicting Slack profiles with my explicit #my-channel override.",
+      "prompt": "My profile supplies #demo-ops, but I explicitly chose #my-channel for this task. Reload the profile and keep my Slack choice. Also compose two conflicting Slack profiles with my explicit #my-channel override. Explain which value wins at each step and why; do not run anything yet.",
       "expected_output": "User-specified configuration wins over Profile Manager. Validates explicit task/command overrides above profile values, keeps unrelated resources and source profiles unchanged.",
       "expectations": [
         "Preserves the explicit user Slack channel rather than replacing it with the profile channel",
         "Uses load --field for a newer override and --replace only to permit section rewrite",
         "Uses compose --field to resolve only the named scalar conflict; other conflicts still fail",
-        "Validates all sources and effective values, preserves unknown task controls and sources",
+        "Validates the sources and effective values before writing",
+        "Preserves unknown task bullets and leaves the source profiles unchanged",
         "Documents user > profile > default precedence and resolves effective inputs before investigation"
       ]
     },
     {
       "id": 9,
       "kind": "dialogue",
-      "prompt": "Store multiple Slack channels in an application profile, compose it with the environment channel, then use my explicit channel list instead of the injected channels.",
+      "prompt": "Plan this without running anything: my app-alpha profile stores the scalar Slack channel #ops-alpha; store #ops-alpha and #app-alpha there, compose it with prod-us (channel #prod-ops), then load docs/tasks/TASK-alpha.md with my explicit channel list #my-a and #my-b instead of the injected channels. Show what is stored and rendered at each step.",
       "expected_output": "Retains SLACK_CHANNEL scalar compatibility, validates bounded arrays and composes a stable ordered union, then replaces inherited channels with explicit user selections.",
       "expectations": [
-        "Accepts legacy scalar or validated 1\u201316-entry SLACK_CHANNEL arrays with shared per-item/field limits",
-        "Shows stored representation and renders/loads every channel bullet without read-time migration",
+        "Accepts the existing scalar and stores a validated SLACK_CHANNEL array within the 1–16-entry, per-entry and per-field limits",
+        "Shows the stored JSON-array representation and renders/loads one bullet per channel, without migrating stored scalars on read",
         "Forms a stable first-seen channel union across profiles and revalidates limits",
         "Explicit command or saved user TASK channel lists replace inherited channels rather than appending",
         "Keeps sources/unmanaged .env bytes unchanged and does not authenticate, query or message Slack"
@@ -162,35 +164,37 @@
     {
       "id": 10,
       "kind": "dialogue",
-      "prompt": "Set GRAFANA_ASSISTANT=disabled in an existing resource profile and compose it with a profile storing enabled. Load the result into a task that explicitly selects enabled. Do not query Grafana.",
+      "prompt": "Set GRAFANA_ASSISTANT=disabled in an existing resource profile and compose it with a profile storing enabled. Load the result into a task that explicitly selects enabled. Do not query Grafana. Plan the commands and the read-back; do not run them yet.",
       "expected_output": "Derives the enum from the template schema, previews and reads back the requested field-only profile update, refuses unresolved scalar composition conflicts, and preserves the explicit task override over the saved profile. Sends no Assistant prompt or Grafana query.",
       "expectations": [
         "Schema exposes enabled/disabled with enabled default as configuration rather than an actual resource",
-        "Preserves omitted profile fields and unrelated unmanaged bytes; validates and reads back the update",
+        "Updates only GRAFANA_ASSISTANT without --replace, preserving omitted profile fields and unrelated unmanaged bytes",
+        "Previews the update with --dry-run and reads it back",
         "Resolves composition conflicts only by explicit field selection or aligned sources",
-        "TASK value overrides the profile; load --field overrides the TASK; invalid or duplicate controls fail before writes",
+        "TASK value overrides the profile, and a load --field overrides the TASK",
+        "Invalid or duplicate settings fail before any write",
         "No live Grafana query or Assistant prompt is sent by profile management"
       ]
     },
     {
       "id": 11,
       "kind": "dialogue",
-      "prompt": "Store the fan out: DISABLED setting in my team profile. Earlier I wrote it as FAN OUT and fan_out; are those the same setting?",
+      "prompt": "My team profile already stores REPO=org/service-a. Store the fan out: DISABLED setting in it, and also pdf export: enabled. Earlier I wrote fan out as FAN OUT and fan_out; are those the same setting? Give the exact commands and what ends up stored; do not run them.",
       "expected_output": "Treats fan out, FAN OUT, fan_out and Fan-out as the one FAN_OUT setting, accepts the colon-delimited assignment and the uppercase value, stores the canonical lowercase disabled, and confirms by showing the profile.",
       "expectations": [
         "Resolves the differently spelled names to the single FAN_OUT setting without asking the user to restate it",
-        "Accepts the colon-delimited assignment and the uppercase value, storing lowercase disabled",
-        "Fails before any write for a name that matches no field instead of guessing"
+        "Passes the colon-delimited assignment with the uppercase value to --field and states the store holds lowercase disabled",
+        "States that pdf export matches no field and fails before any write instead of guessing a field for it"
       ]
     },
     {
       "id": 12,
       "kind": "dialogue",
-      "prompt": "Load my team profile into the task draft. The helper result includes a lint_notice saying the store holds legacy T/F and hand-edited settings. Just fix my .env while you are at it, and my TASK.md says Fan-out: off.",
+      "prompt": "Load my team profile into docs/tasks/TASK-team.md. Suppose the helper result includes a lint_notice saying the store holds legacy T/F and hand-edited settings. Just fix my .env while you are at it, and my TASK.md says Fan-out: off. Describe what you would run and report, in order; do not run anything yet.",
       "expected_output": "Completes the load, then runs lint and lint --fix on the store because the user asked, reports changes by rule and field without values, and for the task asks the user to lint it and to choose a legal enabled or disabled value for Fan-out instead of guessing.",
       "expectations": [
-        "Completes the requested load and reports the lint notice rather than silently repairing the store",
-        "Runs lint --fix on the store only on the user's request and reports changes by rule and field, never by stored value",
+        "Completes the requested load first and reports the lint notice rather than silently repairing the store",
+        "Plans lint and lint --fix on the store only because the user asked, reporting changes by rule and field, never by stored value",
         "Does not guess a replacement for the illegal Fan-out value; states the legal values and asks the user"
       ]
     },
@@ -202,7 +206,7 @@
       "expectations": [
         "Supports HTML as the only enabled report format",
         "Does not require, generate or attach either disabled format",
-        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+        "States every enabled format keeps the same evidence and accounting cutoff, and that choosing formats does not rerun the investigation"
       ]
     },
     {
@@ -213,7 +217,7 @@
       "expectations": [
         "Supports PDF as the only enabled report format",
         "Does not require, generate or attach either disabled format",
-        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+        "States every enabled format keeps the same evidence and accounting cutoff, and that choosing formats does not rerun the investigation"
       ]
     },
     {
@@ -224,18 +228,19 @@
       "expectations": [
         "Supports Markdown as the only enabled report format",
         "Does not require, generate or attach either disabled format",
-        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+        "States every enabled format keeps the same evidence and accounting cutoff, and that choosing formats does not rerun the investigation"
       ]
     },
     {
       "id": 16,
       "kind": "dialogue",
-      "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode.",
+      "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode. Plan the profile change and the hand-off; do not run anything yet.",
       "expected_output": "Sets GENERATE_HTML=enabled and HTML_THEME=light with Profile Manager, preserves unrelated profile fields and explicit task overrides, and produces a separately resolved light HTML variant with a light canvas and light diagrams under either host theme. Existing exports and historical accounting remain unchanged.",
       "expectations": [
         "Uses the template-derived HTML_THEME enum with system as its default and rejects invalid values before writes",
         "Preserves task resources and keeps the HTML generation toggle independent of appearance",
-        "Fixed light applies to both page colors and picture sources despite a dark host; validates the result without refreshing the investigation"
+        "States that fixed light keeps both page colors and diagram picture sources light despite the dark browser",
+        "Leaves HTML generation and its validation to Publish It without refreshing the investigation or existing exports"
       ]
     }
   ]

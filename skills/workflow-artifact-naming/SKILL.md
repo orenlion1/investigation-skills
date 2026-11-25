@@ -24,6 +24,14 @@ historical artifacts and user configuration. Re-read successful outputs and thei
 links. Copy the complete runtime folder together so references and the helper remain
 self-contained.
 
+Without the resolver, apply its rules by hand and show them: destination precedence is an
+explicit destination, then the target root's `workflow-artifact-naming.json` `locations`, then
+the defaults `docs/tasks/TASK-{slug}.md`, `docs/specs/SPEC-{slug}.md`, `docs/plans/PLAN-{slug}.md`,
+`docs/reports/REPORT-{slug}.md` and `logs/LOG-{slug}.md`. The slug is the lowercased title with
+each run of characters outside `a-z0-9` replaced by one hyphen. Before any rename, list the
+old-to-new map with ownership, inbound references and collisions checked; an existing target
+stops that rename.
+
 For a caller-requested edit of an existing TASK, use
 [Open/Edit/Close/Execute](../open-edit-close-execute/SKILL.md) after verifying its identity,
 ownership, and actual location. Pass the exact existing path, including a legacy or

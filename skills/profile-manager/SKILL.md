@@ -82,12 +82,14 @@ unrelated `git add`: run `ignore --dry-run`, `ignore`, then `init`. The helper r
 a store that Git does not ignore or already tracks. `ignore` appends the `.env` patterns only
 when the path is not already ignored, keeps an existing `.env.example` trackable, and verifies
 coverage afterward. An already-tracked store is a repository problem, not a profile problem:
-untrack it and confirm its history before storing anything.
+untrack it and confirm its history before storing anything. After every write, run `list` and
+report that the store is ignored and untracked.
 
 ## Add, update, inspect, and remove a profile
 
 Profile names are lowercase kebab-case. `list` never prints a value; `show` names anything
-stored outside the schema without interpreting it.
+stored outside the schema without interpreting it. Without `--replace`, `set` merges and keeps
+every omitted field; preview with `--dry-run`, and the helper reads the result back.
 
 Supply actual resources. Placeholder-shaped values, example values from the template, and
 credential-shaped values are refused ([value rules](references/profile-store.md#value-rules)):
@@ -124,15 +126,17 @@ the [lint reference](references/profile-store.md#lint).
   task and ask the user to run `lint task <path>`; on that request run
   `lint --task <path> --fix`. A finalized task stays subject to the editor contract.
 - **Findings that need a decision** (`invalid-value`, `conflicting-duplicate`,
-  `unknown-field`) are never guessed. Show the field and line, state the legal values, and ask
-  the user to choose; apply their answer with `set` or by the task edit they request.
+  `unknown-field`) are never guessed, not even as a likely reading. Show the field and line,
+  state the legal values, and ask the user to choose; apply their answer with `set` or by the
+  task edit they request.
 
 ## List fields
 
 `REPO`, `SLACK_CHANNEL` and `PUBLISH` each keep their key and accept a scalar or a JSON array
 of 1–16 unique strings, for example `--field 'SLACK_CHANNEL=["#ops-alpha","#app-alpha"]'`.
-Arrays render and load as one bullet per entry; never drop all but the first. Limits, entry
-rules and validation are in [list fields](references/profile-store.md#list-fields).
+Arrays render and load as one bullet per entry; never drop all but the first. Each entry is at
+most 512 characters and the field at most 8192 bytes. A stored scalar stays valid and reads
+never migrate it. Entry rules are in [list fields](references/profile-store.md#list-fields).
 
 - `set` replaces the field; it never appends. To add an entry to a list that already has one,
   read the stored value with `show` and set the complete array, keeping every existing entry
@@ -152,10 +156,13 @@ rules and validation are in [list fields](references/profile-store.md#list-field
 CLI identifiers `prod-us` and `app-alpha`. Source, target, union, `--replace` and snapshot
 rules are in [profile composition](references/profile-store.md#profile-composition).
 
-- List fields form an ordered union; every other stored field, including stored PDF and
-  history defaults, must agree. A conflict fails before any write, naming the field without its
-  values. Never pick a winner: align or clear the conflicting source setting, or resolve that
-  one field with `--field`.
+- List fields form a first-seen ordered union, deduplicated, with limits revalidated; every
+  other stored field, including stored PDF and history defaults, must agree. A conflict fails
+  before any write, naming the field without its values. Never pick a winner: align or clear the
+  conflicting source setting, or resolve that one field with `--field` carrying a value the
+  user states, never one you chose from a source.
+- Sources and unrelated `.env` bytes stay unchanged, the store stays ignored and `0600`, and
+  every profile is read back after the write.
 - Compose does not export shell variables, load a TASK, authenticate, or run an investigation.
 
 ## User configuration takes precedence
@@ -173,6 +180,8 @@ count as user configuration on later loads. Details are in
   only in the named target; a load override changes only the TASK. Sources remain unchanged.
 - An explicit `REPO`, `SLACK_CHANNEL` or `PUBLISH`, from a command or a saved TASK, replaces
   the inherited list rather than appending to it.
+- `load` keeps every explicit TASK value, even with `--replace`, and keeps bullets whose label
+  the template does not declare. Sources and effective values are validated before writing.
 - Empty or duplicate override assignments, invalid scalar duplicates and duplicate list entries
   in known TASK settings fail before writing.
 - The supplied-resource guard remains: `load --replace` only permits rewriting an
@@ -198,12 +207,19 @@ Outputs (`GENERATE_MARKDOWN`, `GENERATE_PDF`, `GENERATE_HTML`), `GRAFANA_ASSISTA
 and `FAN_OUT` derive from the template and share the
 [settings contract](references/profile-store.md#settings-contract): `enabled` or `disabled`,
 case-insensitive on input and stored lowercase. HTML defaults `disabled`; other toggles default
-`enabled`. `GENERATE_PDF` also accepts legacy `T`/`F`.
+`enabled`. `GENERATE_PDF` also accepts legacy `T`/`F`; reads resolve them without rewriting
+the store, and only an update, a load or `lint --fix` writes the canonical value, leaving
+unrelated values unchanged.
 Set with `set --profile team --field GENERATE_HTML=enabled`, then confirm the stored and
 `effective_*` values with `show`. Render/load include effective settings alongside resources.
 The contract owns persistence, defaults, task forms, validation and disabled behavior.
+Any one output can be the only enabled format; a disabled format is never required, generated
+or attached. Every enabled format keeps the same findings, evidence and accounting cutoff, and
+changing a toggle never reruns the investigation.
 For HTML appearance, use the independent [HTML theme](references/profile-store.md#html-theme)
-setting, for example `HTML_THEME=light`; it does not enable generation.
+setting: `light`, `dark` or `system` (default); other values fail before writing. A fixed theme
+keeps page colors and diagram picture sources in that mode under any viewer preference. It does
+not enable generation; Publish It renders and validates the HTML.
 
 A toggle or historical-window setting alone is configuration: never an actual resource, never
 a trigger for the supplied-resource overwrite guard, never scope or authorization for an
@@ -228,9 +244,12 @@ credential or authorization. Old profiles need no change.
 
 - `endpoints --profile NAME` returns only that profile's validated endpoint list, or an empty
   list when unset, without network queries or authentication.
-- The kinds include `grafana-assistant-search` (id/kind/target/context) for a scoped Assistant
-  matching request. Profile operations do not send prompts; history-only kinds retain list/get
-  behavior.
+- Before storing, the helper checks unique kebab-case ids, a kind from `schema`, the target,
+  and the kind's conditional key (`context` for Grafana kinds). Read back with `endpoints`,
+  which also returns `historical_window_days`.
+- `grafana-assistant-search` (id/kind/target/context) permits a scoped Assistant matching
+  request later; `grafana-assistant-conversations` keeps list/get reads of existing history.
+  Profile operations do not send prompts.
 - Use [Rhyming Incident Search](../rhyming-incident-search/SKILL.md) to dispatch these
   endpoints, one read-only agent each. Profile management never starts a history search.
 - Configuring endpoints needs only the Python 3.8+ standard library and Git, no integration
@@ -241,9 +260,10 @@ credential or authorization. Old profiles need no change.
 
 The template-derived `RHYMING_HISTORICAL_WINDOW_DAYS` field takes positive integer days,
 default `7`, persisted in a new profile when omitted; override it with
-`--field RHYMING_HISTORICAL_WINDOW_DAYS=30`. Render and load inject it into task Resources
-only when validated `RHYMING_ENDPOINTS` exist; alone it is configuration, never an actual
-resource. Persistence, reset, validation and the `endpoints` output are in
+`--field RHYMING_HISTORICAL_WINDOW_DAYS=30`; `--dry-run` shows the persisted default without
+writing. Render and load inject it into task Resources only when validated `RHYMING_ENDPOINTS`
+exist; a window without endpoints is configuration, never an actual resource, and never
+injected. Persistence, reset, validation and the `endpoints` output are in
 [the window contract](references/profile-store.md#rhyming-historical-window).
 
 ## Common Rationalizations

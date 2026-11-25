@@ -26,6 +26,9 @@ Before planning or querying for an existing investigation, read and apply the
 [resumption contract](references/resumable-context.md). It owns context loading, complete
 question/answer coverage, task/report reconciliation, the resume checkpoint and transfer
 readiness. Apply it again before handoff; unavailable history is an explicit context gap.
+Keep current requirements in the task and questions, answers, evidence and history in the
+report. Route dependency packaging to [Publish It](../publish-it/SKILL.md) and evidence checks
+to Report Authoring; a handoff never uploads, publishes or copies credentials.
 
 ## Resolve the canonical report
 

@@ -1,0 +1,17 @@
+{
+  "task": "<task path, or null for an ad hoc request without a TASK>",
+  "launch_mode": "parallel | sequential | unavailable | disabled",
+  "degradation_reason": "<empty unless sequential, unavailable, or disabled>",
+  "environment": "<environment>",
+  "window": {"start": "<ISO 8601 timestamp>", "end": "<ISO 8601 timestamp>", "timezone": "<IANA>"},
+  "branches": [
+    {
+      "agent_id": "<harness agent identifier, or null when never launched>",
+      "launched_at": "<ISO 8601 timestamp, or null when never launched>",
+      "iterations": 0,
+      "blocker": ""
+    }
+  ],
+  "iteration_rounds": 0,
+  "returned_to_user": ""
+}

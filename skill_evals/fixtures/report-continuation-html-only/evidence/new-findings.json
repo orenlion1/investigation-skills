@@ -1,0 +1,4 @@
+{"synthetic": true, "received": "2026-11-21", "window": {"start": "2026-11-14T15:00:00Z", "end": "2026-11-14T17:00:00Z"},
+ "finding": "A cache key format change deployed at 2026-11-14T16:04Z invalidated existing keys; hit ratio recovered as the cache refilled",
+ "deploy_event": {"at": "2026-11-14T16:04:00Z", "change": "cache key prefix changed from v3 to v4"},
+ "limitations": "Deployment event read from a saved export; the deployed revision was not mapped to source"}

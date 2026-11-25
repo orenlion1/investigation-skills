@@ -190,7 +190,9 @@ Report the selected profile, verified account/principal, MCP connection, Regions
 resource IDs, observation time/window, queries, result limits, and access failures.
 Report login success, CLI identity, MCP identity, object access, and behavioral
 evidence as separate outcomes, including a pending sign-in or required host reload.
-Successful login is not proof of MCP access or root cause. When the MCP tool is
+Successful login is not proof of MCP access or root cause. A status-only report gives
+authentication and MCP tool availability their own lines, each with its observed result,
+user-reported state, or reason it was not checked. When the MCP tool is
 absent, report authentication recovery and connection setup separately; do not
 replace an authorized renewal attempt with an immediate capability-unavailable result.
 

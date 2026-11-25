@@ -227,3 +227,10 @@ readable labels and tables. A presentation change does not change historical acc
 - Evidence identifiers resolve and contain no credentials or private payloads.
 
 Delivery elapsed time and observed waits follow the [single investigation timing contract](../open-edit-close-execute/references/investigation-delivery.md). Keep the accounting cutoff distinct from verified handoff; never infer processing time from elapsed wall time.
+**Report processing duration** is wall time from request to accounting cutoff, not
+agent-controlled time; describe it as wall time. With partial wait coverage, report only the observed
+waits and leave non-wait (processing) time and unmeasured phase timings `unavailable`.
+
+When declining or planning accounting, say what reaches the report: the subheading and
+**Token usage details** only, with sanitized supporting evidence and no prompts, tool payloads
+or credentials.

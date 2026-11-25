@@ -30,11 +30,11 @@
     {
       "id": 1,
       "kind": "dialogue",
-      "prompt": "Two configured rhyming endpoints use the same Grafana context, plus one Slack channel. Search prior incidents in parallel; Slack access is denied.",
-      "expected_output": "Launches one agent per endpoint, retains separate same-context agents, and reports Slack unavailable while other reads continue.",
+      "prompt": "Profile example configures two rhyming endpoints in the same Grafana context ops (one grafana-investigations, one grafana-assistant-conversations, both targeting service-a) plus one Slack channel endpoint, incident-history. The current incident is incident-example, HTTP 503 on service-a in production, starting 2026-11-09T15:00:00Z; use the profile's historical window. Search prior incidents in parallel; Slack access is denied. Before any child starts, show me the launch plan and the manifest rows you will record.",
+      "expected_output": "Plans one agent per endpoint submitted before any result is awaited, retains separate same-context agents, and reports Slack unavailable while other reads continue.",
       "expectations": [
         "Validates selected profile endpoints before any launch",
-        "Launches independent endpoints concurrently before awaiting results within capacity waves",
+        "Plans to submit every independent endpoint child before awaiting any result, using capacity waves only when the harness limit requires them",
         "Keeps one separate child and manifest row per endpoint including the two Grafana endpoints",
         "Reports denied Slack as unavailable rather than no matches"
       ]
@@ -80,30 +80,31 @@
         "Consumes historical_window_days from the validated profile endpoint command",
         "Anchors at incident start and subtracts seven UTC 24-hour days exactly once",
         "Passes the same absolute timezone window to every endpoint",
-        "Honors explicit caller overrides and reports temporal filtering limitations",
+        "States that an explicit caller historical window would take precedence over the profile's historical_window_days",
+        "Reports that an endpoint unable to filter by the window server-side leaves temporal coverage incomplete rather than treating it as fully searched",
         "Skips history when no valid endpoints are configured"
       ]
     },
     {
       "id": 6,
       "kind": "dialogue",
-      "prompt": "Two grafana-assistant-search endpoints match an unsent current Assistant branch in context ops and scope service-a. Include incident-example and both exact windows in its initial prompt.",
-      "expected_output": "Prepares full matching brief including symptoms services environment windows timezones criteria and evidence; Retains separate endpoint children and manifest rows with one combined initial-prompt owner; Records shared execution receipt, actual conversation references and parent verification.",
+      "prompt": "Profile example configures two grafana-assistant-search endpoints, match-a and match-b, both in context ops with scope service-a, and the current investigation has an unsent Assistant branch in context ops and scope service-a. The incident is incident-example: HTTP 503 on service-a in production, current window 2026-11-09T12:00:00Z to 2026-11-09T13:00:00Z UTC, historical window 2026-11-02T12:00:00Z to 2026-11-09T12:00:00Z UTC. Include incident-example and both exact windows in its initial prompt. Before anything is sent, show me the matching brief, the owner and consumer map, and what you will record when the prompt executes.",
+      "expected_output": "Prepares the full matching brief; plans separate endpoint children and manifest rows for both endpoints with the unsent branch as the single combined initial-prompt owner; plans one shared execution receipt, actual conversation references once observed, and parent verification.",
       "expectations": [
         "Prepares full matching brief including symptoms services environment windows timezones criteria and evidence",
-        "Retains separate endpoint children and manifest rows with one combined initial-prompt owner",
-        "Records shared execution receipt, actual conversation references and parent verification"
+        "Plans a separate child and manifest row for each of the two endpoints, with the unsent branch as the one combined initial-prompt owner and no second prompt",
+        "Plans one shared execution receipt bound to the owner, records conversation references only once actually observed, and requires parent verification before any relationship is claimed"
       ]
     },
     {
       "id": 7,
       "kind": "dialogue",
-      "prompt": "Grafana Assistant: disabled. Search one grafana-assistant-search endpoint and one grafana-assistant-conversations history endpoint.",
+      "prompt": "Grafana Assistant: disabled. Profile example configures one grafana-assistant-search endpoint and one grafana-assistant-conversations history endpoint, both in context ops for service-a. The incident is incident-example, starting 2026-11-09T15:00:00Z, with a 7-day historical window. Search both endpoints; before any child starts, tell me what each endpoint child will do.",
       "expected_output": "Sends zero prompts; Records configured disabled limitation, not failure; Continues scoped history list/get without prompt.",
       "expectations": [
         "Sends zero prompts",
         "Records configured disabled limitation, not failure",
-        "Continues scoped history list/get without prompt"
+        "Keeps the scoped history list/get for the conversations endpoint in the run, without any prompt, instead of stopping the whole search"
       ]
     },
     {

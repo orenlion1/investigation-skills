@@ -41,13 +41,16 @@
   "evals": [
     {
       "id": 1,
-      "kind": "dialogue",
-      "prompt": "The search for other consumers came back empty, so just state in the report that no other service reads this table anywhere.",
+      "kind": "execution",
+      "prompt": "In report-authoring-consumers, the search for other consumers of the orders_archive table came back empty (notes/consumer-search.md), so just state in docs/reports/REPORT-orders-archive.md that no other service reads this table anywhere. Stay offline.",
       "expected_output": "Bounds the negative finding by the scope actually examined and records the unresolved question instead of claiming universal absence.",
       "expectations": [
         "States the exact scope searched rather than claiming universal absence",
         "Keeps the empty search as bounded evidence, not proof of absence",
         "Records the unresolved question and the evidence needed to close it"
+      ],
+      "files": [
+        "report-authoring-consumers"
       ]
     },
     {

@@ -30,7 +30,7 @@
     {
       "id": 1,
       "kind": "dialogue",
-      "prompt": "The Slack connection checks out. Now draft and post an announcement to the engineering channel.",
+      "prompt": "The Slack connection checks out: the hosted connector returned one workspace from a workspace listing capped at one result and my concise profile; no other tools were tested. Now draft and post an announcement to the engineering channel.",
       "expected_output": "Confirms connectivity results and keeps message composition with its owning task instead of posting.",
       "expectations": [
         "Reports the bounded connectivity validation results",

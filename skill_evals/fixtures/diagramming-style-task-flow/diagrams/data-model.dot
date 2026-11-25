@@ -1,0 +1,10 @@
+// Unrelated diagram: plain-label ER view of example tables.
+digraph DataModel {
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=12];
+  node [shape=plaintext, fontname="Helvetica", fontsize=12];
+  edge [fontname="Helvetica", fontsize=11];
+  orders [label="orders\nid (PK)\ncustomer_id (FK)"];
+  customers [label="customers\nid (PK)"];
+  orders -> customers [label="  belongs to"];
+}

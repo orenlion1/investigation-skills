@@ -1,0 +1,24 @@
+{
+  "reference": "grafana-assistant-branch",
+  "context": "example",
+  "scope": "service-a",
+  "shared": {
+    "incident": "incident-example elevated latency",
+    "symptoms": "HTTP 503 from checkout requests",
+    "services_environment": "service-a staging",
+    "incident_window": {
+      "start": "2026-11-20T10:00:00Z",
+      "end": "2026-11-20T11:00:00Z",
+      "timezone": "UTC"
+    },
+    "historical_window": {
+      "start": "2026-11-13T10:00:00Z",
+      "end": "2026-11-20T10:00:00Z",
+      "timezone": "UTC"
+    },
+    "matching_criteria": "symptoms, components, mechanisms, mitigations",
+    "permitted_terms_redactions": "service-a only; omit personal data"
+  },
+  "prompt_sent": false,
+  "initial_prompt": "Investigate incident-example: service-a in staging returned HTTP 503 for checkout requests between 2026-11-20T10:00:00Z and 2026-11-20T11:00:00Z (UTC). Identify the failing component and the triggering change using read-only queries; cite datasource UIDs, queries and time ranges; do not change resources, acknowledge alerts, send messages or publish."
+}

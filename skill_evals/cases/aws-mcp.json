@@ -55,7 +55,7 @@
     {
       "id": 3,
       "kind": "dialogue",
-      "prompt": "Check AWS connectivity status only for the supplied profile in us-east-1. Do not start login or change connection configuration. Its SSO session is expired and the MCP tool is absent.",
+      "prompt": "Check AWS connectivity status only for the supplied profile example-readonly in us-east-1. Do not start login or change connection configuration. Its SSO session is expired and the MCP tool is absent.",
       "expected_output": "Reports the expired authentication and absent MCP capability separately without starting login or changing configuration. Names the supported next recovery steps without claiming identity or resource access succeeded.",
       "expectations": [
         "Honors the explicit status-only and no-login scope",

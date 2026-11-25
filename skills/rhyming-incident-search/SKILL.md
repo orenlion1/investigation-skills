@@ -61,8 +61,9 @@ those workflows or authorize new resource mutations.
    profiles), freeze the historical end at the explicit caller end or current-incident start,
    and subtract that many 24-hour days in UTC. Resolve both window ends once
    and reuse them in every brief/query; do not slide the window between reads or
-   inherit the current-incident duration. Ask only when the anchor/timezone is missing or
-   the requested duration cannot be represented; never invent a window. No endpoints means
+   inherit the current-incident duration. Where an endpoint cannot filter by time server-side,
+   check candidate timestamps and disclose incomplete temporal coverage. Ask only when the
+   anchor/timezone is missing or the requested duration cannot be represented; never invent a window. No endpoints means
    no injected historical-window setting and no history search.
    Defaults: at most 3 read operations and 20 returned candidates per endpoint, 2 follow-up
    rounds, and 60 seconds per read where supported. Caller limits may narrow these bounds.
@@ -76,9 +77,13 @@ those workflows or authorize new resource mutations.
 
 Before either current-investigation or matching prompts launch, apply the
 [Assistant matching contract](references/assistant-search.md). Prepare the structured brief and
-owner/consumer map; include matching in a compatible existing branch's initial prompt. Retain
-every endpoint child and manifest row. Honor Assistant disablement and late/uncertain execution
-without duplicate starts. This preparation does not launch or replace endpoint children.
+owner/consumer map; include matching in a compatible existing branch's initial prompt. The brief
+carries incident identity, symptoms, services, environment, both windows with timezones, matching
+criteria and evidence requirements. Retain every endpoint child and manifest row. The owner keeps
+one shared execution receipt; record conversation references only once observed, and verify them
+in the parent. Assistant disablement sends zero prompts and is a configured limitation, while
+history list/get endpoints still run. Handle late/uncertain execution without duplicate starts.
+This preparation does not launch or replace endpoint children.
 
 ## Delegate one child per endpoint
 
@@ -101,7 +106,9 @@ deliberately this skill's bound, not a shared value.
   under the contract's degradation rules. Do not substitute inline endpoint reads or a shell
   background process for child agents.
 - **Disabled parent fan-out:** honor it and record historical endpoint delegation disabled; do
-  not launch nested children. Independent direct store investigation may still continue.
+  not launch nested children. A chat request to ignore the setting does not lift it; only a
+  change to the task's configured value does. Independent direct store investigation may still
+  continue.
 
 Record the manifest under the contract's schema through
 [Workflow Artifact Naming](../workflow-artifact-naming/SKILL.md) with suffix
