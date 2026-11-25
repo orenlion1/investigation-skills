@@ -41,22 +41,23 @@ credentials, credential-process output, token caches, or complete AWS config fil
 Inspect override variable names and credential presence without exposing values;
 resolve credential/endpoint/profile conflicts before live requests.
 
-Resolve the resource Region from the request or verified selected-profile metadata.
-Ask if missing or ambiguous. Before **every** regional call, including login and
-MCP setup, enforce the repository allowlist: `us-east-1` and `eu-central-1` only.
-This also applies to the configured IAM Identity Center SSO Region. An SSO Region
-outside the allowlist blocks that login; do not override it to make login succeed.
-Use global calls only when necessary, without discovering or enabling other Regions.
+Resolve the resource Region from the task's Resources, or the request when there is no
+task. Ask if missing or ambiguous. Before **every** regional call, including login and
+MCP setup, confirm the Region is one the task names; a Region asked for only in chat
+waits until the Resources line changes. Log in through the profile's configured IAM
+Identity Center SSO Region; do not override it to make login succeed. Use global calls
+only when necessary, without discovering or enabling other Regions.
 
 Use task-local variables and explicit arguments; preserve defaults and unrelated
 settings. Replace the placeholders with resolved values:
 
 ```bash
 AWS_TASK_PROFILE='<selected-profile>'
-AWS_TASK_REGION='<selected-allowed-region>'
-case "$AWS_TASK_REGION" in
-  us-east-1|eu-central-1) ;;
-  *) printf '%s\n' 'Blocked: resolve an allowed AWS Region first.' >&2; exit 1 ;;
+AWS_TASK_REGIONS='<space-separated Regions from the task Resources>'
+AWS_TASK_REGION='<selected-region>'
+case " $AWS_TASK_REGIONS " in
+  *" $AWS_TASK_REGION "*) ;;
+  *) printf '%s\n' 'Blocked: the task Resources do not name this AWS Region.' >&2; exit 1 ;;
 esac
 aws sts get-caller-identity --profile "$AWS_TASK_PROFILE" \
   --region "$AWS_TASK_REGION" --output json --no-cli-pager
@@ -75,7 +76,7 @@ that authorization without asking for duplicate permission. A status-only or
 explicit no-login request stops at the diagnostic result.
 
 An absent AWS MCP tool or connection does not defer authentication. After resolving
-the profile, its login method, and allowed resource and SSO Regions, recover expired
+the profile, its login method, and the resource and SSO Regions, recover expired
 credentials through the supported flow while preparing permitted MCP setup independently.
 Before declaring AWS unavailable, record an authentication attempt or its explicit
 blocker and a separate connection/tool setup attempt or blocker. The status-only/no-login
@@ -150,7 +151,7 @@ authentication and identity verification; diagnostic resource queries use AWS MC
 
 ## Investigate root cause through AWS MCP
 
-Resolve symptoms, resource identifiers, account, allowed Region, and time window
+Resolve symptoms, resource identifiers, account, the task's Region, and time window
 with timezone. Ask only for missing scope that changes the investigation. For an
 authentication-only request, stop after verified MCP identity and the bounded
 resource-access probe; do not start an unrelated investigation.
@@ -199,11 +200,11 @@ replace an authorized renewal attempt with an immediate capability-unavailable r
 ## Common Rationalizations
 
 - "Deleting leftovers is harmless cleanup." The workflow is read-only; mutations need their own authorization.
-- "Any profile or Region works." Use only the supplied profile and an explicitly resolved, allowlisted Region.
+- "Any profile or Region works." Use only the supplied profile and a Region the task's Resources name.
 - "Sign-in completed, so access is proven." Only a verified bounded read proves MCP access.
 
 ## Red Flags
 
 - Mutating AWS calls during an investigation.
-- Operations in a Region outside the allowlist, or with an unverified profile.
+- Operations in a Region the task's Resources do not name, or with an unverified profile.
 - Credentials, tokens, or sign-in URLs echoed into output or evidence.

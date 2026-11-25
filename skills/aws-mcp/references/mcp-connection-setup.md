@@ -7,7 +7,7 @@ does not already expose. The safeguards in [SKILL.md](../SKILL.md) apply.
   supported configuration mechanism and a verified released proxy version.
   Preserve other connections and defaults.
 - The official proxy supports `--profile` and `--region`; use an official
-  endpoint in the resolved allowed Region, such as
+  endpoint in the resolved Region, such as
   `https://aws-mcp.us-east-1.api.aws/mcp`.
 - Inspect proxy `--help` for compatible read-only controls.
 - Reconnect through the host when needed.
