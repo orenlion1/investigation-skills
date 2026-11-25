@@ -60,6 +60,9 @@ This skill owns the workflow for this repository's templated tasks (template
 - After the barrier, resolve `TASK-{slug}.md` from the saved draft's `# Task Title: ...`
   through Workflow Artifact Naming, in the same directory. Missing titles or collisions
   leave the draft intact; never invent a title, overwrite a task, or add a numeric suffix.
+- Before planning or querying for an existing investigation, including a direct task-path run,
+  load its saved context through [Report Continuation](../report-continuation/SKILL.md).
+  That skill also owns progressive report updates and handoff readiness.
 - Run the finalized task from its resolved path, then generate the matching reports from
   observed results in verified Markdown and, only when effective Generate PDF is `enabled`, a verified
   same-source PDF (selected `REPORT` paths via Workflow Artifact Naming). Resolve formats before

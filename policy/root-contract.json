@@ -28,7 +28,7 @@
   "skills_dir": "skills",
   "minimum": {
     "sections": 9,
-    "skills": 18
+    "skills": 19
   },
   "docs": {
     "readme": "README.md",

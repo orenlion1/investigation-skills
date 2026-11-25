@@ -1,0 +1,12 @@
+{
+  "synthetic": true,
+  "window": "W1, fixed historical fixture window",
+  "inspected_revision": "r7, synthetic source snapshot",
+  "deployed_revision": null,
+  "rule": "threshold predicate, pending period, no recovery hold-down",
+  "profile_observation": "active archive-reader parsing frames present; no wait-for graph or progress counters",
+  "static_inspection": "waiting queue membership excludes work already dequeued; repeated submission while active is a candidate duplicate-work path",
+  "proven_execution": false,
+  "concurrency_reproduction": "not run",
+  "deployment_lookup": "unavailable: deployment-build.json was not transferred"
+}
