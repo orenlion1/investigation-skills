@@ -46,7 +46,10 @@ Core rules, detailed in the guide:
 - A user-supplied reference style (shapes, shaded groups, palette) applies only to the diagram
   it was requested for; inspect both the reference render and its source. After any label or
   edge change, regenerate every delivered variant from the one source (light, dark and any
-  adaptive SVG), update captions and alt text, and recheck theme parity and overlaps.
+  adaptive SVG), update captions and alt text, and recheck theme parity and overlaps. Update
+  captions and alt text even when rendering is blocked, and report stale exports rather than
+  hand-writing SVG. A lifecycle-with-integrations view keeps artifact details, as-needed
+  integration selection and Publish's separate authorization in adjacent prose.
 - Keep the complete diagram inventory consistent across the requested formats. Use native
   inline diagrams as the primary presentation only when their theme behavior is verified on
   the delivery host; otherwise use paired light/dark images in a primary `picture` element,
@@ -84,7 +87,8 @@ naming conventions without changing the skill package's standard filenames.
   backgrounds, and overlaps; source settings alone do not prove clearance.
 - Run [scripts/check_diagram_overlaps.py](scripts/check_diagram_overlaps.py) on the Graphviz
   SVG renders. Its text extents are estimates, so a pass supplements, never replaces, visual
-  inspection. After changing the checker, run `python3 -m unittest discover -s <skill>/tests`.
+  inspection. When only captions or prose change, still inspect both theme exports' rendered
+  text and report what you checked. After changing the checker, run `python3 -m unittest discover -s <skill>/tests`.
 - Verify the same delivered Markdown document in both host themes, including selected images
   and canvas colors; standalone exports alone are not acceptance, and a fixed light diagram
   displayed in dark mode fails. Count primary rendered diagrams against the inventory,

@@ -53,6 +53,8 @@ capability or access gap into the ledger and final report.
 
 - Resolve each supplied repository's authorized scope independently; honor narrower user limits.
   Record discovery queries, candidate selection, inspected repositories and unavailable coverage.
+  Hand discovered repositories to their existing parent inspection owner; discovery never edits
+  task Resources or creates a duplicate inspection unit.
 - Trace observed errors, alerts, and affected resources through the relevant execution paths
   and dependencies. Inspect the actual implementation and consumers before drawing a
   behavioral conclusion, including across repositories when the path crosses a boundary.

@@ -140,6 +140,12 @@ draft creation, branch pushes and pull requests,
 apply [Report Authoring reference completeness](../report-authoring/references/reference-completeness.md).
 Apply its attachment-only source check before uploads, then its strict hosted-reference check
 before page writes; require zero unresolved occurrences and reviewed targets. Link lists, inventories, hashes or conversion dry runs cannot substitute.
+Keep every occurrence in the inventory, linked or not: local evidence links and plain-text
+identifiers such as an incident ID stay in it, and an unlinked required occurrence blocks however
+many links and hashes pass. The attachment-only check, Publish It's
+[source validator](scripts/validate_publication_source.py), accepts a local occurrence only when
+its authored and registered targets match, its regular non-symlink file exists inside the
+approved roots and its hash is read back; its receipt permits only those uploads, never a page write.
 Stop publication on a missing, wrong-target, broken-fragment, ambiguous, unavailable or unverified
 required reference. Preserve the diagnostics; never invent a destination to pass the gate.
 
@@ -160,18 +166,20 @@ For a page, verify the destination and duplicates, compose the report as the pag
 original report and parent task as supporting evidence with clearly labeled download cards, and
 include inventoried diagrams/evidence and each selected report format.
 
-For HTML to Confluence:
+For HTML to Confluence, state each of these points in any plan or result:
 
-- Package the download with its selected theme and both picture variants embedded; packager
-  success is not preflight, so map remaining local links and rerun the reference checks.
+- Package the download in its selected theme with both picture variants embedded. The packager's
+  successful exit does not pass preflight: map each remaining local link, such as one to another
+  report file, to a verified hosted target or stop, and rerun the reference checks on the derivative.
 - Put figures in as native media from the owning page's collection with the caption adjacent;
   never assume CSS, `picture` sources or data URIs survive conversion.
 - `HTML_THEME` governs the download only; the native page follows each viewer's Confluence
   theme. Without native automatic switching, use Dark/Light graph tabs (Dark first) or two
   labeled visible figures, and record automatic switching as incomplete.
-- Check the source HTML, each derivative and the published page, compare exact download
-  SHA-256 hashes, and report an unavailable preview as incomplete. Install no apps and change no
-  site or user theme settings.
+- Run the reference checks on the source HTML, on each downloadable HTML derivative and on the
+  published page; compare each downloaded attachment's exact SHA-256 with the package; report an
+  unavailable preview and unsupported native automatic switching as incomplete. Install no apps
+  and change no site or user theme settings.
 
 Completion requires the intended published page and hierarchy, all selected file downloads,
 the full diagram/caption/evidence inventory, working anchors and native media, and the requested

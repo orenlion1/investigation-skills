@@ -82,7 +82,10 @@ carries incident identity, symptoms, services, environment, both windows with ti
 criteria and evidence requirements. Retain every endpoint child and manifest row. The owner keeps
 one shared execution receipt; record conversation references only once observed, and verify them
 in the parent. Assistant disablement sends zero prompts and is a configured limitation, while
-history list/get endpoints still run. Handle late/uncertain execution without duplicate starts.
+history list/get endpoints still run. A matching endpoint resolved after a compatible branch
+already sent its prompt is unavailable for initial-prompt reuse: record it, send nothing for it.
+Never share a prompt or receipt across contexts or scopes. A failed owner makes its consumers
+unavailable while other endpoints continue; a timeout is uncertain, never blindly resubmitted.
 This preparation does not launch or replace endpoint children.
 
 ## Delegate one child per endpoint

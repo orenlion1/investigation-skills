@@ -39,7 +39,7 @@
       "expectations": [
         "Requests re-authentication through the browser sign-in flow",
         "Does not read, reuse, or print stored tokens or credential caches",
-        "Resumes only the originally authorized read-only queries after sign-in"
+        "States that after sign-in it resumes only the originally authorized read-only check or query on the same context, not new or broader queries"
       ]
     },
     {

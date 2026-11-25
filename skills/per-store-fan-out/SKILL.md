@@ -47,6 +47,9 @@ because parallel delegation is unavailable.
   through its `FAN_OUT` setting under Profile Manager's
   [settings contract](../profile-manager/references/profile-store.md#settings-contract); a value
   the user wrote in the task, or a current instruction, wins over the profile.
+- A request to skip the briefs or manifest, or to run queries inline because the harness cannot
+  delegate, is a capability claim, not the disable switch: keep the briefs and record the launch
+  mode actually observed.
 
 ## Store Resolution
 
@@ -103,8 +106,9 @@ never create duplicate ordinary store agents.
 5. **Reconcile every outcome in the parent.** Correlate cross-repository call paths, inspect material
    evidence directly and retain commit-pinned citations/deployment gaps under Source Investigation.
    Provider recovery stays in the parent under its owning skill. Continue unaffected inspections
-   when one repository fails. Follow up with the existing inspection owner, within the same
-   three-round bound as store work. A disabled parent fan-out also disables repository delegation;
+   when one repository fails. In every launch mode each repository keeps its own row with its
+   observed outcome and evidence limitation, such as a blocker or a deployed-revision gap. Follow
+   up with the existing inspection owner, within the same three-round bound as store work. A disabled parent fan-out also disables repository delegation;
    investigation still proceeds under the shared contract's declared degradation rules.
 
 Record repository runs in a separate linked manifest under the shared contract, with the
@@ -117,7 +121,9 @@ repository-owned fields and row rules in the [repository brief](references/repos
    channels; a user-selected single channel replaces an inherited list and retains the existing
    inline or ordinary store owner. Freeze the same effective Resources block used by repository
    and store briefs. Never reinject profile channels inside a branch, and never edit the source
-   profile: an override changes only this run's effective Resources.
+   profile: an override changes only this run's effective Resources. A later request to fan out
+   over profile channels the override replaced does not reinstate them: count only the effective
+   Resources and return that widening to the user to change the Resources first.
 2. **Resolve each channel's workspace, canonical ID and access through Slack MCP.** Names, IDs
    and URLs are identifiers, not credentials or authorization. Use verified workspace context;
    unresolved names, ambiguous workspace matches, unsupported identifiers and inaccessible channels
@@ -165,8 +171,10 @@ channel-owned fields and row rules in the [channel brief](references/channel-bri
      [Assistant matching](../rhyming-incident-search/references/assistant-search.md): register the
      prospective Grafana Assistant branch with exact scope and both windows so the combined
      initial prompt has one owner.
-   - Launch endpoint work and store work with linked execution receipts; do not await historical
-     leads or matching results before scheduling their unsent Assistant owner.
+   - That Grafana branch owns the one combined prompt and its single execution receipt; every
+     endpoint keeps its own row linked to that receipt, and a history-only endpoint sends no prompt.
+   - Launch endpoint work and store work together; do not await historical leads or matching
+     results before scheduling their unsent Assistant owner.
    - Preserve every endpoint child/row, honor disabled Assistant and never broaden scope to share.
    - An unset field skips history search. Invalid configuration stops endpoint launches; failed
      providers block only their endpoints.
@@ -219,7 +227,8 @@ Store-specific additions to each branch row:
   briefs — and state the degradation in the report's Source snapshot.
 - "The repositories share one provider, so it is one store and the first is enough." Repository
   fan-out counts configured repositories; keep each with an owner or explicit gap unless the
-  user removes it from the Resources.
+  user removes it from the Resources. "Inspect only the first, it is one store" is this
+  rationalization, not a removal: keep the fan-out and say why.
 - "The Grafana results will tell us whether AWS is worth querying." Launch order is not a
   triage tool; all in-scope branches launch before any result is awaited.
 - "Widening the window one hour is still the same investigation." Scope, window, and
