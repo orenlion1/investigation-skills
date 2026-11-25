@@ -50,7 +50,7 @@
         "Inspects the supplied rendered reference and source and matches its requested shapes, grouping, placement, and palette rather than applying plain-label defaults over the request",
         "Uses solid lifecycle handoffs and four dashed invokes branches from Investigate to peer integrations with the exact requested labels",
         "Does not depict integration order or guaranteed parallel execution; layout-only edges stay invisible",
-        "Edits docs/WORKFLOW.md prose beside the diagram to keep artifact details, as-needed integration selection, and Publish's separate authorization out of the diagram",
+        "Edits docs/WORKFLOW.md prose beside the diagram (beyond the caption and alt text) to state artifact details, as-needed integration selection, and Publish's separate authorization, keeping them out of the diagram",
         "Updates the WORKFLOW.md caption and alt text to describe the five-step lifecycle and the four invoked integrations",
         "Regenerates the light, dark and adaptive exports with diagrams/render.sh and checks theme parity and overlaps, or, if Graphviz is unavailable, names the stale exports and does not hand-write SVG",
         "Limits the reference-style exception to the requested workflow instead of restyling unrelated diagrams"
@@ -65,7 +65,7 @@
       "prompt": "Shorten my flame graph caption: it currently explains colors, reading direction, widths, all query arguments and export commands. The saved profile shows parsing used 85% of sampled CPU, but the replay trigger is unverified. What belongs in the caption and what moves elsewhere?",
       "expected_output": "Provides a short takeaway caption retaining uncertainty and citation; moves mechanics and metadata to linked evidence detail.",
       "expectations": [
-        "Produces one or two short takeaway sentences about the 85 percent parsing hotspot and unverified replay trigger, with an evidence reference",
+        "Produces one or two short takeaway sentences about the 85 percent parsing hotspot and unverified replay trigger, ending with an explicit evidence reference such as an evidence ID or link placeholder (for example [E1]); naming the saved profile in prose alone does not count",
         "Does not narrate the image or repeat colors, reading direction, query arguments or export commands in the proposed caption",
         "Preserves necessary normalization and provenance in linked evidence/methods instead of deleting them"
       ]

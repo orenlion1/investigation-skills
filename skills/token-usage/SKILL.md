@@ -233,4 +233,6 @@ waits and leave non-wait (processing) time and unmeasured phase timings `unavail
 
 When declining or planning accounting, say what reaches the report: the subheading and
 **Token usage details** only, with sanitized supporting evidence and no prompts, tool payloads
-or credentials.
+or credentials. When planning a repair, also state that a collector failure (such as a cutoff
+mismatch) is saved as a failure, distinct from unavailable or partial telemetry, and that
+recovered totals and session/model rows render only from saved successful collector JSON.

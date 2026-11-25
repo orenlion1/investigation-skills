@@ -146,7 +146,8 @@
         "Direct branch brief loads relevant refreshed gcx instructions and runs the exact query without waiting for Assistant",
         "Does not turn the request into an open-ended root-cause investigation",
         "Returns the requested values, or the material limitation that prevented them, and writes the local manifest",
-        "Writes the Source snapshot, citing the manifest path, to a local audit file rather than the reply, and the reply carries only the values or the limitation, with no Source snapshot or citation block"
+        "Writes the Source snapshot to a local audit file beside the manifest, citing the manifest by its absolute path",
+        "The final reply carries only the values or the limitation, with no Source snapshot, citation block, file locations or brief recap"
       ]
     },
     {
@@ -224,7 +225,7 @@
       "prompt": "Run this exact instant PromQL query max(kube_deployment_status_replicas_unavailable{namespace=\"checkout\"}) in context ops at 2026-11-19T12:00:00Z UTC and return JSON only. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: reply with the brief(s) you would launch, the exact gcx command the direct branch would run, the manifest you would record, and where the Source snapshot would go.",
       "expected_output": "Preserves the exact instant query and timestamp in both briefs, uses the instant-query flag rather than a range, returns JSON only and retains audit citations locally.",
       "expectations": [
-        "Both agent briefs carry the exact query, context and instant timestamp",
+        "Each brief, Assistant and direct gcx, states the exact expression, context ops and instant 2026-11-19T12:00:00Z as its own inputs, not only inside an embedded command",
         "Direct gcx command uses instant semantics rather than an invented range",
         "Manifest records the instant as a window whose start and end are both 2026-11-19T12:00:00Z, rather than a separate instant field, a null window or an invented range",
         "Source snapshot and manifest reference remain in local audit evidence, preserving JSON-only output"

@@ -166,7 +166,7 @@
         "Does not treat a successful packaging step as passing preflight: plans to map the remaining local report.md link to a verified hosted target (or stop) and to rerun the reference check on the packaged derivative",
         "Plans native Confluence media from the owning page's collection with adjacent captions, without relying on CSS, picture sources or data URIs surviving conversion",
         "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
-        "Plans reference checks at three points: the source HTML before uploads, the packaged HTML derivative or composed page before page writes, and the published page after publication",
+        "Plans reference checks at three separate points: the source HTML before uploads; the packaged HTML derivative and the composed page body before that body is written to the page (a draft created only to own the media collection may come earlier); and the published page after publication",
         "Plans an exact SHA-256 comparison of each downloaded attachment against the packaged file",
         "Says an unavailable preview and unsupported native automatic switching will each be reported as incomplete rather than passed"
       ]
@@ -182,7 +182,7 @@
         "Does not treat a successful packaging step as passing preflight: plans to map the remaining local report.md link to a verified hosted target (or stop) and to rerun the reference check on the packaged derivative",
         "Plans native Confluence media from the owning page's collection with adjacent captions, without relying on CSS, picture sources or data URIs surviving conversion",
         "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
-        "Plans reference checks at three points: the source HTML before uploads, the packaged HTML derivative or composed page before page writes, and the published page after publication",
+        "Plans reference checks at three separate points: the source HTML before uploads; the packaged HTML derivative and the composed page body before that body is written to the page (a draft created only to own the media collection may come earlier); and the published page after publication",
         "Plans an exact SHA-256 comparison of each downloaded attachment against the packaged file",
         "Says an unavailable preview and unsupported native automatic switching will each be reported as incomplete rather than passed"
       ]
@@ -198,7 +198,7 @@
         "Does not treat a successful packaging step as passing preflight: plans to map the remaining local report.md link to a verified hosted target (or stop) and to rerun the reference check on the packaged derivative",
         "Plans native Confluence media from the owning page's collection with adjacent captions, without relying on CSS, picture sources or data URIs surviving conversion",
         "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
-        "Plans reference checks at three points: the source HTML before uploads, the packaged HTML derivative or composed page before page writes, and the published page after publication",
+        "Plans reference checks at three separate points: the source HTML before uploads; the packaged HTML derivative and the composed page body before that body is written to the page (a draft created only to own the media collection may come earlier); and the published page after publication",
         "Plans an exact SHA-256 comparison of each downloaded attachment against the packaged file",
         "Says an unavailable preview and unsupported native automatic switching will each be reported as incomplete rather than passed"
       ]
@@ -233,7 +233,7 @@
       "expected_output": "Identifies export-to-native theme coupling as the root cause, preserves the light download, and uses verified dark/light native graph tabs with Dark first and adjacent original captions. Fixes the publication guidance and adds regression coverage. Reads back the same page and exercises both graph choices, disclosing that manual tabs do not automatically follow a Confluence profile.",
       "expectations": [
         "Never derives the only native graph from the fixed export fallback img or all/not all media condition",
-        "Uses the shared native theme pair composer with verified owning media and collections; no app install or preference changes",
+        "Builds the Dark/Light native pair with Publish It's shared native figure composer (render_theme_pair) from both theme attachments verified in the owning page's media collection; installs no app and changes no site or user preference",
         "Verifies dark and light graphs in the main report; preserving only supporting attachment cards does not pass",
         "Does not call manual tabs automatic Confluence profile switching; preserves the fixed HTML download and historical evidence"
       ]

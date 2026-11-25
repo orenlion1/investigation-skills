@@ -144,8 +144,8 @@ availability, and the bounded object read separately, with an observed result or
 for each. Before declaring a product unavailable, attempt applicable scoped recovery or record the
 precise reason it cannot start. Another product's success never substitutes for re-running a product's
 own resources, complete catalog/discovery, and object probe after consent. Continue independent products while consent or a connection reload is pending, without
-labeling the pending product verified, and do that independent work before ending a turn to
-wait. Give each missing grant its own flow without waiting for another product's consent, but
+labeling the pending product verified, and do that independent work, such as your own probe of
+a connection the user reports working (or its exact blocker), before ending a turn to wait. Give each missing grant its own flow without waiting for another product's consent, but
 clients sharing a callback port run one at a time: queue and track the next, never start a
 competing flow. Label access the user reports but you did not probe as reported, not verified.
 

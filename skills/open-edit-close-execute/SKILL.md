@@ -46,7 +46,9 @@ This skill owns the workflow for this repository's templated tasks (template
   It is a ten-minute soft checkpoint covering setup, editor/auth waits, reporting and QA: at
   it, report verified findings, gaps, observed waits and remaining QA, then continue authorized
   work without asking; never hard-stop or skip gates. Union overlapping waits; never sum
-  parallel children or invent processing or phase time.
+  parallel children or invent processing or phase time. In that checkpoint report, say the ten
+  minutes run from request receipt and include setup, editor/auth waits, reporting and QA, and
+  that the budget never overrides editor closure, authorization, or evidence and quality gates.
 - Before opening a templated-task editor, read [Token Usage](../token-usage/SKILL.md) and
   retain its native task-resolution evidence past the editor/check barrier, so shorthand
   editor requests can be attributed without another user command.
