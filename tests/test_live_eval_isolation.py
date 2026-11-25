@@ -35,8 +35,8 @@ class IsolationFlagTests(unittest.TestCase):
         self.assertEqual(child['ANTHROPIC_IDENTITY_TOKEN_FILE'], '/tmp/h/t')
         self.assertEqual(child['ANTHROPIC_MODEL'], 'm')
         self.assertTrue(child['PATH'].startswith('/opt/c/bin:'))
-        command = sandbox.isolated_command('live-eval', child, '/opt/c/bin/claude', ['-p'])
-        self.assertEqual(command[:7], ['sudo', '-n', '-u', 'live-eval', '--', 'env', '-i'])
+        command = sandbox.isolated_command('live-eval', child, '/opt/c/bin/claude', ['-p'], '/tmp/work')
+        self.assertEqual(command[:8], ['sudo', '-n', '-u', 'live-eval', '--', 'env', '-i', '--chdir=/tmp/work'])
         self.assertEqual(command[-2:], ['/opt/c/bin/claude', '-p'])
 
     def test_shim_refuses_in_ci_without_an_isolation_user(self):
