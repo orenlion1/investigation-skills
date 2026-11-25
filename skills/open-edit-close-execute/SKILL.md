@@ -64,9 +64,8 @@ This skill owns the workflow for this repository's templated tasks (template
   load its saved context through [Report Continuation](../report-continuation/SKILL.md).
   That skill also owns progressive report updates and handoff readiness.
 - Run the finalized task from its resolved path, then generate the matching reports from
-  observed results in verified Markdown and, only when effective Generate PDF is `enabled`, a verified
-  same-source PDF (selected `REPORT` paths via Workflow Artifact Naming). Resolve formats before
-  PDF-only tooling using the [delivery contract](references/investigation-delivery.md). Report completion from verified outcomes, never from readiness or a filename's
+  observed results in the selected formats: Markdown, PDF or HTML, with `REPORT` paths via
+  Workflow Artifact Naming. Resolve formats before tooling using the [delivery contract](references/investigation-delivery.md). Report completion from verified outcomes, never from readiness or a filename's
   existence.
 - An explicit TASK path or `edit task` edits that task in place, preserving its filename,
   with the same continuation.

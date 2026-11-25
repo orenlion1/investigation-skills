@@ -21,6 +21,10 @@
       {
         "prompt": "Publish the finished investigation report and its TASK to the GitHub reports repository as a pull request and verify the pushed files",
         "top_k": 3
+      },
+      {
+        "prompt": "publish it to Confluence as HTML only, with light/dark mode support and no Markdown or PDF report uploads",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -100,6 +104,123 @@
         "Does not publish to a default, guessed or previously used destination",
         "Offers to append a supplied destination as a Publish bullet under the saved task's Resources",
         "Offers updating the profile through Profile Manager and reloading it to avoid the stop in future"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "dialogue",
+      "prompt": "Deliver and publish an existing investigation with Generate Markdown: disabled, Generate PDF: disabled, Generate HTML: enabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects HTML alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
+      "expectations": [
+        "Supports HTML as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "dialogue",
+      "prompt": "Deliver and publish an existing investigation with Generate Markdown: disabled, Generate PDF: enabled, Generate HTML: disabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects PDF alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
+      "expectations": [
+        "Supports PDF as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "dialogue",
+      "prompt": "Deliver and publish an existing investigation with Generate Markdown: enabled, Generate PDF: disabled, Generate HTML: disabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects Markdown alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
+      "expectations": [
+        "Supports Markdown as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 10,
+      "kind": "dialogue",
+      "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode.",
+      "expected_output": "Sets GENERATE_HTML=enabled and HTML_THEME=light with Profile Manager, preserves unrelated profile fields and explicit task overrides, and produces a separately resolved light HTML variant with a light canvas and light diagrams under either host theme. Existing exports and historical accounting remain unchanged.",
+      "expectations": [
+        "Uses the template-derived HTML_THEME enum with system as its default and rejects invalid values before writes",
+        "Preserves task resources and keeps the HTML generation toggle independent of appearance",
+        "Fixed light applies to both page colors and picture sources despite a dark host; validates the result without refreshing the investigation"
+      ]
+    },
+    {
+      "id": 11,
+      "kind": "dialogue",
+      "prompt": "Publish docs/reports/REPORT-example.html to the supplied Confluence parent, HTML only, light mode. No Markdown or PDF companion exists. The saved task still enables PDF and Markdown. Diagram files are local and the report links to a prior report.md.",
+      "expected_output": "Resolves the explicit HTML-only publication override and light theme without editing stored defaults or requiring Markdown/PDF. Packages the HTML with embedded figures as a disclosed derivative, maps local report/evidence links to verified native/page/HTML targets, and publishes a readable native page plus original and portable HTML downloads. Preserves the available parent TASK as supporting provenance and verifies native page themes separately from downloaded HTML.",
+      "expectations": [
+        "Requires and uploads no Markdown/PDF report despite historical generation settings; no investigation or accounting refresh",
+        "Preserves selected download theme and embeds both picture variants where present; checks remaining local links rather than treating packager success as preflight",
+        "Uses native Confluence media with owning collection and adjacent captions, not raw CSS/data URI assumptions",
+        "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
+        "Runs source/derivative/page reference checks and exact download hashes; reports incomplete preview or native switching honestly"
+      ]
+    },
+    {
+      "id": 12,
+      "kind": "dialogue",
+      "prompt": "Publish docs/reports/REPORT-example.html to the supplied Confluence parent, HTML only, dark mode. No Markdown or PDF companion exists. The saved task still enables PDF and Markdown. Diagram files are local and the report links to a prior report.md.",
+      "expected_output": "Resolves the explicit HTML-only publication override and dark theme without editing stored defaults or requiring Markdown/PDF. Packages the HTML with embedded figures as a disclosed derivative, maps local report/evidence links to verified native/page/HTML targets, and publishes a readable native page plus original and portable HTML downloads. Preserves the available parent TASK as supporting provenance and verifies native page themes separately from downloaded HTML.",
+      "expectations": [
+        "Requires and uploads no Markdown/PDF report despite historical generation settings; no investigation or accounting refresh",
+        "Preserves selected download theme and embeds both picture variants where present; checks remaining local links rather than treating packager success as preflight",
+        "Uses native Confluence media with owning collection and adjacent captions, not raw CSS/data URI assumptions",
+        "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
+        "Runs source/derivative/page reference checks and exact download hashes; reports incomplete preview or native switching honestly"
+      ]
+    },
+    {
+      "id": 13,
+      "kind": "dialogue",
+      "prompt": "Publish docs/reports/REPORT-example.html to the supplied Confluence parent, HTML only, system mode. No Markdown or PDF companion exists. The saved task still enables PDF and Markdown. Diagram files are local and the report links to a prior report.md.",
+      "expected_output": "Resolves the explicit HTML-only publication override and system theme without editing stored defaults or requiring Markdown/PDF. Packages the HTML with embedded figures as a disclosed derivative, maps local report/evidence links to verified native/page/HTML targets, and publishes a readable native page plus original and portable HTML downloads. Preserves the available parent TASK as supporting provenance and verifies native page themes separately from downloaded HTML.",
+      "expectations": [
+        "Requires and uploads no Markdown/PDF report despite historical generation settings; no investigation or accounting refresh",
+        "Preserves selected download theme and embeds both picture variants where present; checks remaining local links rather than treating packager success as preflight",
+        "Uses native Confluence media with owning collection and adjacent captions, not raw CSS/data URI assumptions",
+        "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
+        "Runs source/derivative/page reference checks and exact download hashes; reports incomplete preview or native switching honestly"
+      ]
+    },
+    {
+      "id": 14,
+      "kind": "dialogue",
+      "prompt": "Publish HTML only to Confluence, with automatic native light/dark diagram switching required. The live format guide offers one native media ID per figure, the converter drops picture/source and CSS, and the HTML download works offline in both modes. Can we call the whole publication theme-aware?",
+      "expected_output": "Does not claim automatic native switching based on the HTML attachment. Uses only supported native formatting; records that required native switching is incomplete, with separately verified portable HTML behavior. Offers labeled native theme variants as a capability-limited alternative without presenting them as automatic switching.",
+      "expectations": [
+        "Keeps Confluence viewer theme and downloaded HTML theme as separate results",
+        "Never claims stripped CSS/picture sources or an attachment prove native automatic switching",
+        "Retains the page identity and exact unsupported native requirement for resumption; does not install apps or alter site/user theme settings"
+      ]
+    },
+    {
+      "id": 15,
+      "kind": "dialogue",
+      "prompt": "Publish this HTML report. Every external reference is linked correctly. Two correctly linked local evidence files exist inside the approved roots, but have not been uploaded. Another incident ID is plain text. Can attachment source validation bypass that omission?",
+      "expected_output": "No. The source validator checks every occurrence and fails on the unlinked incident. When all source occurrences pass, verified local files with recorded hashes can authorize only attachment uploads; strict hosted-reference validation is still required before any page write.",
+      "expectations": [
+        "Does not drop local or unlinked reference occurrences from the inventory",
+        "Checks exact local target, containment, regular-file identity and hash before attachment-only permission",
+        "Never uses an attachment-only receipt to authorize page creation/update/publication; hosted mappings must pass the strict checker"
+      ]
+    },
+    {
+      "id": 16,
+      "kind": "dialogue",
+      "prompt": "The graphs are white on my dark Confluence profile after publishing a fixed light HTML report. Fix the page and the root cause in the repo. The native format guide supports tabs and one file ID per media but no theme selector. Both theme attachments already exist.",
+      "expected_output": "Identifies export-to-native theme coupling as the root cause, preserves the light download, and uses verified dark/light native graph tabs with Dark first and adjacent original captions. Fixes the publication guidance and adds regression coverage. Reads back the same page and exercises both graph choices, disclosing that manual tabs do not automatically follow a Confluence profile.",
+      "expectations": [
+        "Never derives the only native graph from the fixed export fallback img or all/not all media condition",
+        "Uses the shared native theme pair composer with verified owning media and collections; no app install or preference changes",
+        "Verifies dark and light graphs in the main report; preserving only supporting attachment cards does not pass",
+        "Does not call manual tabs automatic Confluence profile switching; preserves the fixed HTML download and historical evidence"
       ]
     }
   ]

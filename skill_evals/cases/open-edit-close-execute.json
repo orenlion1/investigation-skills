@@ -61,6 +61,39 @@
         "Preserves old PDF as historical and excludes it from current companions and delivery links",
         "Records effective choice and verified output provenance without granting publication"
       ]
+    },
+    {
+      "id": 4,
+      "kind": "dialogue",
+      "prompt": "Deliver and publish an existing investigation with Generate Markdown: disabled, Generate PDF: disabled, Generate HTML: enabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects HTML alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
+      "expectations": [
+        "Supports HTML as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "Deliver and publish an existing investigation with Generate Markdown: disabled, Generate PDF: enabled, Generate HTML: disabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects PDF alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
+      "expectations": [
+        "Supports PDF as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "Deliver and publish an existing investigation with Generate Markdown: enabled, Generate PDF: disabled, Generate HTML: disabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects Markdown alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
+      "expectations": [
+        "Supports Markdown as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
     }
   ]
 }

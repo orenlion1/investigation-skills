@@ -64,6 +64,9 @@ The effective task Resources are:
 - Publish: `https://example.atlassian.net/wiki/spaces/OPS/pages/123/Investigations`
 - Rhyming endpoints: `[{"id":"prior-work","kind":"confluence","target":"https://example.atlassian.net/wiki/spaces/OPS/pages/456/History"}]`
 - Rhyming historical window days: `7`
+- Generate Markdown: `enabled`
+- Generate HTML: `disabled`
+- HTML theme: `system`
 - Generate PDF: `enabled`
 - Fan-out: `enabled`
 ```

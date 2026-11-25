@@ -9,7 +9,7 @@ description: "Maintain the local, untracked .env store of named resource profile
 
 A resource profile is a named set of the values a task's Resources section takes: repositories,
 Slack channels, an AWS profile, a Grafana context, an alert identity, publish destinations,
-typed historical-search endpoints, and run settings. This skill owns the store, its schema, and
+typed endpoints, and Markdown/PDF/HTML settings. This skill owns the store, its schema, and
 the ignore rules that keep it out of Git. The
 [store and schema contract](references/profile-store.md) holds the file format, value rules,
 limits and per-command behavior; read the linked section before a dependent operation. A tested
@@ -194,15 +194,16 @@ back; preview with `--dry-run`. Its guards are in the
 
 ## Toggle settings
 
-`GENERATE_PDF`, `GRAFANA_ASSISTANT` and `FAN_OUT` derive from the template's **Generate PDF**,
-**Grafana Assistant** and **Fan-out** bullets and share one
+Outputs (`GENERATE_MARKDOWN`, `GENERATE_PDF`, `GENERATE_HTML`), `GRAFANA_ASSISTANT`
+and `FAN_OUT` derive from the template and share the
 [settings contract](references/profile-store.md#settings-contract): `enabled` or `disabled`,
-default `enabled`, input case-insensitive and stored lowercase; `GENERATE_PDF` also accepts
-legacy `T` and `F`. Set one with, for example, `set --profile team --field FAN_OUT=disabled`,
-then confirm with `show`, which reports the `effective_*` value beside the stored fields;
-render and load include the effective value alongside actual resources. The contract owns persistence, defaults on read, task forms, failure cases and what `disabled`
-means for a run ([Generate PDF](references/profile-store.md#generate-pdf),
-[Fan-out](references/profile-store.md#fan-out)).
+case-insensitive on input and stored lowercase. HTML defaults `disabled`; other toggles default
+`enabled`. `GENERATE_PDF` also accepts legacy `T`/`F`.
+Set with `set --profile team --field GENERATE_HTML=enabled`, then confirm the stored and
+`effective_*` values with `show`. Render/load include effective settings alongside resources.
+The contract owns persistence, defaults, task forms, validation and disabled behavior.
+For HTML appearance, use the independent [HTML theme](references/profile-store.md#html-theme)
+setting, for example `HTML_THEME=light`; it does not enable generation.
 
 A toggle or historical-window setting alone is configuration: never an actual resource, never
 a trigger for the supplied-resource overwrite guard, never scope or authorization for an

@@ -59,10 +59,32 @@ separate review when outside the helper's supported URI-reference extraction. Un
 remain incomplete. Never label an unverified extraction path as passed, or claim that scanning only
 the registry establishes whole-report reference completeness.
 
+## Attachment preparation and hosted-page gates
+
+Source references must pass before any publication write. A local evidence link can be a valid
+source reference before its upload creates a hosted destination. For attachment preparation only,
+use Publish It's [source validator](../../publish-it/scripts/validate_publication_source.py).
+It runs this occurrence inventory without dropping labels, and accepts a local occurrence only
+when its authored and registered targets match, its actual regular non-symlink file exists inside
+explicit approved asset roots, and its bytes/hash are read back. Missing, wrong-target, unlinked,
+unverified, escaping and unsupported references still block. Retain the original `local-only`
+diagnostic beside the `verified-local-file` disposition, file hashes and source artifact hash.
+
+A `publication-attachment-preflight/v1` receipt permits only the inventoried attachment uploads;
+`page_publication_allowed` is always false. Recheck hashes before each upload. It is not a
+`reference-link-coverage/v1` page receipt and cannot satisfy `require_complete` or page delivery.
+After upload, derive mappings from returned media IDs/collections and verified attachment
+metadata. All references in the composed page and hosted HTML derivative must then pass the
+ordinary strict checker with real hosted targets before a page write. No invented URL, unresolved
+media slot or local link qualifies. Source originals retained solely for provenance use the local
+source receipt; identify them as snapshots whose relative links need the original local package.
+Their archival links are never evidence of usable hosted-page navigation.
+
 ## Run before delivery and before publication writes
 
 Use Python 3.10+ in an isolated environment. Install only the pinned requirements from this complete
-skill folder; reuse a compatible environment when present. For Generate PDF `disabled`, install only
+skill folder; reuse a compatible environment when present. When no PDF is selected, including
+an explicit HTML-only publication override, install only
 `scripts/requirements-markdown.txt` from this folder and pass only selected Markdown/HTML artifacts;
 PyMuPDF is lazily imported only for a selected PDF. Repository test and tagged-release CI still
 install the full `requirements.txt`. See the [format contract](../../open-edit-close-execute/references/investigation-delivery.md#report-formats). Markdown parsing uses markdown-it-py
@@ -90,7 +112,8 @@ Markdown source-line equivalence. Preformatted source blocks are not treated as 
 Exit codes: `0` means all extracted registered occurrences matched; `1` means unresolved coverage;
 `2` means configuration/extraction was unavailable. A passing receipt alone never proves that the
 registry was complete, a URL was reachable, or an external anchor landed successfully. All three
-checks are required separately. Never continue publication after a nonzero preflight.
+checks are required separately. A nonzero applicable preflight blocks its dependent writes; the attachment-only receipt above
+never authorizes a page write.
 
 Keep the JSON receipt: artifact names/hashes, manifest hash, reference type/text/source identity,
 section, locator, occurrence sequence, expected and actual link, status and exact unresolved count.
@@ -118,8 +141,8 @@ through the publication procedure as well. Missing labels or collections are inc
 
 Read back published HTML from the exact same page identity and published version, run the occurrence
 check again and reconcile canonical identities/fragments and counts with the preflight. Verify every
-native figure/file with its adjacent caption and evidence links. Download the selected original
-Markdown and refreshed PDF, verify SHA-256 equality and prove they derive from the same saved source;
+native figure/file with its adjacent caption and evidence links. Download every selected report attachment, including HTML derivatives, verify SHA-256 equality
+and prove they derive from the same saved source;
 a pair of unrelated current hashes cannot establish freshness. Record generation provenance and
 retain old cutoffs. Reject stale companions or local-only page links.
 

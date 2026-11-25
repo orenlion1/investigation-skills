@@ -202,7 +202,7 @@ regenerating selected formats, then apply the owning delivery and evidence check
 - Render the collector's numeric fields and session/model rows from the saved accounting data;
   do not hard-code `unavailable` in a renderer after records have been recovered.
 
-Read the saved Markdown and, when selected, PDF back: the final section and any subheading must agree across
+Read each selected report format back: the final section and any subheading must agree across
 formats on totals, duration, start/cutoff, and the recorded population. Compare displayed values and the
 session/model table with the supporting evidence. Verify that the section ends at that table
 and that omitted diagnostics have not reappeared elsewhere. When PDF is selected, check the rendered PDF for

@@ -152,7 +152,7 @@
       "prompt": "Store multiple Slack channels in an application profile, compose it with the environment channel, then use my explicit channel list instead of the injected channels.",
       "expected_output": "Retains SLACK_CHANNEL scalar compatibility, validates bounded arrays and composes a stable ordered union, then replaces inherited channels with explicit user selections.",
       "expectations": [
-        "Accepts legacy scalar or validated 1–16-entry SLACK_CHANNEL arrays with shared per-item/field limits",
+        "Accepts legacy scalar or validated 1\u201316-entry SLACK_CHANNEL arrays with shared per-item/field limits",
         "Shows stored representation and renders/loads every channel bullet without read-time migration",
         "Forms a stable first-seen channel union across profiles and revalidates limits",
         "Explicit command or saved user TASK channel lists replace inherited channels rather than appending",
@@ -192,6 +192,50 @@
         "Completes the requested load and reports the lint notice rather than silently repairing the store",
         "Runs lint --fix on the store only on the user's request and reports changes by rule and field, never by stored value",
         "Does not guess a replacement for the illegal Fan-out value; states the legal values and asks the user"
+      ]
+    },
+    {
+      "id": 13,
+      "kind": "dialogue",
+      "prompt": "Load a profile into a task with Generate Markdown: disabled, Generate PDF: disabled, Generate HTML: enabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects HTML alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Loads the choices without investigating or publishing.",
+      "expectations": [
+        "Supports HTML as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 14,
+      "kind": "dialogue",
+      "prompt": "Load a profile into a task with Generate Markdown: disabled, Generate PDF: enabled, Generate HTML: disabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects PDF alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Loads the choices without investigating or publishing.",
+      "expectations": [
+        "Supports PDF as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 15,
+      "kind": "dialogue",
+      "prompt": "Load a profile into a task with Generate Markdown: enabled, Generate PDF: disabled, Generate HTML: disabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects Markdown alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Loads the choices without investigating or publishing.",
+      "expectations": [
+        "Supports Markdown as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 16,
+      "kind": "dialogue",
+      "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode.",
+      "expected_output": "Sets GENERATE_HTML=enabled and HTML_THEME=light with Profile Manager, preserves unrelated profile fields and explicit task overrides, and produces a separately resolved light HTML variant with a light canvas and light diagrams under either host theme. Existing exports and historical accounting remain unchanged.",
+      "expectations": [
+        "Uses the template-derived HTML_THEME enum with system as its default and rejects invalid values before writes",
+        "Preserves task resources and keeps the HTML generation toggle independent of appearance",
+        "Fixed light applies to both page colors and picture sources despite a dark host; validates the result without refreshing the investigation"
       ]
     }
   ]

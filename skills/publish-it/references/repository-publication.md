@@ -52,14 +52,15 @@ figures and cited assets resolve without edits:
 
 | Packaged artifact | Path under `<directory>/<slug>/` |
 | --- | --- |
-| Report Markdown | `REPORT-<slug>.md` |
+| Selected Markdown (Generate Markdown `enabled` only) | `REPORT-<slug>.md` |
 | Selected matching PDF (Generate PDF `enabled` only) | `REPORT-<slug>.pdf` |
+| Selected matching HTML (Generate HTML `enabled` only) | `REPORT-<slug>.html` |
 | Parent TASK | `TASK-<slug>.md` |
 | Diagrams, theme variants, editable sources, cited local evidence | The report-relative paths they already have, such as `assets/<slug>/…` |
 
-Commit original bytes. Where a relative link in the report would not resolve in this layout —
+Commit original bytes. HTML-only input requires no Markdown/PDF companion. Where a relative link in the report would not resolve in this layout —
 typically the link to the parent TASK — add a `README.md` in the same directory that links the
-report, the PDF and the TASK, rather than rewriting the original; disclose any derivative that
+selected report formats and the TASK, rather than rewriting the original; disclose any derivative that
 was unavoidable. Commit only inventoried files: no task or log directories, credential caches,
 transcripts or unreferenced files. A task-only publication commits the TASK and a `README.md`
 stating its actual scope.
