@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" width="2949pt" height="929pt" viewBox="0.00 0.00 2949.00 929.00">
+<svg xmlns="http://www.w3.org/2000/svg" width="2957pt" height="929pt" viewBox="0.00 0.00 2957.00 929.00">
 <style>
 @media (prefers-color-scheme: dark) {
   [fill="#0e7490"] { fill: #67e8f9; }
@@ -10,18 +10,18 @@
 }
 </style><g id="graph0" class="graph" transform="scale(2 2) rotate(0) translate(21.6 442.8)">
 <title>InvestigationSkillRouting</title>
-<polygon fill="#ffffff" stroke="none" points="-21.6,21.6 -21.6,-442.8 1453.1,-442.8 1453.1,21.6 -21.6,21.6" />
+<polygon fill="#ffffff" stroke="none" points="-21.6,21.6 -21.6,-442.8 1457.1,-442.8 1457.1,21.6 -21.6,21.6" />
 
 <g id="node1" class="node">
 <title>initialize</title>
-<text xml:space="preserve" text-anchor="middle" x="169" y="-399.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Initialize</text>
-<text xml:space="preserve" text-anchor="middle" x="169" y="-381.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Open and Edit</text>
+<text xml:space="preserve" text-anchor="middle" x="171" y="-399.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Initialize</text>
+<text xml:space="preserve" text-anchor="middle" x="171" y="-381.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Open and Edit</text>
 </g>
 
 <g id="node2" class="node">
 <title>investigate</title>
-<text xml:space="preserve" text-anchor="middle" x="436" y="-399.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Investigate</text>
-<text xml:space="preserve" text-anchor="middle" x="436" y="-381.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Close and Execute</text>
+<text xml:space="preserve" text-anchor="middle" x="438" y="-399.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Investigate</text>
+<text xml:space="preserve" text-anchor="middle" x="438" y="-381.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Close and Execute</text>
 </g>
 
 
@@ -35,14 +35,14 @@
 
 <g id="edge4" class="edge">
 <title>initialize-&gt;setup_skills</title>
-<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M159.69,-370.95C150.46,-347.1 136.05,-309.84 124.33,-279.56" />
-<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="126.73,-278.96 121.92,-273.32 122.16,-280.73 126.73,-278.96" />
-<text xml:space="preserve" text-anchor="start" x="162.47" y="-325.8" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">invokes</text>
+<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M161.4,-370.95C151.89,-347.1 137.02,-309.84 124.94,-279.56" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="127.31,-278.9 122.44,-273.31 122.76,-280.72 127.31,-278.9" />
+<text xml:space="preserve" text-anchor="start" x="163.77" y="-325.8" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">invokes</text>
 </g>
 
 <g id="node3" class="node">
 <title>report</title>
-<text xml:space="preserve" text-anchor="middle" x="678" y="-390.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Report</text>
+<text xml:space="preserve" text-anchor="middle" x="680" y="-390.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Report</text>
 </g>
 
 
@@ -56,46 +56,46 @@
 
 <g id="edge5" class="edge">
 <title>investigate-&gt;orchestration_skills</title>
-<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M429.46,-370.95C423,-347.2 412.92,-310.15 404.7,-279.95" />
-<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="407.11,-279.49 402.91,-273.38 402.38,-280.77 407.11,-279.49" />
-<text xml:space="preserve" text-anchor="start" x="436.16" y="-325.8" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">routes</text>
+<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M431.17,-370.95C424.42,-347.2 413.89,-310.15 405.31,-279.95" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="407.71,-279.43 403.44,-273.37 402.99,-280.77 407.71,-279.43" />
+<text xml:space="preserve" text-anchor="start" x="437.46" y="-325.8" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">routes</text>
 </g>
 
 <g id="node4" class="node">
 <title>publish</title>
-<text xml:space="preserve" text-anchor="middle" x="882" y="-390.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Publish</text>
+<text xml:space="preserve" text-anchor="middle" x="884" y="-390.75" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Publish</text>
 </g>
 
 
 <g id="node8" class="node">
 <title>report_skills</title>
-<text xml:space="preserve" text-anchor="middle" x="694" y="-268.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Report skills</text>
-<text xml:space="preserve" text-anchor="middle" x="694" y="-250.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Report Continuation</text>
-<text xml:space="preserve" text-anchor="middle" x="694" y="-232.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Workflow Artifact Naming</text>
-<text xml:space="preserve" text-anchor="middle" x="694" y="-214.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Token Usage / Report Evidence</text>
-<text xml:space="preserve" text-anchor="middle" x="694" y="-196.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Diagramming Style</text>
-<text xml:space="preserve" text-anchor="middle" x="694" y="-178.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">AWS Architecture Diagrams</text>
+<text xml:space="preserve" text-anchor="middle" x="696" y="-268.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Report skills</text>
+<text xml:space="preserve" text-anchor="middle" x="696" y="-250.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Report Continuation</text>
+<text xml:space="preserve" text-anchor="middle" x="696" y="-232.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Workflow Artifact Naming</text>
+<text xml:space="preserve" text-anchor="middle" x="696" y="-214.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Token Usage / Report Authoring</text>
+<text xml:space="preserve" text-anchor="middle" x="696" y="-196.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Diagramming Style</text>
+<text xml:space="preserve" text-anchor="middle" x="696" y="-178.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">AWS Architecture Diagrams</text>
 </g>
 
 <g id="edge7" class="edge">
 <title>report-&gt;report_skills</title>
-<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M679.62,-378.23C681.44,-359.39 684.52,-327.61 687.36,-298.25" />
-<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="689.78,-298.66 688.02,-291.45 684.9,-298.19 689.78,-298.66" />
-<text xml:space="preserve" text-anchor="start" x="700.57" y="-325.8" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">invokes</text>
+<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M681.62,-378.23C683.44,-359.39 686.52,-327.61 689.36,-298.25" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="691.78,-298.66 690.02,-291.45 686.9,-298.19 691.78,-298.66" />
+<text xml:space="preserve" text-anchor="start" x="702.57" y="-325.8" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">invokes</text>
 </g>
 
 <g id="node9" class="node">
 <title>publish_skills</title>
-<text xml:space="preserve" text-anchor="middle" x="969" y="-241.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Publish skills</text>
-<text xml:space="preserve" text-anchor="middle" x="969" y="-223.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Publish It / Release It</text>
-<text xml:space="preserve" text-anchor="middle" x="969" y="-205.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Rovo Dev MCP</text>
+<text xml:space="preserve" text-anchor="middle" x="973" y="-241.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Publish skills</text>
+<text xml:space="preserve" text-anchor="middle" x="973" y="-223.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Publish It / Release It</text>
+<text xml:space="preserve" text-anchor="middle" x="973" y="-205.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Rovo Dev MCP</text>
 </g>
 
 <g id="edge8" class="edge">
 <title>publish-&gt;publish_skills</title>
-<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M890.82,-378.23C904.03,-353.11 929.36,-304.96 947.61,-270.26" />
-<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="949.69,-271.58 950.78,-264.24 945.35,-269.3 949.69,-271.58" />
-<text xml:space="preserve" text-anchor="start" x="933.71" y="-325.8" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">invokes</text>
+<path fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="5,2" d="M893.02,-378.23C906.54,-353.11 932.45,-304.96 951.12,-270.26" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="953.2,-271.56 954.36,-264.23 948.89,-269.24 953.2,-271.56" />
+<text xml:space="preserve" text-anchor="start" x="936.53" y="-325.8" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">invokes</text>
 </g>
 
 <g id="node7" class="node">
@@ -115,15 +115,15 @@
 
 <g id="node10" class="node">
 <title>destination</title>
-<text xml:space="preserve" text-anchor="middle" x="1313" y="-232.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Repository or content system</text>
-<text xml:space="preserve" text-anchor="middle" x="1313" y="-214.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Next lifecycle step picks it up</text>
+<text xml:space="preserve" text-anchor="middle" x="1317" y="-232.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Repository or content system</text>
+<text xml:space="preserve" text-anchor="middle" x="1317" y="-214.35" font-family="Trebuchet MS" font-size="15.00" fill="#0f172a">Next lifecycle step picks it up</text>
 </g>
 
 <g id="edge9" class="edge">
 <title>publish_skills-&gt;destination</title>
-<path fill="none" stroke="#475569" stroke-width="1.2" d="M1059.83,-228.6C1098.47,-228.6 1144.21,-228.6 1186.1,-228.6" />
-<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="1185.89,-231.05 1192.89,-228.6 1185.89,-226.15 1185.89,-231.05" />
-<text xml:space="preserve" text-anchor="start" x="1106.44" y="-234.6" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">delivers to</text>
+<path fill="none" stroke="#475569" stroke-width="1.2" d="M1063.83,-228.6C1102.47,-228.6 1148.21,-228.6 1190.1,-228.6" />
+<polygon fill="#475569" stroke="#475569" stroke-width="1.2" points="1189.89,-231.05 1196.89,-228.6 1189.89,-226.15 1189.89,-231.05" />
+<text xml:space="preserve" text-anchor="start" x="1110.44" y="-234.6" font-family="Trebuchet MS" font-size="12.00" fill="#0e7490">delivers to</text>
 </g>
 </g>
 </svg>

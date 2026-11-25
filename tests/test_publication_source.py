@@ -17,7 +17,7 @@ def module(name, path):
 
 
 source = module('publication_source', 'skills/publish-it/scripts/validate_publication_source.py')
-checker = module('reference_checker', 'skills/report-evidence/scripts/check_reference_links.py')
+checker = module('reference_checker', 'skills/report-authoring/scripts/check_reference_links.py')
 
 
 class PublicationSourceTests(unittest.TestCase):

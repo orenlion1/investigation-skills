@@ -67,7 +67,7 @@ Include dependencies in repository packages. For Confluence, follow the
 in a disclosed portable download and verifying published attachment references. Preserve original
 HTML bytes separately. Never rewrite source links to guessed hosted destinations.
 
-Run Report Evidence on the selected HTML, and visually check readability, tables, every diagram
+Run Report Authoring on the selected HTML, and visually check readability, tables, every diagram
 and adjacent caption, internal anchors and external references. If any selected output is missing,
 stale or unverified, stop dependent publication writes. Add the HTML, assets and source/hash
 receipt to the bounded publication inventory. Verify downloaded HTML hashes for each destination;

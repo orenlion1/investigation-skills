@@ -100,7 +100,7 @@ switching as incomplete even when manual theme choices and portable HTML work co
 
 Apply the shared reference gate to selected source HTML, every downloadable HTML derivative and
 the composed/published page, with the same source identity and cutoff. HTML-only preflight passes
-HTML artifacts directly to Report Evidence, using its Markdown/HTML requirements file; it does
+HTML artifacts directly to Report Authoring, using its Markdown/HTML requirements file; it does
 not import or install PDF tooling. Check all material occurrences, including rewritten local
 references, rather than only unique URLs.
 

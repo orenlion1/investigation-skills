@@ -62,7 +62,9 @@ remain with their existing owners and caller authorization. Configured resources
 that a query ran; a question, user lead or agent answer is not verified evidence by itself.
 
 Reconcile the main conclusion, affected analysis, recommendations and open questions with each
-update. Retain earlier observations with their dates/windows; identify corrected or superseded
+update. [Report Authoring](../report-authoring/SKILL.md) owns the layout: update its opening
+bottom line and tables in place, and keep the continuation record, checkpoint and dependency
+inventory below the analysis rather than letting new entries push the findings down. Retain earlier observations with their dates/windows; identify corrected or superseded
 conclusions and explain why, rather than leaving contradictory findings in separate sections.
 Distinguish the incident timeline from the question/evidence-acquisition timeline. Unrelated UI
 actions, repository delivery chatter and generic skill-design discussion do not belong in an
@@ -75,7 +77,7 @@ applying the workflow to an evolving task or repairing earlier fragmentation.
 
 ## Preserve evidence and deliver
 
-[Report Evidence](../report-evidence/SKILL.md) owns claims, citations, Source snapshots and graphs;
+[Report Authoring](../report-authoring/SKILL.md) owns claims, citations, Source snapshots and graphs;
 [Token Usage](../token-usage/SKILL.md) owns accounting. Preserve each historical observation
 window and accounting cutoff. Record new evidence and revision boundaries separately; do not
 re-date old evidence, count old usage as new, invent totals or silently refresh accounting.

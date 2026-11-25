@@ -26,7 +26,7 @@
       },
       {
         "prompt": "Verify E1 citations and reference completeness for this saved report",
-        "owner": "report-evidence"
+        "owner": "report-authoring"
       },
       {
         "prompt": "Open the existing TASK in the editor and wait for close before executing",

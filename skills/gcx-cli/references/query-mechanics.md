@@ -67,5 +67,5 @@ Correlate timestamps, resource identifiers, alerts, metrics, logs, and traces ac
 window and a relevant baseline. Test competing explanations. Return observed facts, the
 supported cause or ranked hypotheses, evidence, gaps, and the next discriminating check. State
 when root cause remains unconfirmed; an error string or correlation alone does not establish it.
-For saved investigations, follow repository Report Evidence, Workflow Artifact Naming, Token
+For saved investigations, follow repository Report Authoring, Workflow Artifact Naming, Token
 Usage, and required Markdown/PDF report contracts.

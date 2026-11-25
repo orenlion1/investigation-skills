@@ -2,7 +2,7 @@
 
 This reference owns the visual specification of the required graph pair for flapping or
 recurring alert investigations: **Daily peaks and alert outcomes** and **Observed Pending and
-Alerting intervals**. The [report-evidence](../../report-evidence/SKILL.md) skill owns the
+Alerting intervals**. The [report-authoring](../../report-authoring/SKILL.md) skill owns the
 requirement that the pair exists and matches the report's evidence; this reference owns how
 the pair looks and renders. These are complementary views of the same evidence: the daily
 summary compares peak magnitude and outcome; the interval view explains when states began,

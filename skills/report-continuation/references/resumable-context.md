@@ -96,7 +96,7 @@ files explicitly. A relative path is not portable unless its target is included 
 by the recipient. Identify evidence that cannot be transferred and its effect on resumption.
 
 [Workflow Artifact Naming](../../workflow-artifact-naming/SKILL.md) owns supporting artifact
-locations, [Report Evidence](../../report-evidence/SKILL.md) owns evidence/reference checks, and
+locations, [Report Authoring](../../report-authoring/SKILL.md) owns evidence/reference checks, and
 [Publish It](../../publish-it/SKILL.md) owns authorized packaging/publication. Route dependency
 packaging there when authorized; this contract does not upload, publish or widen access.
 Record readiness separately from report completion: ready, partial with enumerated gaps, or

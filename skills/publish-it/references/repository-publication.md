@@ -3,7 +3,7 @@
 Use this guidance only within an explicitly authorized publication whose effective destination
 list names a repository. It delivers the packaged investigation artifacts to a GitHub or
 Bitbucket repository as one publication branch and one pull request. The package, the
-[reference gate](../../report-evidence/references/reference-completeness.md) and the evidence
+[reference gate](../../report-authoring/references/reference-completeness.md) and the evidence
 rules are the ones [Publish It](../SKILL.md) already applied; this procedure adds only what a
 repository destination needs.
 

@@ -65,7 +65,7 @@ capability or access gap into the ledger and final report.
   fix.
 - Cite the repository, exact inspected commit, file path, line range, and commit-pinned
   source URL beside each material causal claim and proposed change location, using the
-  [report-evidence](../report-evidence/SKILL.md) index discipline.
+  [report-authoring](../report-authoring/SKILL.md) index discipline.
 - Verify the deployed source revision when available. If deployment provenance is
   unavailable, distinguish findings in the inspected revision from claims about production.
 - If evidence cannot establish a root cause or fix, report the unresolved gap, clearly label

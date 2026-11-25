@@ -122,7 +122,7 @@ A common symptom or similar words do not establish a common root cause.
 Report the endpoint coverage table, searched windows/terms/caps, matching and contradictory
 facts, evidence references and source versions, sanitized failures, and the next evidence
 needed to test hypotheses. Cite the manifest in the report's Source snapshot and apply the
-repository's Report Evidence rules. A successful connection proves access only; empty bounded
+repository's Report Authoring rules. A successful connection proves access only; empty bounded
 searches prove no matches only in that scope. Do not claim live verification from skill evals.
 
 ## Dependencies
