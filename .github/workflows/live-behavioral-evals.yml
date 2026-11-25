@@ -2,8 +2,8 @@ name: Live Behavioral Evals
 
 # Opt-in and on demand only: executes behavioral evals against a model when someone starts
 # it. It never runs on pull requests, merge queues or pushes, because each run spends model
-# usage. It needs the ANTHROPIC_API_KEY Actions secret
-# (scripts/set-anthropic-api-key-secret.sh).
+# usage. It authenticates to Anthropic through GitHub OIDC workload identity federation
+# (ANTHROPIC_FEDERATION_RULE_ID and ANTHROPIC_ORGANIZATION_ID repository variables).
 #
 # Spend is metered and capped: every model call goes through scripts/live-evals-runner/claude,
 # which records its cost, and runs pause once the month's spend reaches the
