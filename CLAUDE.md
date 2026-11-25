@@ -84,7 +84,7 @@ the task's Resources; honor that for the stated scope without re-asking.
 ## Per-Store Fan-Out Policy
 
 Fan-out creates no scope or authority: sub-agents inspect only what the task's Resources
-name, AWS work stays within the allowed Regions, and sub-agents never mutate, acknowledge,
+name, AWS work stays within the Regions the task's Resources name, and sub-agents never mutate, acknowledge,
 message, or publish — those remain separately authorized.
 
 The Per-Store Fan-Out skill sets the minimum delegation for an investigation, not a ceiling.
