@@ -200,7 +200,9 @@ Template bullets are either **resources** (what to investigate, where to publish
 
 | Field | Task bullet | Default | Legacy values | `show` reports | `disabled` means |
 | --- | --- | --- | --- | --- | --- |
-| `GENERATE_PDF` | `Generate PDF` | `enabled` | `T` = `enabled`, `F` = `disabled` | `effective_generate_pdf` | Markdown report only |
+| `GENERATE_MARKDOWN` | `Generate Markdown` | `enabled` | none | `effective_generate_markdown` | No Markdown report artifact |
+| `GENERATE_HTML` | `Generate HTML` | `disabled` | none | `effective_generate_html` | No standalone HTML artifact |
+| `GENERATE_PDF` | `Generate PDF` | `enabled` | `T` = `enabled`, `F` = `disabled` | `effective_generate_pdf` | No PDF artifact |
 | `GRAFANA_ASSISTANT` | `Grafana Assistant` | `enabled` | none | `effective_grafana_assistant` | No Assistant prompts |
 | `FAN_OUT` | `Fan-out` | `enabled` | none | `effective_fan_out` | Inline investigation |
 
@@ -232,12 +234,36 @@ python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . set
 python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . show --profile team
 ```
 
+### Report formats
+
+`GENERATE_MARKDOWN`, `GENERATE_PDF` and `GENERATE_HTML` select independent outputs.
+Each can be the only enabled format. Defaults preserve Markdown and PDF delivery, with HTML
+opt-in. Disabling Markdown never suppresses HTML or PDF. Resolve settings before dependencies;
+only selected formats require renderers and format-specific checks. All outputs retain the same
+findings, evidence, graphs and accounting cutoff. The
+[delivery contract](../../open-edit-close-execute/references/investigation-delivery.md#report-formats)
+owns source identity and validation; [Publish It](../../publish-it/references/html-generation.md)
+owns HTML generation and packaging. Settings do not authorize publication.
+
+### HTML theme
+
+`HTML_THEME` comes from the `HTML theme` template bullet. It is a non-resource enum:
+`light`, `dark` or `system`, default `system`, with no legacy aliases. Input is case-insensitive
+and stored lowercase. `show` reports `effective_html_theme`. Its default, persistence, clearing,
+composition, task precedence, bare/quoted task values and lint rules follow the other settings.
+A custom template without the bullet gains neither the field nor its default.
+
+For the standalone HTML, `system` follows the browser preference. Fixed `light` or `dark` keeps the canvas
+and theme-aware diagram selection in that mode, even when the viewer uses the opposite theme.
+Confluence native figures follow Publish It's separate theme procedure.
+The setting does not enable HTML generation or authorize publication. Resolve it before
+rendering and record it in the HTML generation receipt. Publish It owns the
+[renderer behavior](../../publish-it/references/html-generation.md#appearance).
+
 ### Generate PDF
 
-Resolve this choice before report dependencies. `enabled` generates and verifies the current
-PDF. `disabled` keeps verified Markdown, evidence and required graphs, skips PDF-only tooling
-and checks, and preserves older PDFs as historical. Record the choice with the saved report
-so later publication honors it without attaching stale companions.
+Select and validate PDF under the report format contract above. Preserve older PDFs as historical
+when disabled; never attach one as a current companion.
 
 ### Grafana Assistant
 

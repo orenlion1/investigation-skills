@@ -66,22 +66,29 @@ pass. Final delivery distinguishes completed findings from outstanding evidence/
 
 ## Report formats
 
-Resolve the effective Generate PDF choice before PDF dependency setup, rendering or verification,
-using [Profile Manager's contract](../../profile-manager/references/profile-store.md#generate-pdf).
-For a finalized task use its validated saved Resources choice (explicit task > profile > absent `enabled`).
-Reject invalid or duplicate values before report work; a toggle alone is never a resource.
+Resolve Generate Markdown, Generate PDF and Generate HTML before rendering or dependency setup,
+using [Profile Manager's settings contract](../../profile-manager/references/profile-store.md#report-formats).
+Defaults are Markdown `enabled`, PDF `enabled`, HTML `disabled`. For a finalized task, use its
+validated saved Resources choices (explicit task > loaded profile > defaults). Reject invalid or
+duplicate settings; a toggle alone is never a resource. At least one report format must be enabled
+for report delivery; if all are disabled, resolve the missing output choice before report production.
 
-Always produce verified Markdown with the required evidence and graphs. Record `Generate PDF: enabled`
-or `Generate PDF: disabled` in the saved report's delivery metadata, its source revision/hash and the
-produced/skipped formats. Read a legacy saved `T` as `enabled` and `F` as `disabled`. `enabled`
-generates and verifies a PDF companion from the same saved source,
-including reference coverage and readable layout. `disabled` skips PDF rendering, PDF-only dependencies,
-PDF-only reference checks and pagination checks; all Markdown/evidence/graph gates still apply.
-A historical PDF is preserved, identified as historical and excluded from new companions and
-current artifact links. Never delete it or infer freshness from the filename. Resolve only the
-formats being produced through Workflow Artifact Naming, and read back those outputs.
+Build one canonical body of findings, evidence, graphs and accounting metadata. Render each selected
+format independently from that content; a delivered Markdown file is never a prerequisite for HTML
+or PDF. An internal Markdown representation may be passed in memory, on stdin or through a temporary
+working file; it is not a selected deliverable and must not be linked, attached or retained as a report
+when Generate Markdown is `disabled`. HTML-only, PDF-only and Markdown-only are supported.
+Use [Publish It's HTML generator](../../publish-it/references/html-generation.md) for selected HTML.
 
-Later authorized publication consumes that saved format decision and same-source inventory;
-it does not refresh the investigation, timer or accounting cutoff. `disabled` needs no PDF attachment,
-preview or download card. A changed task/profile cannot silently reinterpret a frozen report:
-reconcile a conflict before dependent writes. Publication still requires separate authorization.
+Record all three effective settings, a hash of the canonical content, the source revision and the
+produced/skipped formats in each selected report's delivery metadata and the same-source inventory.
+Read legacy Generate PDF `T`/`F` as `enabled`/`disabled`. Validate evidence and required graphs in
+every selected output, with format-specific reference and visual checks. Disabled formats require
+no renderer, dependency, attachment, preview, download card or format-only check. Preserve older
+files as historical outside the current inventory; never infer freshness from a filename.
+Resolve only produced formats through Workflow Artifact Naming and read the outputs back.
+
+Later authorized publication consumes the frozen settings and same-source inventory; it does not
+refresh the investigation, timer or accounting cutoff. Reconcile task/report setting conflicts
+before dependent writes. Publication still requires separate authorization. An HTML-only report is
+a valid supplied report, including when no Markdown companion exists.

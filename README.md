@@ -121,7 +121,10 @@ Optional lines in the task's Resources section adjust how a run behaves:
 | `Publish: <page or repository>` | none | Where the report is published; repeat the line for several destinations. Best set once in a profile — see [Publish the report](#publish-the-report). Publishing still needs your request. |
 | `Grafana Assistant: disabled` | enabled | Skips Grafana Assistant prompts, which can incur fees beyond ordinary Grafana usage; direct queries still run. |
 | `Fan-out: disabled` | enabled | Investigates in one session instead of parallel sub-agents. Can be saved in a profile. |
-| `Generate PDF: disabled` | enabled | Produces the Markdown report only. |
+| `Generate Markdown: disabled` | enabled | Skips the Markdown report artifact; PDF and HTML remain independent. |
+| `Generate PDF: disabled` | enabled | Skips the PDF report artifact. |
+| `Generate HTML: enabled` | disabled | Generates a portable HTML report and includes it in authorized publication. |
+| `HTML theme: light` | system | Selects fixed `light`, fixed `dark`, or `system` appearance for the HTML download canvas and diagrams. |
 | `Rhyming endpoints: <JSON>` | none | Past investigations, pages, channels, or repositories to search for similar incidents. |
 | `Rhyming historical window days: <n>` | `7` | How far back that search looks. |
 
@@ -220,6 +223,13 @@ A report can be published to one or more destinations, of two kinds:
 | --- | --- |
 | A Confluence page | The report as a child page, with its diagrams and evidence, and the original report and task attached as downloads. |
 | A GitHub or Bitbucket repository | The report, task, PDF, and assets on a branch, with a pull request for you to review and merge. |
+
+For an HTML-only Confluence report, use `publish it --report <HTML path> --parent <page URL>
+HTML only, light mode` (or dark/system mode). Only HTML report downloads are uploaded; the
+available parent TASK and cited evidence remain supporting attachments. The HTML download
+retains its selected appearance and embedded diagrams. The readable Confluence page follows
+the viewer's page theme, with native figure behavior verified separately. See
+[HTML-only Confluence publication](skills/publish-it/references/confluence-html-only.md).
 
 ### Set the destinations once
 

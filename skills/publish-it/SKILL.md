@@ -1,6 +1,6 @@
 ---
 name: publish-it
-description: "Publish an existing task, report, or both to one or more destinations, Confluence pages and GitHub or Bitbucket repositories, with the original files as downloadable evidence plus diagrams, PDF and cited assets, then verify each result. Use when handling `publish it` or `publish-it` requests with a TASK path, a report path, or both. Does not run an investigation or publish a software release."
+description: "Publish an existing task, report, or both to one or more destinations, Confluence pages and GitHub or Bitbucket repositories, with the original files as downloadable evidence plus selected report formats, diagrams and cited assets, then verify each result. Use when handling `publish it` or `publish-it` requests with a TASK path, a report path, or both. Does not run an investigation or publish a software release."
 ---
 
 # Publish It
@@ -21,7 +21,7 @@ publishing decisions here.
 - Authorized publication of an existing investigation task or report to a Confluence page.
 - Authorized publication of the same artifacts to a GitHub or Bitbucket repository.
 - Publishing one investigation to several destinations named in its task or the request.
-- Packaging companion artifacts, diagrams, and PDFs for a published page or repository.
+- Packaging selected report formats, diagrams and cited assets for publication.
 
 ## Arguments
 
@@ -89,9 +89,8 @@ tickets, releases, merging or approving the pull request, pushing to a default o
 branch, other source-control changes, changes to production resources, or changes to other pages
 or repositories. Existing authorization needs no repeat prompt.
 
-Build the package and run the reference preflight once, then publish to each destination in
-list order. Destinations are independent: a failed or blocked destination neither cancels nor
-rolls back the others, and no destination's success stands in for another's. Record every
+Package and run reference preflight once; publish in destination order. Destinations are
+independent: a failed or blocked destination neither cancels nor rolls back the others, and no destination's success stands in for another's. Record every
 destination's outcome in the publication manifest and return one result per destination.
 
 ## Resolve and package
@@ -107,13 +106,14 @@ destination's outcome in the publication manifest and return one result per dest
    do not claim both were published. If the caller requires both, stop that publication until both
    are available. A task-only publication presents its saved requirements and recorded outcomes;
    it does not execute them or invent a completed investigation report.
-3. Resolve the saved report's effective Generate PDF choice and same-source metadata under the
+3. Resolve the saved report's independent Markdown/PDF/HTML choices and same-source metadata under the
    [format contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats).
-   Absent values default `enabled`; legacy `T`/`F` read as `enabled`/`disabled`. `disabled`
-   excludes historical PDFs and requires no PDF attachment,
-   card, preview, renderer or PDF-only validation dependency. Preserve old files. Reject invalid
-   values and reconcile conflicting task/report decisions before writes.
-   Build a bounded inventory: parent TASK, original report source, selected matching available PDF,
+   Defaults: Markdown/PDF `enabled`, HTML `disabled`; legacy PDF `T`/`F` remain valid.
+   Disabled formats need no artifacts or tooling; preserve historical files outside the package.
+   Reject invalid values and reconcile task/report conflicts before writes. An HTML-only report
+   needs no Markdown/PDF companion. Follow [HTML generation](references/html-generation.md) and
+   [HTML-only Confluence](references/confluence-html-only.md) for its format/theme overrides.
+   Build a bounded inventory: parent TASK, selected original reports and matching generated companions,
    every report diagram and caption, theme variants, editable diagram sources, and actually cited
    local evidence. Follow links only within verified authorized roots. Do not upload whole task/log
    directories, credential caches, conversation transcripts or unreferenced files. Resolve filename
@@ -123,8 +123,8 @@ destination's outcome in the publication manifest and return one result per dest
    match the same source/version; do not silently attach a stale PDF. Publication alone preserves
    evidence windows, revision pins, findings, captions, caveats and token-accounting cutoffs.
    Reference [Token Usage](../token-usage/SKILL.md) for accounting requirements rather than
-   recounting the publishing session as the historical investigation. Generate new formats or
-   refresh evidence only when authorized, with the applicable report/diagram skills and checks.
+   recounting publishing as historical investigation. Generate selected HTML under its procedure;
+   other new formats or evidence refreshes require authorization and their report/diagram checks.
 5. Resolve any local publication manifest, composed HTML and read-back evidence paths through
    Workflow Artifact Naming before writes. Record input hashes, the selected destination, file
    roles, attachment/media mappings, published version, checks and remaining gaps. Preserve local
@@ -135,14 +135,13 @@ destination's outcome in the publication manifest and return one result per dest
 Before **any publication write** to any destination, including attachment preparation/uploads,
 draft creation, branch pushes and pull requests,
 apply [Report Evidence reference completeness](../report-evidence/references/reference-completeness.md).
-Check the selected Markdown/PDF and composed HTML from the same source revision; require zero
-unresolved material occurrences and reviewed source-derived targets. A valid existing-link list,
-complete attachment inventory, matching hashes or successful conversion dry run cannot substitute.
+Apply its attachment-only source check before uploads, then its strict hosted-reference check
+before page writes; require zero unresolved occurrences and reviewed targets. Link lists, inventories, hashes or conversion dry runs cannot substitute.
 Stop publication on a missing, wrong-target, broken-fragment, ambiguous, unavailable or unverified
 required reference. Preserve the diagnostics; never invent a destination to pass the gate.
 
 After publication, repeat the occurrence check against saved published HTML from the same page
-identity/version, verify native media with adjacent captions and refreshed source/PDF downloads,
+identity/version, verify native media with adjacent captions and selected report downloads,
 and compare download hashes. Retain the preflight and saved-page receipts with explicit browser,
 anchor-landing and preview results. A browser capability or authentication gap stays incomplete.
 
@@ -152,12 +151,11 @@ Read the procedure for each destination kind in the effective list before extern
 [Confluence publication](references/confluence-publication.md) for pages (live tool schemas,
 semantic-success checks, draft snapshots, media collections, timeout reconciliation,
 published-version read-back) and [repository publication](references/repository-publication.md)
-for repositories. Both share this package, preflight and evidence rules; the page requirements
-below have repository equivalents in that procedure.
+for repositories.
 
 For a page, verify the destination and duplicates, compose the report as the page body, attach the
 original report and parent task as supporting evidence with clearly labeled download cards, and
-include the inventoried diagrams/evidence and, only when selected, the matching PDF.
+include inventoried diagrams/evidence and each selected report format.
 
 Completion requires the intended published page and hierarchy, all selected file downloads,
 the full diagram/caption/evidence inventory, working anchors and native media, and the requested

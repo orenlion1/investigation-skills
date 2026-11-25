@@ -29,6 +29,8 @@ LIST_FIELDS = {'REPO': 'repository-or-array', 'SLACK_CHANNEL': 'channel-or-array
                'PUBLISH': 'destination-or-array'}
 HISTORICAL_WINDOW = 'RHYMING_HISTORICAL_WINDOW_DAYS'
 DEFAULT_HISTORICAL_WINDOW_DAYS = '7'
+GENERATE_MARKDOWN = 'GENERATE_MARKDOWN'
+GENERATE_HTML = 'GENERATE_HTML'
 GENERATE_PDF = 'GENERATE_PDF'
 GRAFANA_ASSISTANT = 'GRAFANA_ASSISTANT'
 # Settings contract: every toggle setting takes exactly these two values.
@@ -36,13 +38,23 @@ ENABLED = 'enabled'
 DISABLED = 'disabled'
 TOGGLE_VALUES = (ENABLED, DISABLED)
 TOGGLE_ERROR = '; expected ' + ENABLED + ' or ' + DISABLED
+DEFAULT_GENERATE_MARKDOWN = ENABLED
+DEFAULT_GENERATE_HTML = DISABLED
 DEFAULT_GENERATE_PDF = ENABLED
 DEFAULT_GRAFANA_ASSISTANT = ENABLED
 FAN_OUT = 'FAN_OUT'
 DEFAULT_FAN_OUT = ENABLED
-CONTROL_DEFAULTS = {GENERATE_PDF: DEFAULT_GENERATE_PDF,
+CONTROL_DEFAULTS = {GENERATE_MARKDOWN: DEFAULT_GENERATE_MARKDOWN,
+                    GENERATE_HTML: DEFAULT_GENERATE_HTML,
+                    GENERATE_PDF: DEFAULT_GENERATE_PDF,
                     GRAFANA_ASSISTANT: DEFAULT_GRAFANA_ASSISTANT,
                     FAN_OUT: DEFAULT_FAN_OUT}
+HTML_THEME = 'HTML_THEME'
+HTML_THEMES = ('light', 'dark', 'system')
+DEFAULT_HTML_THEME = 'system'
+SETTING_DEFAULTS = {**CONTROL_DEFAULTS, HTML_THEME: DEFAULT_HTML_THEME}
+
+
 LINT_MESSAGE = ('the profile store holds legacy or hand-edited settings; ask the user to run '
                 '"lint profiles" (lint --fix) to update their .env')
 TASK_LINT_MESSAGE = ('task Resources hold legacy, hand-edited or illegal settings; ask the user '
@@ -215,9 +227,9 @@ def parse_template(text):
         fields[HISTORICAL_WINDOW].update(
             type='positive-integer-days', default=DEFAULT_HISTORICAL_WINDOW_DAYS,
             render_requires='RHYMING_ENDPOINTS')
-    for key, default in CONTROL_DEFAULTS.items():
+    for key, default in SETTING_DEFAULTS.items():
         if key in fields:
-            fields[key].update(type='enum', enum=list(TOGGLE_VALUES), default=default,
+            fields[key].update(type='enum', enum=list(HTML_THEMES if key == HTML_THEME else TOGGLE_VALUES), default=default,
                                resource=False)
             if key in LEGACY_TOGGLE_VALUES:
                 fields[key].update(legacy_values=dict(LEGACY_TOGGLE_VALUES[key]))
@@ -348,6 +360,11 @@ def check_field(field, value):
     """Validate one field and return the value to use, canonical for toggle settings."""
     if field in CONTROL_DEFAULTS:
         return toggle_value(field, value)
+    if field == HTML_THEME:
+        spelling = value.strip().casefold() if isinstance(value, str) else None
+        if spelling not in HTML_THEMES:
+            raise ProfileError('invalid HTML_THEME; expected light, dark or system')
+        return spelling
     if field in LIST_FIELDS:
         if isinstance(value, str) and not value.startswith('['):
             check_value(value)
@@ -527,7 +544,7 @@ def render_store(lines, managed, name, values):
 def render_section(schema, values):
     """Render the Resources section body from resolved values, omitting unset bullets."""
     values = dict(values)
-    for field, default in CONTROL_DEFAULTS.items():
+    for field, default in SETTING_DEFAULTS.items():
         if field in schema['fields']:
             values.setdefault(field, default)
     actual_resources = False
@@ -544,7 +561,7 @@ def render_section(schema, values):
             continue
         if primary == HISTORICAL_WINDOW and 'RHYMING_ENDPOINTS' not in values:
             continue
-        if primary not in (*CONTROL_DEFAULTS, HISTORICAL_WINDOW):
+        if primary not in (*SETTING_DEFAULTS, HISTORICAL_WINDOW):
             actual_resources = True
         if primary in LIST_FIELDS:
             bullets.extend('- ' + bullet['label'] + ': `' + entry + '`'
@@ -591,6 +608,12 @@ def command_show(arguments, context):
     return {'profile': arguments.profile, 'store': context['env_relative'], 'fields': known,
             'unknown_fields': unknown,
             'missing_fields': sorted(set(context['schema']['fields']) - set(known)),
+            'effective_generate_markdown': known.get(GENERATE_MARKDOWN, DEFAULT_GENERATE_MARKDOWN)
+            if GENERATE_MARKDOWN in context['schema']['fields'] else None,
+            'effective_html_theme': known.get(HTML_THEME, DEFAULT_HTML_THEME)
+            if HTML_THEME in context['schema']['fields'] else None,
+            'effective_generate_html': known.get(GENERATE_HTML, DEFAULT_GENERATE_HTML)
+            if GENERATE_HTML in context['schema']['fields'] else None,
             'effective_generate_pdf': known.get(GENERATE_PDF, DEFAULT_GENERATE_PDF)
             if GENERATE_PDF in context['schema']['fields'] else None,
             'effective_grafana_assistant': known.get(GRAFANA_ASSISTANT,
@@ -619,7 +642,7 @@ def command_set(arguments, context):
     if (values and HISTORICAL_WINDOW in schema['fields'] and HISTORICAL_WINDOW not in cleared
             and (not existing or 'RHYMING_ENDPOINTS' in values)):
         values.setdefault(HISTORICAL_WINDOW, DEFAULT_HISTORICAL_WINDOW_DAYS)
-    for field, default in CONTROL_DEFAULTS.items():
+    for field, default in SETTING_DEFAULTS.items():
         if values and field in schema['fields'] and field not in cleared:
             values.setdefault(field, default)
     for field in list(values):
@@ -694,7 +717,7 @@ def command_compose(arguments, context):
     values.update(overrides)
     # Defaults apply only after all stored source values have been reconciled.
     if values:
-        for field, default in (*CONTROL_DEFAULTS.items(),
+        for field, default in (*SETTING_DEFAULTS.items(),
                                (HISTORICAL_WINDOW, DEFAULT_HISTORICAL_WINDOW_DAYS)):
             if field in context['schema']['fields']:
                 values.setdefault(field, default)
@@ -822,7 +845,7 @@ def command_load(arguments, context):
     known.update(explicit_fields(arguments.field, context['schema']))
     bullets = render_section(context['schema'], known)
     toggles = {squash(bullet['label']) for bullet in context['schema']['bullets']
-               if bullet['keys'][0] in CONTROL_DEFAULTS}
+               if bullet['keys'][0] in SETTING_DEFAULTS}
     supplied = supplied_values([line for line in section
                                 if squash(line[2:].split(':', 1)[0]) not in toggles])
     if supplied and not arguments.replace:
@@ -911,13 +934,13 @@ def task_fields(lines, schema):
             r'(?:; ' + re.escape(bullet['sublabels'][key]) + r' `([^`]*)`)?'
             for key in bullet['keys'][1:])
         parsed = re.fullmatch(pattern, match.group('rest')) if match else None
-        if parsed is None and primary in CONTROL_DEFAULTS and match:
-            # Task toggle settings also permit the bare enabled/disabled form.
-            parsed = re.fullmatch('(' + '|'.join(TOGGLE_VALUES) + ')',
+        if parsed is None and primary in SETTING_DEFAULTS and match:
+            # Enum settings also permit unquoted canonical values.
+            parsed = re.fullmatch('(' + '|'.join(schema['fields'][primary]['enum']) + ')',
                                   match.group('rest').strip(), re.IGNORECASE)
         if not parsed:
-            if primary in CONTROL_DEFAULTS:
-                raise ProfileError('invalid ' + primary + TOGGLE_ERROR)
+            if primary in SETTING_DEFAULTS:
+                check_field(primary, '')
             raise ProfileError('invalid task resource field ' + primary)
         for key, value in zip(bullet['keys'], parsed.groups()):
             if value is None or (value.startswith('<') and value.endswith('>')):
@@ -1030,14 +1053,14 @@ def lint_task(lines, schema):
             findings.append(finding('label-spelling', 'task', index + 1, True,
                                     canonical=bullet['label'], **where))
             replace[index] = '- ' + bullet['label'] + ': ' + rest
-        if primary not in CONTROL_DEFAULTS:
+        if primary not in SETTING_DEFAULTS:
             continue
         quoted = re.fullmatch(r'`([^`]*)`', rest)
         value = quoted.group(1) if quoted else rest.strip()
         if value.startswith('<') and value.endswith('>'):
             continue
         try:
-            canonical = toggle_value(primary, value)
+            canonical = check_field(primary, value)
         except ProfileError:
             findings.append(finding('invalid-value', 'task', index + 1, False, **where))
             continue

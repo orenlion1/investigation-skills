@@ -27,11 +27,16 @@ Retain the returned page identity before dependent work. For classic-page update
 
 ## Compose the report
 
+For HTML-only selection, first read [HTML-only Confluence publication](confluence-html-only.md):
+it owns report-format overrides, portable downloads and native versus downloaded theme behavior.
+
 Present the selected report's findings, evidence index, diagrams, adjacent captions and limitations
 as readable page content, preserving the canonical meaning. The page's hierarchy comes from the
 verified destination; its title comes from the selected artifacts or caller, not a generic test
 placeholder. For task-only input, present the task's actual requirements and recorded status;
-the page identifies its actual scope and includes its task download. For a PDF-only report,
+the page identifies its actual scope and includes its task download. For an HTML-only report, inspect its readable content and references, attach the original HTML
+and its inventoried assets, and compose the page without requiring a Markdown/PDF companion.
+For a PDF-only report,
 inspect it with suitable tooling, attach the original and publish a faithful readable summary or
 conversion; disclose any conversion limitation. Do not claim a full rich page if only a file card
 was delivered.
@@ -40,23 +45,25 @@ Replace local-only links in the page with published references or native attachm
 short evidence headings such as `<h3>E1</h3>` and same-page links such as `<a href="#E1">E1</a>`;
 verify them after publication rather than relying on arbitrary HTML anchor IDs surviving conversion.
 Keep external source URLs and revision pins. Add **Report download** and **Parent task download**
-sections for the available original inputs, including the matching PDF when present. Original
+sections for the available original inputs, including PDF only when selected. Original
 source attachments retain their bytes and may retain local references for provenance; the rendered
-page must supply the usable published references. Attach theme variants and editable diagram
-sources without replacing the main figures with source-file cards. Keep all inventoried figures
+page must supply the usable published references. Compose native theme pairs through the HTML-only reference independently of the download theme.
+Attach editable diagram sources without replacing main figures with source-file cards. Keep all inventoried figures
 and their qualifications beside them, including when a different page layout is necessary.
 
 ## Reference gate before the first write
 
 Before attachment preparation, upload, create/update or any other publication write, run the
 [shared reference-completeness gate](../../report-evidence/references/reference-completeness.md)
-on the original Markdown, matching current PDF and composed page HTML. Review every material
+on each selected source report/download format and composed page HTML.
+HTML-only publication checks HTML directly; absent disabled Markdown/PDF inputs are not gaps. Review every material
 occurrence across prose, tables and evidence entries. A missing occurrence fails even when the
-same URL is linked elsewhere. A nonzero helper result blocks writes; unavailable provenance or
+same URL is linked elsewhere. A nonzero applicable helper result blocks its dependent writes; unavailable provenance or
 unsupported extraction is incomplete, never an empty passing population.
 
-If native media IDs are not yet known, validate source-reference completeness before the first
-write, and retain unresolved native-media slots as a distinct packaging dependency. Do not call
+Before uploads, resolve valid local evidence through the shared attachment-only source validator.
+Native media IDs remain a packaging dependency until upload returns verified IDs/collections;
+that source receipt never authorizes the page write. Do not call
 the final composed page complete until verified upload IDs/collections replace those slots and
 its complete inventory passes. A new-page draft may be needed to establish the owning page's
 collection; it does not waive the source-reference gate or authorize another destination.
@@ -111,7 +118,7 @@ For a PDF/file card, use `media-group` with a `media` child. For an inline attac
 `data-media-collection`, and `data-alt`, as specified by the live guide. Local paths do not
 upload files, and attachment download URLs are not substitutes for native media embeds.
 
-Attach the available report source, matching PDF and parent TASK through the same upload
+Attach selected report formats and the available parent TASK through the same upload
 operation, preserving their filenames and bytes. The **Parent task download** section holds a
 native file card using the task's returned media ID and resolved owning-page collection.
 Preserve the task's requirements,
@@ -152,13 +159,13 @@ After publishing, read the **published** page (`draft` omitted or false) in full
 Repeat the shared occurrence gate on this saved published HTML and reconcile the exact page
 ID, published version and source hashes with the preflight. A changed Confluence title suffix is
 acceptable only when origin, space/page identity, query and evidence fragment are unchanged.
-Re-download refreshed Markdown/PDF attachments and compare their SHA-256 values with the exact
+Re-download each selected report attachment, including HTML derivatives, and compare hashes with the exact
 validated originals. Reject stale companions and mismatched native-media IDs or collections.
 The media and caption checks remain separate from the helper's authored-link result.
 
 Use the browser for remaining visual acceptance: load every diagram, including lazy-loaded
 ones, verify nonzero image dimensions and inspect readability at the delivered size. Test
-evidence-anchor navigation and the PDF/file preview. A successful dry run or media ID in HTML
+evidence-anchor navigation and selected file previews/downloads. A successful dry run or media ID in HTML
 does not prove an image loads. Record capability gaps rather than reporting complete publication.
 
 ## Record and resume
@@ -177,12 +184,12 @@ again, or identify the exact saved snapshot already published.
 Report the actual result and URL, including missing companions or incomplete verification.
 Creating or revising this skill alone does not authorize replaying an earlier publication.
 
-## Conditional PDF inventory
+## Conditional format inventory
 
-Follow the [saved report format decision](../../open-edit-close-execute/references/investigation-delivery.md#report-formats)
-before attachment preparation or dependency setup. All Markdown/PDF, file-preview and download
-instructions above apply only to selected formats. Generate PDF `disabled` publishes the verified
-Markdown source, available TASK, composed HTML and required diagrams/evidence without requiring
-or uploading a PDF. Preserve historical PDFs outside the current inventory. Verify current
-downloads and native media; never skip shared evidence/browser checks. This does not authorize
-publication, refresh accounting or rerun an investigation.
+Follow the [saved format decision](../../open-edit-close-execute/references/investigation-delivery.md#report-formats)
+before dependency setup or attachment preparation. Markdown/PDF/standalone HTML attachments,
+previews and downloads apply only to selected formats. HTML-only, PDF-only and Markdown-only
+reports are valid inputs. Generate HTML `disabled` suppresses the downloadable HTML artifact;
+it does not suppress Confluence page HTML, native media or page read-back receipts. Verify every
+selected download and its source hash. Preserve historical files outside the current inventory.
+Shared evidence/browser checks and publication authorization still apply.
