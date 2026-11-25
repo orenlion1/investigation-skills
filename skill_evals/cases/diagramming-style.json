@@ -35,7 +35,7 @@
       "expectations": [
         "Does not put the caveat in a rendered title, node, edge, or legend",
         "Moves the qualification to an adjacent caption or prose without changing the claim",
-        "Verifies both light and dark rendered outputs"
+        "Inspects both the light and dark SVG exports (for example by reading or searching their text) and reports that neither contains the caveat and the rendered title is unchanged"
       ],
       "files": [
         "diagramming-style-caveat"
@@ -50,8 +50,9 @@
         "Inspects the supplied rendered reference and source and matches its requested shapes, grouping, placement, and palette rather than applying plain-label defaults over the request",
         "Uses solid lifecycle handoffs and four dashed invokes branches from Investigate to peer integrations with the exact requested labels",
         "Does not depict integration order or guaranteed parallel execution; layout-only edges stay invisible",
-        "Keeps artifact details, as-needed integration selection, and separate publication authorization in adjacent prose",
-        "Regenerates all delivered light, dark, and adaptive exports, updates captions and alt text, and verifies theme parity, visual output, and overlaps",
+        "Edits docs/WORKFLOW.md prose beside the diagram to keep artifact details, as-needed integration selection, and Publish's separate authorization out of the diagram",
+        "Updates the WORKFLOW.md caption and alt text to describe the five-step lifecycle and the four invoked integrations",
+        "Regenerates the light, dark and adaptive exports with diagrams/render.sh and checks theme parity and overlaps, or, if Graphviz is unavailable, names the stale exports and does not hand-write SVG",
         "Limits the reference-style exception to the requested workflow instead of restyling unrelated diagrams"
       ],
       "files": [

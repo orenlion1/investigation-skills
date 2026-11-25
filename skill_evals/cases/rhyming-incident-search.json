@@ -72,17 +72,17 @@
       ]
     },
     {
-      "prompt": "Search my configured endpoint profile with no caller window; the current incident starts 2026-11-09T15:00:00Z and the profile specifies 7 historical days.",
-      "expected_output": "Resolves one shared historical window from 2026-11-02T15:00:00Z to 2026-11-09T15:00:00Z and applies it to all endpoint briefs.",
+      "prompt": "Profile example's validated endpoint read (profile_env.py endpoints --profile example, already run) returned historical_window_days 7 and two endpoints: hist-inv (grafana-investigations, context ops, target service-a) and hist-conv (grafana-assistant-conversations, context ops, target service-a; its list has no server-side time filter). No caller historical window was given; the current incident starts 2026-11-09T15:00:00Z. Before launching any child, state the historical window you will put in each brief and where its length comes from, how an explicit caller window would change it, how you treat hist-conv's missing time filter, and what you would do had the endpoint read returned no endpoints.",
+      "expected_output": "Resolves one shared historical window from 2026-11-02T15:00:00Z to 2026-11-09T15:00:00Z UTC from historical_window_days, applies it to both briefs, gives caller windows precedence, discloses incomplete temporal coverage for hist-conv, and skips history when no endpoints exist.",
       "id": 5,
       "kind": "dialogue",
       "expectations": [
-        "Consumes historical_window_days from the validated profile endpoint command",
+        "Takes the seven-day length from the historical_window_days value in the validated endpoint read",
         "Anchors at incident start and subtracts seven UTC 24-hour days exactly once",
-        "Passes the same absolute timezone window to every endpoint",
+        "Passes the same absolute window, 2026-11-02T15:00:00Z to 2026-11-09T15:00:00Z UTC, to both hist-inv and hist-conv",
         "States that an explicit caller historical window would take precedence over the profile's historical_window_days",
-        "Reports that an endpoint unable to filter by the window server-side leaves temporal coverage incomplete rather than treating it as fully searched",
-        "Skips history when no valid endpoints are configured"
+        "For hist-conv, checks candidate timestamps against the window and reports its temporal coverage as incomplete rather than treating it as fully searched",
+        "States that an endpoint read with no endpoints means no history search and no injected historical window, not a request for endpoints or a no-matches result"
       ]
     },
     {
@@ -99,24 +99,25 @@
     {
       "id": 7,
       "kind": "dialogue",
-      "prompt": "Grafana Assistant: disabled. Profile example configures one grafana-assistant-search endpoint and one grafana-assistant-conversations history endpoint, both in context ops for service-a. The incident is incident-example, starting 2026-11-09T15:00:00Z, with a 7-day historical window. Search both endpoints; before any child starts, tell me what each endpoint child will do.",
+      "prompt": "Grafana Assistant: disabled. Profile example's validated endpoint read (already run) returned one grafana-assistant-search endpoint, match-a, and one grafana-assistant-conversations history endpoint, hist-conv, both in context ops for service-a. The incident is incident-example, starting 2026-11-09T15:00:00Z, with a 7-day historical window. Search both endpoints; before any child starts, tell me what each endpoint child will do.",
       "expected_output": "Sends zero prompts; Records configured disabled limitation, not failure; Continues scoped history list/get without prompt.",
       "expectations": [
         "Sends zero prompts",
-        "Records configured disabled limitation, not failure",
-        "Keeps the scoped history list/get for the conversations endpoint in the run, without any prompt, instead of stopping the whole search"
+        "Records match-a's disabled Assistant matching as a configured limitation, not a failure or no-matches result",
+        "Describes hist-conv's child as running its scoped history list/get reads without any prompt, and does not propose marking hist-conv unavailable or stopping the whole search because Assistant is disabled"
       ]
     },
     {
       "id": 8,
       "kind": "dialogue",
-      "prompt": "Existing compatible Assistant branch already sent its initial prompt. Another search scope uses a different context; first owner later times out with malformed output and missing links.",
-      "expected_output": "Late matching endpoint is unavailable for initial-prompt reuse; no blind duplicate; Never shares across context or scope; Owner failure and uncertain timeout propagate to consumers as unavailable; independent history continues; Missing references remain hypotheses or unavailable, not verified relationships.",
+      "prompt": "Profile example's validated endpoints are match-a (grafana-assistant-search, context ops, scope service-a), match-b and match-c (both grafana-assistant-search, context staging, scope service-a; match-b owns their shared prompt, match-c consumes it) and hist-conv (grafana-assistant-conversations, context ops, target service-a). The current investigation's compatible Assistant branch in context ops, scope service-a, had already sent its initial prompt before match-a was resolved. match-b's owner child later times out, returning malformed output and no conversation links. For each endpoint, say what happens and what you record.",
+      "expected_output": "match-a is unavailable for initial-prompt reuse with no duplicate prompt; ops and staging never share a prompt or receipt; match-b's timeout is uncertain and not resubmitted, match-c becomes unavailable for that execution; hist-conv continues; missing references stay hypotheses or unavailable.",
       "expectations": [
-        "Late matching endpoint is unavailable for initial-prompt reuse; no blind duplicate",
-        "Never shares across context or scope",
-        "Owner failure and uncertain timeout propagate to consumers as unavailable; independent history continues",
-        "Missing references remain hypotheses or unavailable, not verified relationships"
+        "Records match-a as unavailable for initial-prompt reuse because the compatible ops branch already sent its prompt, and sends no second or follow-up prompt for match-a automatically",
+        "Never shares the ops branch's prompt or receipt with the staging endpoints match-b and match-c, or theirs with ops",
+        "Treats match-b's timeout as an uncertain outcome that is not blindly resubmitted, and records consumer match-c as unavailable for that execution",
+        "Keeps hist-conv's history list/get reads running independently of match-b's failure",
+        "Keeps any relationship lacking a retrievable conversation reference as a hypothesis or unavailable, never a verified relationship"
       ]
     }
   ]

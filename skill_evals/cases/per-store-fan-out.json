@@ -59,7 +59,8 @@
       "expectations": [
         "Refuses to run ad hoc inline queries in place of briefed branches",
         "Shows the same templated briefs, each carrying an identical resolved block, to be executed one after another instead of ad hoc queries",
-        "Records or shows a fan-out manifest whose launch mode is a shared-contract value matching what actually ran (sequential only when real agents run one at a time, otherwise unavailable; never an invented value) and states the degradation in the report's Source snapshot"
+        "Records or shows a fan-out manifest whose launch mode is `unavailable` when this session runs the briefs itself, or `sequential` only if real agents run one at a time; not `disabled` (the user claimed missing capability, not a disabled fan-out) and never an invented value",
+        "States that the report's Source snapshot will declare the degradation (the launch mode and its reason), not merely cite the manifest"
       ]
     },
     {
@@ -90,8 +91,8 @@
       "prompt": "The task has Grafana and Slack stores and a profile with two rhyming Grafana history endpoints. Have every store agent independently run the historical search.",
       "expected_output": "The parent invokes rhyming incident search once and keeps historical endpoint delegation distinct from one ordinary agent per store.",
       "expectations": [
-        "Invokes rhyming incident search once in the parent",
-        "Uses one agent per configured historical endpoint even when both use Grafana",
+        "States that the parent session runs rhyming incident search exactly once, rather than each store agent running it",
+        "Plans one historical endpoint agent per configured endpoint (two here), even though both endpoints use Grafana",
         "Does not duplicate the historical search inside store agents"
       ]
     },
@@ -103,27 +104,28 @@
       "expectations": [
         "Prepares prospective unsent Assistant ownership before launch",
         "Schedules the Grafana branch that owns the combined prompt in the same launch batch as the endpoint work, without waiting for historical leads",
-        "Keeps one endpoint child/manifest row per endpoint and links one combined execution",
-        "History-only endpoints do not send prompts"
+        "Keeps one endpoint child and manifest row for each of `match` and `history`",
+        "Names the Grafana branch as the single owner of the combined Assistant prompt and links the endpoint rows to that one execution or receipt",
+        "States that the history-only endpoint (`history`) sends no Assistant prompt"
       ]
     },
     {
       "id": 6,
       "kind": "dialogue",
-      "prompt": "Investigate the Grafana and AWS resources in this task. Task Resources: Grafana context `example`; AWS profile `example-readonly` in `us-east-1`; environment staging; window 2026-11-20T10:00:00Z to 2026-11-20T12:00:00Z (UTC); question: why checkout requests returned HTTP 503. The selected AWS profile has an expired SSO session in an allowed Region, and no AWS MCP tool is exposed. Grafana works. Continue the authorized multi-store investigation and explain how you handle AWS setup.",
+      "prompt": "Investigate the Grafana and AWS resources in this task. Task Resources: Grafana context `example`; AWS profile `example-readonly` in `us-east-1`; environment staging; window 2026-11-20T10:00:00Z to 2026-11-20T12:00:00Z (UTC); question: why checkout requests returned HTTP 503. The selected AWS profile has an expired SSO session in an allowed Region, and no AWS MCP tool is exposed. Grafana works. Continue the authorized multi-store investigation and explain how you handle AWS setup. This workspace is not connected to either store, so treat this as a planning question: show the AWS recovery and setup steps, the store manifest rows and the launch plan before anything runs.",
       "expected_output": "Assesses authentication independently of tool availability, starts the authorized supported AWS sign-in in the parent while preparing permitted MCP setup, and continues independent Grafana work. Records separate authentication, tool, and resource-read outcomes without weakening controls or claiming login proves resource access.",
       "expectations": [
-        "Starts authorized authentication recovery despite the missing AWS MCP tool",
+        "Starts or plans authorized AWS authentication recovery in the parent despite the missing AWS MCP tool",
         "Prepares permitted connection setup independently and records an attempt or explicit blocker for both paths",
         "Records authentication_status, tool_status, and resource_read_status separately in the store row",
-        "Keeps interactive authentication in the parent and continues independent branches",
+        "Keeps interactive AWS authentication in the parent session and launches or plans the independent Grafana branch without waiting on AWS recovery",
         "Honors no-login instructions and safeguards rather than changing providers or weakening controls"
       ]
     },
     {
       "id": 7,
       "kind": "dialogue",
-      "prompt": "The task has three configured Bitbucket repositories and no other integration: example-workspace/orders-api, example-workspace/orders-worker and example-workspace/orders-lib; question: why order events have been duplicated since 2026-11-18 (UTC). Inspect only the first repository inline because this is one store. Show the inspection plan and the repository manifest rows before anything runs.",
+      "prompt": "The task has three configured Bitbucket repositories and no other integration: example-workspace/orders-api, example-workspace/orders-worker and example-workspace/orders-lib; question: why order events have been duplicated since 2026-11-18 (UTC). All three stay in the task's Resources, but inspect only the first repository inline because this is one store. Show the inspection plan and the repository manifest rows before anything runs.",
       "expected_output": "The parent resolves every configured repository and delegates a separate read-only inspection per distinct repository through the shared contract, even with one provider.",
       "expectations": [
         "Triggers repository fan-out with multiple configured repositories even in a single store",
@@ -174,14 +176,14 @@
     {
       "id": 11,
       "kind": "dialogue",
-      "prompt": "Inspect three configured Slack channels in parallel. One channel name is ambiguous across workspaces and one channel is denied. A Grafana store and two repository inspections also run. Have each Slack agent inspect all channels to avoid missing anything.",
+      "prompt": "Inspect three configured Slack channels in parallel. One channel name is ambiguous across workspaces and one channel is denied. A Grafana store and two repository inspections also run. Have each Slack agent inspect all channels to avoid missing anything. Show the unit plan and what each brief may do before anything runs.",
       "expected_output": "Parent owns workspace/channel resolution and one owner per resolved channel, records ambiguity/denial gaps, continues independent work and excludes duplicated ordinary Slack reads.",
       "expectations": [
         "Resolves each workspace/channel identity and access without guessing or broadening scope",
         "Schedules one read-only unit per resolved channel with the shared contract and complete effective Resources",
         "Records ambiguous or denied inputs explicitly and continues unaffected channel/repository/store work",
         "Excludes channel/thread reads already owned by channel units from any ordinary Slack brief, or omits an empty ordinary Slack unit",
-        "States that channel inspection agents do not launch further agents",
+        "States, in the plan or the channel briefs, that channel inspection agents do not launch further agents",
         "Parent verifies message/thread references and timestamps before cross-channel conclusions"
       ]
     },

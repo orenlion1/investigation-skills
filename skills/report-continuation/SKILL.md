@@ -27,8 +27,9 @@ Before planning or querying for an existing investigation, read and apply the
 question/answer coverage, task/report reconciliation, the resume checkpoint and transfer
 readiness. Apply it again before handoff; unavailable history is an explicit context gap.
 Keep current requirements in the task and questions, answers, evidence and history in the
-report. Route dependency packaging to [Publish It](../publish-it/SKILL.md) and evidence checks
-to Report Authoring; a handoff never uploads, publishes or copies credentials.
+report. In the dependency inventory, name [Publish It](../publish-it/SKILL.md) as the owner that
+packages each unavailable dependency once authorized and Report Authoring as the owner of evidence
+checks; a handoff never uploads, publishes or copies credentials.
 
 ## Resolve the canonical report
 
@@ -47,8 +48,10 @@ report workflow, not permission to guess an existing report.
 
 Create a separate report only for an explicit user request or a genuinely distinct investigation
 with a stated reason and relationship to the original. A naming collision, a previous completion
-label, a historical evidence window or an additional format is not such a reason. Never delete,
-rename, replace or consolidate other reports without authority for those changes.
+label, a historical evidence window or an additional format is not such a reason. When you plan
+or create a separate report, say that Workflow Artifact Naming resolves its name and path and
+Report Authoring governs its evidence; never derive its name by adding a numeric suffix to the
+earlier report. Never delete, rename, replace or consolidate other reports without authority for those changes.
 
 ## Update progressively
 
@@ -88,8 +91,9 @@ re-date old evidence, count old usage as new, invent totals or silently refresh 
 Use the existing [delivery contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats)
 and selected format owners to regenerate enabled companions from the updated canonical content
 before final delivery. A format conversion does not create new findings or a new canonical report.
-Record current versus stale/historical outputs and run the evidence/format checks for the exact
-saved revision. Source content may be internal when Markdown delivery is disabled; canonical
+Record current versus stale/historical outputs. After writing, read the saved revision back and
+run Report Authoring's evidence checks and the delivery contract's format checks on it, recording
+each as passed or pending with its reason; do not invent rendering rules. Source content may be internal when Markdown delivery is disabled; canonical
 identity belongs to the investigation, not a required extension.
 
 For explicitly authorized fragmentation repair, integrate relevant earlier follow-up content

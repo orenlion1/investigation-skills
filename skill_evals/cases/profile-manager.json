@@ -114,7 +114,8 @@
       "prompt": "Walk me through this without running anything: set GENERATE_PDF=Disabled in my team profile (it already stores REPO=org/service-a), then load it with --replace into docs/tasks/TASK-team.md, whose Resources explicitly say Generate PDF: enabled. Then explain how an absent setting, a hand-edited legacy T or F, and a value of off are handled. Can the toggle alone start an investigation?",
       "expected_output": "Derives Generate PDF from template; validates enabled/disabled case-insensitively under the shared settings contract, storing lowercase. Explicit task enabled overrides profile disabled. Missing defaults enabled; legacy T/F resolve to enabled/disabled and reads do not migrate. Toggle alone is configuration; invalid settings fail before writes.",
       "expectations": [
-        "Derives GENERATE_PDF from the template and validates enabled/disabled case-insensitively, storing lowercase and rejecting other stored or task settings",
+        "Plans a `schema` read (or states the field comes from the TASK template) for GENERATE_PDF before writing, and states that Disabled is accepted case-insensitively and stored as lowercase disabled",
+        "States that a value outside enabled/disabled (legacy T/F aside), such as off, fails before any write whether supplied to set or found in the stored profile or the TASK, and is not guessed to mean disabled",
         "Uses explicit task over profile over absent enabled, preserving explicit task choice even with replacement",
         "Resolves legacy T and F to enabled and disabled, keeps legacy reads non-mutating and preserves unrelated values",
         "Refuses a toggle alone as an actual resource and does not authorize investigation or publication"
@@ -137,14 +138,14 @@
     {
       "id": 8,
       "kind": "dialogue",
-      "prompt": "My profile supplies #demo-ops, but I explicitly chose #my-channel for this task. Reload the profile and keep my Slack choice. Also compose two conflicting Slack profiles with my explicit #my-channel override. Explain which value wins at each step and why; do not run anything yet.",
+      "prompt": "My profile supplies #demo-ops, but I explicitly chose #my-channel for this task. The task's Resources also hold a hand-added `On-call: team-b` bullet that the template does not declare. Reload the profile and keep my Slack choice. Also compose two conflicting Slack profiles with my explicit #my-channel override. Explain which value wins at each step and why; do not run anything yet.",
       "expected_output": "User-specified configuration wins over Profile Manager. Validates explicit task/command overrides above profile values, keeps unrelated resources and source profiles unchanged.",
       "expectations": [
         "Preserves the explicit user Slack channel rather than replacing it with the profile channel",
-        "Uses load --field for a newer override and --replace only to permit section rewrite",
+        "Uses load --field to carry #my-channel as the newer override, and states that --replace only permits rewriting an already-populated Resources section and never overrides the explicit TASK channel",
         "Uses compose --field to resolve only the named scalar conflict; other conflicts still fail",
         "Validates the sources and effective values before writing",
-        "Preserves unknown task bullets and leaves the source profiles unchanged",
+        "States that the undeclared On-call task bullet is preserved by the load and that both source profiles stay unchanged by load and compose",
         "Documents user > profile > default precedence and resolves effective inputs before investigation"
       ]
     },
@@ -172,7 +173,7 @@
         "Previews the update with --dry-run and reads it back",
         "Resolves composition conflicts only by explicit field selection or aligned sources",
         "TASK value overrides the profile, and a load --field overrides the TASK",
-        "Invalid or duplicate settings fail before any write",
+        "States that an invalid GRAFANA_ASSISTANT value or a duplicate GRAFANA_ASSISTANT setting in the TASK or an override makes the command fail before any write",
         "No live Grafana query or Assistant prompt is sent by profile management"
       ]
     },

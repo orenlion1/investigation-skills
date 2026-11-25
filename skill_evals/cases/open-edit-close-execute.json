@@ -41,12 +41,13 @@
     {
       "id": 2,
       "kind": "dialogue",
-      "prompt": "An investigation request arrived 12 minutes ago. The editor wait was observed for five minutes, auth wait overlapped it by a minute, and core findings are ready but report QA is pending. Hard-stop now?",
-      "expected_output": "Uses the shared root ten-minute soft checkpoint including setup, editor/auth waits, reporting and QA; Checkpoints verified findings, evidence gaps, known waits and remaining QA; explains continuation without redundant permission; Unions overlapping waits and never sums parallel children or fabricates missing processing/phase time; Preserves editor closure, authorization and required evidence and quality gates; no automatic failure or hard cancellation.",
+      "prompt": "An investigation request arrived 12 minutes ago. The editor wait ran from minute 1 to minute 6 after receipt and the auth wait from minute 5 to minute 7, overlapping it by a minute; two delegated children then ran concurrently for 3 and 4 minutes. No other phase timings were recorded. Core findings are ready but report QA is pending. Hard-stop now?",
+      "expected_output": "Uses the ten-minute soft checkpoint from request receipt, which includes setup, waits, reporting and QA; checkpoints findings, gaps, waits and remaining QA and continues without redundant permission; counts the overlapping waits once as six minutes, does not add child runtimes, and leaves unrecorded phase time unavailable; preserves gates with no hard cancellation.",
       "expectations": [
-        "Uses the shared root ten-minute soft checkpoint including setup, editor/auth waits, reporting and QA",
+        "Names the ten-minute soft checkpoint measured from request receipt and counts setup, editor and auth waits, reporting and QA inside it",
         "Checkpoints verified findings, evidence gaps, known waits and remaining QA; explains continuation without redundant permission",
-        "Unions overlapping waits and never sums parallel children or fabricates missing processing/phase time",
+        "Counts the overlapping editor and auth waits once as a six-minute union (minute 1 to minute 7) rather than adding them to seven minutes",
+        "Does not add the two children's runtimes together as elapsed time, and leaves unrecorded processing or phase time unavailable rather than estimating it",
         "Preserves editor closure, authorization and required evidence and quality gates; no automatic failure or hard cancellation"
       ]
     },
@@ -57,7 +58,8 @@
       "expected_output": "Validates exact task PDF choice with task over profile over absent enabled before PDF dependency setup; Produces verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks; Preserves old PDF as historical and excludes it from current companions and delivery links; Records effective choice and verified output provenance without granting publication.",
       "expectations": [
         "States that the PDF choice resolves as explicit task over loaded profile over default (enabled when absent), before any PDF dependency setup",
-        "Plans verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks",
+        "Plans the Markdown report with its evidence and required graphs, and validates them in that Markdown output",
+        "Skips PDF rendering, PDF-only dependencies and PDF-only checks",
         "Preserves old PDF as historical and excludes it from current companions and delivery links",
         "Records effective choice and verified output provenance without granting publication"
       ]

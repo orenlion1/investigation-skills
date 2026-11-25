@@ -73,7 +73,9 @@ remove-env [--dry-run] [--force]
 
 Read `schema` before a dependent read or write. Each field reports its `label`, optional
 `sublabel`, and the field it `requires`. Report an unknown field against the template rather
-than inventing a key for it.
+than inventing a key for it. A planned command sequence starts with `schema` and names fields
+by their keys; each write is previewed with `--dry-run`, read back, and states which guards
+(invalid or duplicate values, conflicts) would stop it before any write.
 
 ## Keep the store out of Git, then create it
 
@@ -99,8 +101,10 @@ integration, close an editor barrier, or authorize a gated operation.
 
 Accept the spelling the user gives: field names match by key or template label regardless of
 case, spaces, hyphens and underscores (`fan out`, `fan_out`, `FAN OUT`, `Fan-out`), and an
-assignment may be `FIELD=value` or `field: value`. Pass the user's wording to `--field` rather
-than asking them to restate it; an unknown or ambiguous name fails before any write. See
+assignment may be `FIELD=value` or `field: value`. Pass the user's assignment to `--field` as written, delimiter and case included
+(`--field 'fan out: DISABLED'`), rather than asking them to restate it. A name that matches no
+key or label, even one resembling a field, fails before any write: say so and ask, never
+substitute the field you think was meant. See
 [field names and assignments](references/profile-store.md#field-names-and-assignments).
 
 ## Delete the store
@@ -206,8 +210,9 @@ back; preview with `--dry-run`. Its guards are in the
 Outputs (`GENERATE_MARKDOWN`, `GENERATE_PDF`, `GENERATE_HTML`), `GRAFANA_ASSISTANT`
 and `FAN_OUT` derive from the template and share the
 [settings contract](references/profile-store.md#settings-contract): `enabled` or `disabled`,
-case-insensitive on input and stored lowercase. HTML defaults `disabled`; other toggles default
-`enabled`. `GENERATE_PDF` also accepts legacy `T`/`F`; reads resolve them without rewriting
+case-insensitive on input and stored lowercase; any other value (such as `off`), stored or
+supplied, and a duplicate setting in a TASK or override fail before writing. HTML defaults `disabled`; other toggles
+default `enabled`. `GENERATE_PDF` also accepts legacy `T`/`F`; reads resolve them without rewriting
 the store, and only an update, a load or `lint --fix` writes the canonical value, leaving
 unrelated values unchanged.
 Set with `set --profile team --field GENERATE_HTML=enabled`, then confirm the stored and
@@ -216,8 +221,9 @@ The contract owns persistence, defaults, task forms, validation and disabled beh
 Any one output can be the only enabled format; a disabled format is never required, generated
 or attached. Every enabled format keeps the same findings, evidence and accounting cutoff, and
 changing a toggle never reruns the investigation.
-For HTML appearance, use the independent [HTML theme](references/profile-store.md#html-theme)
-setting: `light`, `dark` or `system` (default); other values fail before writing. A fixed theme
+For HTML appearance, use the independent `HTML_THEME`
+([HTML theme](references/profile-store.md#html-theme)) setting from the template: `light`,
+`dark` or `system` (default); other values fail before writing. A fixed theme
 keeps page colors and diagram picture sources in that mode under any viewer preference. It does
 not enable generation; Publish It renders and validates the HTML.
 

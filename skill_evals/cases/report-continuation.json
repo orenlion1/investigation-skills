@@ -91,7 +91,8 @@
       "expectations": [
         "Honors the explicit request for a distinct report and records its relationship to the earlier one",
         "Does not overwrite the earlier investigation",
-        "Uses the naming and evidence owners without inventing a numeric collision suffix"
+        "States that Workflow Artifact Naming resolves the new report's name and path and that Report Authoring governs its evidence",
+        "Does not propose a numeric collision suffix (such as -2) derived from the earlier report's name"
       ]
     },
     {
@@ -103,7 +104,7 @@
         "Does not require or create a delivered Markdown report when disabled",
         "Distinguishes format conversion from new findings and keeps one canonical investigation identity",
         "Regenerates selected companions from the updated content and labels stale or unverified outputs explicitly",
-        "Uses the existing format delivery and evidence checks rather than inventing rendering rules"
+        "After writing, reads the saved report back and applies the existing owners' checks (Report Authoring evidence and citation checks, the delivery contract's format checks), recording any check it could not run as pending, rather than inventing its own HTML rendering rules"
       ],
       "files": [
         "report-continuation-html-only"
@@ -136,7 +137,8 @@
         "States the coverage boundary and known missing earlier history instead of calling the summary complete",
         "Includes established and provisional findings, attempted checks, blockers and dependency-ordered next actions in a report checkpoint linked from the task",
         "Inventories local-only evidence as unavailable to the recipient until packaged or retrievable, even if the path is relative",
-        "Routes packaging and evidence validation to existing owners without uploading or copying credentials",
+        "Names Publish It as the owner for packaging unavailable dependencies and Report Authoring as the owner of evidence validation, in the report or the handoff summary",
+        "Uploads and publishes nothing, and copies no credential or session material into the task or report",
         "Keeps current requirements in the task and answers/evidence/history in the report rather than duplicating a transcript"
       ],
       "files": [

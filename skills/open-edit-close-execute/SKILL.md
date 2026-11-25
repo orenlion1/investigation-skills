@@ -43,6 +43,10 @@ This skill owns the workflow for this repository's templated tasks (template
   resume, unless the user explicitly pauses, stops, or replaces it.
 - For an investigation, establish and check the [shared soft delivery budget](references/investigation-delivery.md)
   from request receipt, including editor/setup waits. Apply it to direct investigations too.
+  It is a ten-minute soft checkpoint covering setup, editor/auth waits, reporting and QA: at
+  it, report verified findings, gaps, observed waits and remaining QA, then continue authorized
+  work without asking; never hard-stop or skip gates. Union overlapping waits; never sum
+  parallel children or invent processing or phase time.
 - Before opening a templated-task editor, read [Token Usage](../token-usage/SKILL.md) and
   retain its native task-resolution evidence past the editor/check barrier, so shorthand
   editor requests can be attributed without another user command.
@@ -65,7 +69,7 @@ This skill owns the workflow for this repository's templated tasks (template
   That skill also owns progressive report updates and handoff readiness.
 - Run the finalized task from its resolved path, then generate the matching reports from
   observed results in the selected formats: Markdown, PDF or HTML, with `REPORT` paths via
-  Workflow Artifact Naming. Resolve formats before tooling using the [delivery contract](references/investigation-delivery.md). Report completion from verified outcomes, never from readiness or a filename's
+  Workflow Artifact Naming. Validate evidence and required graphs in every selected output. Resolve formats before tooling using the [delivery contract](references/investigation-delivery.md). Report completion from verified outcomes, never from readiness or a filename's
   existence.
 - Say how each format setting resolved (explicit task, then loaded profile, then defaults:
   Markdown and PDF enabled, HTML disabled) before any renderer or dependency setup. A disabled

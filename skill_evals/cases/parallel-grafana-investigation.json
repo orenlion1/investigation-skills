@@ -92,7 +92,7 @@
       "expected_output": "Explains that the command only displays instructions, invokes the investigate-alert skill through the agent harness to gather bounded direct evidence, and only then reconciles.",
       "expectations": [
         "States that gcx agent skills get investigate-alert displays instructions without executing the skill",
-        "Invokes the skill through the active agent harness rather than inventing a shell command",
+        "States that the investigate-alert instructions still have to be run through the active agent harness by the direct gcx agent (for example a skill or sub-agent tool), not through an invented shell skill runner, and does not treat the printed instructions as that run",
         "Reports only observed evidence from an actual run, never from displayed instructions"
       ]
     },
@@ -138,7 +138,7 @@
     {
       "id": 7,
       "kind": "dialogue",
-      "prompt": "Run sum(rate(http_requests_total{service=\"checkout\"}[5m])) in Grafana context ops from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. Return values only. If gcx is unavailable here, report that limitation instead of values.",
+      "prompt": "Run sum(rate(http_requests_total{service=\"checkout\"}[5m])) in Grafana context ops from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. Return values only. gcx is not installed here and nothing reaches Grafana, so install nothing; launch both branches anyway with their full briefs so each records its own outcome, then report that limitation instead of values.",
       "expected_output": "Launches Assistant and direct-query agents before awaiting either result; Both agents receive the exact expression, context, time interval, timezone and output constraint; Direct branch loads relevant refreshed gcx instructions and executes the exact query without waiting for Assistant; Does not turn the request into an open-ended root-cause investigation; Returns the requested values with any material limitation and retains the local manifest.",
       "expectations": [
         "Launches Assistant and direct-query agents before awaiting either result",
@@ -146,7 +146,7 @@
         "Direct branch brief loads relevant refreshed gcx instructions and runs the exact query without waiting for Assistant",
         "Does not turn the request into an open-ended root-cause investigation",
         "Returns the requested values, or the material limitation that prevented them, and writes the local manifest",
-        "Keeps the Source snapshot and manifest reference in a local audit record so values-only output gains no prose or citations"
+        "Writes the Source snapshot, citing the manifest path, to a local audit file rather than the reply, and the reply carries only the values or the limitation, with no Source snapshot or citation block"
       ]
     },
     {
@@ -159,7 +159,7 @@
         "Uses refreshed manage-dashboards or gcx guidance in the direct branch, not investigate-alert",
         "Preserves folder and result limit; marks a telemetry window not applicable rather than demanding one",
         "Plans to verify dashboard results against direct gcx output and does not claim the five-item capped list is the complete folder inventory",
-        "Uses JSON null for the manifest window and task when this ad hoc inventory request has no time window or TASK; invents neither"
+        "Records the manifest as JSON with `\"task\": null` and `\"window\": null` for this ad hoc inventory request with no time window or TASK; invents neither"
       ]
     },
     {
@@ -226,7 +226,7 @@
       "expectations": [
         "Both agent briefs carry the exact query, context and instant timestamp",
         "Direct gcx command uses instant semantics rather than an invented range",
-        "Manifest represents the instant as equal start/end timestamps under the shared contract",
+        "Manifest records the instant as a window whose start and end are both 2026-11-19T12:00:00Z, rather than a separate instant field, a null window or an invented range",
         "Source snapshot and manifest reference remain in local audit evidence, preserving JSON-only output"
       ]
     },

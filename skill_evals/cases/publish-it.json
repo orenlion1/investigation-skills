@@ -81,7 +81,7 @@
       "expected_output": "Reads both Publish bullets from the saved task, packages and checks the artifacts once, records the Confluence destination as blocked by the expired session and the repository destination by its own outcome, and returns one outcome per destination without claiming either was published.",
       "expectations": [
         "Resolves both Publish bullets in the saved task, the Confluence parent page and the GitHub repository with its directory, without dropping one",
-        "Does not cancel or roll back the repository publication because the Confluence destination is blocked",
+        "Does not mark the GitHub repository destination cancelled, skipped or rolled back because the Confluence destination is blocked; its outcome cites its own state (here, the missing GitHub credentials), and no repository write is expected without credentials",
         "Reports a separate outcome for each destination and does not claim the Confluence page was published"
       ],
       "files": [
@@ -146,10 +146,11 @@
     {
       "id": 10,
       "kind": "dialogue",
-      "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode. The profile, task and report are not in this workspace, so change nothing yet: tell me the settings you will write, what you validate first, how the light export looks on my dark browser, and what happens to the overrides and the older report.",
+      "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode. The profile, task and report are not in this workspace, so change nothing yet: tell me the settings you will write, what you validate first, how the light export looks on my dark browser, and what happens to the overrides and the older report, and which HTML theme applies when none is set.",
       "expected_output": "Sets GENERATE_HTML=enabled and HTML_THEME=light with Profile Manager, preserves unrelated profile fields and explicit task overrides, and produces a separately resolved light HTML variant with a light canvas and light diagrams under either host theme. Existing exports and historical accounting remain unchanged.",
       "expectations": [
-        "Uses the HTML_THEME values light, dark and system with system as its default, and rejects invalid values before writes",
+        "Names light, dark and system as the only valid HTML_THEME values and rejects any other value before a write",
+        "States that system is the HTML theme when none is set",
         "Preserves the task's EU overrides and sets Generate HTML and HTML theme as separate settings",
         "States that fixed light applies to both page colors and picture sources despite a dark host, and validates the result without refreshing the investigation"
       ]
@@ -161,10 +162,13 @@
       "expected_output": "Resolves the explicit HTML-only publication override and light theme without editing stored defaults or requiring Markdown/PDF. Packages the HTML with embedded figures as a disclosed derivative, maps local report/evidence links to verified native/page/HTML targets, and publishes a readable native page plus original and portable HTML downloads. Preserves the available parent TASK as supporting provenance and verifies native page themes separately from downloaded HTML.",
       "expectations": [
         "Requires and uploads no Markdown/PDF report despite historical generation settings; no investigation or accounting refresh",
-        "Plans to keep the selected download theme with both picture variants embedded, and says packager success does not pass preflight: remaining local links such as report.md are mapped and rechecked",
+        "Plans the packaged HTML download in the selected theme with both light and dark picture variants embedded",
+        "Does not treat a successful packaging step as passing preflight: plans to map the remaining local report.md link to a verified hosted target (or stop) and to rerun the reference check on the packaged derivative",
         "Plans native Confluence media from the owning page's collection with adjacent captions, without relying on CSS, picture sources or data URIs surviving conversion",
         "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
-        "Plans reference checks on the source HTML, the derivative and the published page and an exact download hash comparison, and says an unavailable preview or native switching will be reported as incomplete"
+        "Plans reference checks at three points: the source HTML before uploads, the packaged HTML derivative or composed page before page writes, and the published page after publication",
+        "Plans an exact SHA-256 comparison of each downloaded attachment against the packaged file",
+        "Says an unavailable preview and unsupported native automatic switching will each be reported as incomplete rather than passed"
       ]
     },
     {
@@ -174,10 +178,13 @@
       "expected_output": "Resolves the explicit HTML-only publication override and dark theme without editing stored defaults or requiring Markdown/PDF. Packages the HTML with embedded figures as a disclosed derivative, maps local report/evidence links to verified native/page/HTML targets, and publishes a readable native page plus original and portable HTML downloads. Preserves the available parent TASK as supporting provenance and verifies native page themes separately from downloaded HTML.",
       "expectations": [
         "Requires and uploads no Markdown/PDF report despite historical generation settings; no investigation or accounting refresh",
-        "Plans to keep the selected download theme with both picture variants embedded, and says packager success does not pass preflight: remaining local links such as report.md are mapped and rechecked",
+        "Plans the packaged HTML download in the selected theme with both light and dark picture variants embedded",
+        "Does not treat a successful packaging step as passing preflight: plans to map the remaining local report.md link to a verified hosted target (or stop) and to rerun the reference check on the packaged derivative",
         "Plans native Confluence media from the owning page's collection with adjacent captions, without relying on CSS, picture sources or data URIs surviving conversion",
         "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
-        "Plans reference checks on the source HTML, the derivative and the published page and an exact download hash comparison, and says an unavailable preview or native switching will be reported as incomplete"
+        "Plans reference checks at three points: the source HTML before uploads, the packaged HTML derivative or composed page before page writes, and the published page after publication",
+        "Plans an exact SHA-256 comparison of each downloaded attachment against the packaged file",
+        "Says an unavailable preview and unsupported native automatic switching will each be reported as incomplete rather than passed"
       ]
     },
     {
@@ -187,10 +194,13 @@
       "expected_output": "Resolves the explicit HTML-only publication override and system theme without editing stored defaults or requiring Markdown/PDF. Packages the HTML with embedded figures as a disclosed derivative, maps local report/evidence links to verified native/page/HTML targets, and publishes a readable native page plus original and portable HTML downloads. Preserves the available parent TASK as supporting provenance and verifies native page themes separately from downloaded HTML.",
       "expectations": [
         "Requires and uploads no Markdown/PDF report despite historical generation settings; no investigation or accounting refresh",
-        "Plans to keep the selected download theme with both picture variants embedded, and says packager success does not pass preflight: remaining local links such as report.md are mapped and rechecked",
+        "Plans the packaged HTML download in the selected theme with both light and dark picture variants embedded",
+        "Does not treat a successful packaging step as passing preflight: plans to map the remaining local report.md link to a verified hosted target (or stop) and to rerun the reference check on the packaged derivative",
         "Plans native Confluence media from the owning page's collection with adjacent captions, without relying on CSS, picture sources or data URIs surviving conversion",
         "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
-        "Plans reference checks on the source HTML, the derivative and the published page and an exact download hash comparison, and says an unavailable preview or native switching will be reported as incomplete"
+        "Plans reference checks at three points: the source HTML before uploads, the packaged HTML derivative or composed page before page writes, and the published page after publication",
+        "Plans an exact SHA-256 comparison of each downloaded attachment against the packaged file",
+        "Says an unavailable preview and unsupported native automatic switching will each be reported as incomplete rather than passed"
       ]
     },
     {
@@ -211,8 +221,8 @@
       "prompt": "Publish this HTML report. Every external reference is linked correctly. Two correctly linked local evidence files exist inside the approved roots, but have not been uploaded. Another incident ID is plain text. Can attachment source validation bypass that omission?",
       "expected_output": "No. The source validator checks every occurrence and fails on the unlinked incident. When all source occurrences pass, verified local files with recorded hashes can authorize only attachment uploads; strict hosted-reference validation is still required before any page write.",
       "expectations": [
-        "Does not drop local or unlinked reference occurrences from the inventory",
-        "Checks exact local target, containment, regular-file identity and hash before attachment-only permission",
+        "Keeps the two local evidence links and the plain-text incident ID in the reference inventory, and treats the unlinked incident ID as a blocking occurrence rather than dismissing it as not a reference",
+        "States that before permitting an attachment-only upload it verifies, for each local evidence file, the exact authored target, containment inside the approved roots, that it is a regular non-symlink file, and its read-back hash",
         "Never uses an attachment-only receipt to authorize page creation/update/publication; hosted mappings must pass the strict checker"
       ]
     },

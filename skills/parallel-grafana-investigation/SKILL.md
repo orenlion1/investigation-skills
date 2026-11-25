@@ -93,16 +93,18 @@ it does not replace this orchestration or widen the user's scope.
      distinct. Hand verified hotspots to the orchestrating session's
      [Source Investigation](../source-investigation/SKILL.md), even when the supplied repository
      is unrelated; the direct branch stays gcx-only.
-3. **Record the manifest.** Follow the shared contract's schema and write the manifest before
-   responding, including for degraded, failed or Assistant-disabled runs and when asked to skip
-   it. Ad hoc or non-temporal requests use the contract's null task and window. Account for
+3. **Record the manifest.** Follow the shared contract's schema and write the manifest as JSON
+   (also when only planning it) before responding, including for degraded, failed or
+   Assistant-disabled runs and when asked to skip it. Ad hoc or non-temporal requests use the
+   contract's JSON `null` task and window; an instant query uses its window form with start
+   and end both set to the instant. Account for
    the Assistant branch and the direct gcx branch with their observed agent identities and
    launch times, or nulls when never launched. Record which bundled skills the
    direct branch used. The report or response's Source snapshot cites the local manifest.
    When the requested output excludes prose or citations (for example values-only or JSON),
-   put that Source snapshot and manifest reference in the retained local audit record instead,
-   preserving the requested response format. Record an explicit user exclusion of profiling or
-   source reads there as a scope limitation.
+   write that Source snapshot, citing the manifest path, to a local audit file beside the
+   manifest instead, and keep the reply to the requested format (or the bare limitation).
+   Record an explicit user exclusion of profiling or source reads there as a scope limitation.
 4. **Reconcile and verify.** Check that both agents used the same resolved inputs. Verify
    material claims against direct evidence and report disagreements, gaps and limitations.
    For an exact query, report its observed direct result; for a capped listing, disclose the
