@@ -130,6 +130,8 @@ jobs:
           ANTHROPIC_SERVICE_ACCOUNT_ID: svac_011STeYdkVGepjQBALKrB8CM
           ANTHROPIC_WORKSPACE_ID: wrkspc_01L6vCTR95hgQx5JNzE7thNs
           ANTHROPIC_MODEL: ${{ inputs.model }}
+          # The runner shim mints one GitHub OIDC token per model call for this audience.
+          LIVE_EVAL_OIDC_AUDIENCE: https://api.anthropic.com
           SKILL: ${{ matrix.skill }}
           LIVE_EVAL_JOB_BUDGET_USD: ${{ fromJSON(needs.skills.outputs.shares)[matrix.skill] }}
         run: |

@@ -15,14 +15,19 @@ import datetime
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
 
 SPEND_ARTIFACT_PREFIX = 'live-evals-spend-'
+# GitHub's variables for minting OIDC tokens. The shim uses them; the model under test never
+# receives them, so it cannot mint tokens of its own.
+OIDC_REQUEST_VARIABLES = ('ACTIONS_ID_TOKEN_REQUEST_URL', 'ACTIONS_ID_TOKEN_REQUEST_TOKEN')
 REFUSED_EXIT = 75
 
 
@@ -77,15 +82,60 @@ def refusal(entries, budget):
     return None
 
 
-def run_metered(argv, real, ledger, projects, budget, stdin=None):
-    """Run the real claude, record what the call cost, and return its exit code."""
+def mint_identity_token(audience, env):
+    """Request a fresh GitHub Actions OIDC token for the audience."""
+    url = env['ACTIONS_ID_TOKEN_REQUEST_URL']
+    separator = '&' if '?' in url else '?'
+    request = urllib.request.Request(url + separator + urllib.parse.urlencode({'audience': audience}))
+    request.add_header('Authorization', 'Bearer ' + env['ACTIONS_ID_TOKEN_REQUEST_TOKEN'])
+    with urllib.request.urlopen(request, timeout=30) as response:
+        value = json.loads(response.read()).get('value')
+    if not value:
+        raise RuntimeError('GitHub returned no OIDC token')
+    return value
+
+
+def child_environment(env, token_file=None):
+    """The environment for the real claude: no token-minting variables, plus the token file."""
+    child = {k: v for k, v in env.items() if k not in OIDC_REQUEST_VARIABLES}
+    if token_file is not None:
+        child['ANTHROPIC_IDENTITY_TOKEN_FILE'] = str(token_file)
+    return child
+
+
+def run_metered(argv, real, ledger, projects, budget, stdin=None, env=None):
+    """Run the real claude, record what the call cost, and return its exit code.
+
+    When LIVE_EVAL_OIDC_AUDIENCE is set inside GitHub Actions, each call gets a freshly minted
+    OIDC token in a private file that is deleted afterwards: tokens last minutes and are
+    exchanged once, so one token per call.
+    """
+    env = dict(os.environ if env is None else env)
     reason = refusal(read_ledger(ledger), budget)
     if reason:
         print(f'live-eval budget reached: {reason}; no model call was made.', file=sys.stderr)
         return REFUSED_EXIT
+    audience = env.get('LIVE_EVAL_OIDC_AUDIENCE')
+    token_dir = None
+    token_file = None
+    if audience:
+        if not all(env.get(name) for name in OIDC_REQUEST_VARIABLES):
+            print('live-eval OIDC: the job has no id-token: write permission; no model call was made.',
+                  file=sys.stderr)
+            return REFUSED_EXIT
+        token_dir = tempfile.mkdtemp(prefix='live-eval-oidc-')
+        token_file = Path(token_dir) / 'identity-token'
+        fd = os.open(token_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, 'w', encoding='utf-8') as handle:
+            handle.write(mint_identity_token(audience, env))
     before = snapshot(projects)
     started = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    code = subprocess.run([real, *argv], stdin=stdin, check=False).returncode
+    try:
+        code = subprocess.run([real, *argv], stdin=stdin, check=False,
+                              env=child_environment(env, token_file)).returncode
+    finally:
+        if token_dir:
+            shutil.rmtree(token_dir, ignore_errors=True)
     after = snapshot(projects)
     touched = [p for p, mtime in after.items() if before.get(p) != mtime]
     cost, models = None, set()
