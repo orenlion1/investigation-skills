@@ -1,0 +1,61 @@
+{
+  "context": "ops",
+  "datasource": "pyro-example",
+  "selector": "{service_name=\"worker\",pod=\"worker-4\"}",
+  "profile_type": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+  "window": [
+    "2026-11-19T10:00:00Z",
+    "2026-11-19T12:00:00Z"
+  ],
+  "units": "sampled nanoseconds",
+  "max_nodes": 1000,
+  "flamegraph": {
+    "names": [
+      "total",
+      "S3Loader.processFile",
+      "Other.run",
+      "EventReader.readItem",
+      "EventReader.processChar"
+    ],
+    "levels": [
+      {
+        "values": [
+          0,
+          100,
+          0,
+          0
+        ]
+      },
+      {
+        "values": [
+          0,
+          85,
+          10,
+          1,
+          0,
+          15,
+          15,
+          2
+        ]
+      },
+      {
+        "values": [
+          0,
+          75,
+          0,
+          3
+        ]
+      },
+      {
+        "values": [
+          0,
+          75,
+          75,
+          4
+        ]
+      }
+    ],
+    "total": 100,
+    "maxSelf": 75
+  }
+}

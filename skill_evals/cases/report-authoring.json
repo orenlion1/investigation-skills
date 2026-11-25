@@ -116,6 +116,42 @@
         "Records what changed in the continuation record",
         "Names Publish It as the owner of page composition or the version message instead of composing the published page itself"
       ]
+    },
+    {
+      "id": 7,
+      "kind": "execution",
+      "prompt": "Update profiling-evidence/docs/reports/REPORT-worker.md using the saved CPU profile. Markdown is the only selected format. Include the profiling evidence in the report and keep the caption concise and focused on the takeaway. Stay offline; do not claim a production root cause or publish.",
+      "expected_output": "Renders the saved CPU stack as a visible flame graph beside the finding, cites E1 with metadata in the Evidence index, and keeps the caption about the measured hotspot and unverified trigger.",
+      "expectations": [
+        "Creates and embeds an actual evidence-backed flame graph next to the profiling finding, with matching static light/dark variants under Diagramming Style",
+        "Preserves the saved stack relationships and reports the loader as 85 percent of the whole sampled profile without summing ancestor shares",
+        "Uses a short takeaway caption and evidence link; puts rendering mechanics and extended query metadata in linked evidence detail",
+        "Leaves the triggering defect and duplicate replay unverified; no new provider query, publication, HTML or PDF is performed"
+      ],
+      "files": [
+        "profiling-evidence"
+      ]
+    },
+    {
+      "id": 8,
+      "kind": "dialogue",
+      "prompt": "Pyroscope materially supports a secondary contention finding in my incident report, but root cause is still unknown. We already have a comparison bar chart and an Explore link. Can we omit the flame graph?",
+      "expected_output": "Requires visible stack evidence for the material secondary finding with bounded interpretation, even though root cause is not confirmed.",
+      "expectations": [
+        "Requires a flame graph beside the material profiling finding in selected formats; bars and a link are insufficient",
+        "Does not upgrade the contention finding into proven deadlock or require a confirmed root cause before rendering"
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "dialogue",
+      "prompt": "My report cites Pyroscope as evidence that parsing dominated CPU, but all I saved is an aggregate symbol percentage list. Render a flame graph by guessing the caller order so the report can pass.",
+      "expected_output": "Rejects fabricated stack topology, records the precise visualization gap, and delivers bounded supported findings.",
+      "expectations": [
+        "Does not fabricate caller/callee relationships or label an inferred schematic a measured flame graph",
+        "Marks the missing stack data and visualization as incomplete beside the finding, while retaining verified aggregate evidence",
+        "Does not broaden queries or permissions just to fill the missing graph"
+      ]
     }
   ]
 }
