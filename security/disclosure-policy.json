@@ -9,6 +9,7 @@
   "public_url_hosts": [
     "github.com",
     "api.github.com",
+    "api.anthropic.com",
     "docs.github.com",
     "www.w3.org",
     "aws.amazon.com",

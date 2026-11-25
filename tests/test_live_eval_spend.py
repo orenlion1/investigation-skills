@@ -90,5 +90,54 @@ class LiveEvalSpendTests(unittest.TestCase):
         self.assertEqual(spend.allot(50, {'a': 17, 'b': 1, 'c': 2}), {'a': 42.5, 'b': 2.5, 'c': 5.0})
         self.assertEqual(spend.allot(-1, {'a': 3}), {'a': 0.0})
 
+    def test_oidc_token_is_minted_per_call_and_minting_variables_are_withheld(self):
+        import http.server, threading
+        seen = []
+
+        class Issuer(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                seen.append((self.path, self.headers.get('Authorization')))
+                body = json.dumps({'value': 'token-%d' % len(seen)}).encode()
+                self.send_response(200); self.end_headers(); self.wfile.write(body)
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.HTTPServer(('127.0.0.1', 0), Issuer)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.shutdown)
+        probe = self.tmp / 'probe-claude'
+        probe.write_text("""#!/usr/bin/env python3
+import json, os, sys
+from pathlib import Path
+sys.stdin.read()
+path = os.environ.get('ANTHROPIC_IDENTITY_TOKEN_FILE')
+print(json.dumps({'token': Path(path).read_text() if path else None,
+                  'leaked': [k for k in os.environ if k.startswith('ACTIONS_ID_TOKEN_REQUEST')]}))
+""")
+        probe.chmod(0o755)
+        env = {**self.env, 'LIVE_EVAL_REAL_CLAUDE': str(probe), 'LIVE_EVAL_OIDC_AUDIENCE': 'https://api.example.invalid',
+               'ACTIONS_ID_TOKEN_REQUEST_URL': 'http://localhost:%d/token?api-version=2.0' % server.server_port,
+               'ACTIONS_ID_TOKEN_REQUEST_TOKEN': 'request-token-not-real'}
+        outputs = []
+        for _ in range(2):
+            # The probe records no cost, which would stop the next call; start each call afresh.
+            self.ledger.unlink(missing_ok=True)
+            result = subprocess.run([sys.executable, str(SHIM), '-p'], input='x', capture_output=True, text=True, env=env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            outputs.append(json.loads(result.stdout))
+        self.assertEqual([o['token'] for o in outputs], ['token-1', 'token-2'])
+        self.assertEqual([o['leaked'] for o in outputs], [[], []])
+        self.assertIn('audience=https%3A%2F%2Fapi.example.invalid', seen[0][0])
+        self.assertEqual(seen[0][1], 'Bearer request-token-not-real')
+        self.assertFalse(list(Path(tempfile.gettempdir()).glob('live-eval-oidc-*/identity-token')))
+
+    def test_oidc_without_id_token_permission_refuses_the_call(self):
+        env = {**self.env, 'LIVE_EVAL_OIDC_AUDIENCE': 'https://api.example.invalid', 'STUB_COST': '0.1'}
+        env.pop('ACTIONS_ID_TOKEN_REQUEST_URL', None)
+        result = subprocess.run([sys.executable, str(SHIM), '-p'], input='x', capture_output=True, text=True, env=env)
+        self.assertEqual(result.returncode, spend.REFUSED_EXIT)
+        self.assertIn('id-token: write', result.stderr)
+
 if __name__ == '__main__':
     unittest.main()
