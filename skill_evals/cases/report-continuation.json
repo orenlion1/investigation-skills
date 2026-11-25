@@ -45,7 +45,7 @@
         "Records the user replay question and material provisional agent answer with its evidence/disposition",
         "Reflects the added application repository and pending code-validation question without treating task configuration as proof of execution",
         "Reconciles the main conclusion with observed profiling and preserves earlier alert evidence",
-        "Marks the draft and missing source/format checks as incomplete instead of delaying all report updates until final findings",
+        "Marks the draft in progress with code validation open, and records every evidence or format check not actually run on the saved revision as pending rather than passed, instead of delaying all report updates until final findings",
         "Excludes unrelated editor and delivery conversation from the incident narrative"
       ],
       "files": [
@@ -148,12 +148,12 @@
     {
       "id": 8,
       "kind": "dialogue",
-      "prompt": "Rerun the same investigation from scratch for a new observation window. Preserve the existing report and prior questions/answers; no new separate report was requested.",
+      "prompt": "Rerun the same investigation from scratch for a new observation window. Preserve the existing report and prior questions/answers; no new separate report was requested. The report and task are not in this workspace, so change nothing yet: tell me how this differs from a normal continuation, what you will rerun, and how you will record the rerun in the canonical report.",
       "expected_output": "Honors the explicit fresh scope, separates new observations from historical findings in the same canonical report, and records which conclusions were revalidated.",
       "expectations": [
-        "Distinguishes the explicit fresh rerun from default continuation and performs only the requested current scope",
+        "Explicitly contrasts the requested fresh rerun with default continuation (which resumes only outstanding work) and limits the plan to rerunning the requested scope for the new window",
         "Preserves historical windows, revisions, Q&A corrections and original accounting instead of relabeling old data as fresh",
-        "Records current verification results separately and reconciles any revised conclusion in the canonical report",
+        "Plans to record the new window's verification results separately from historical results in the same canonical report and to reconcile any revised conclusion in its opening",
         "Uses current user authorization and records unavailable source access without inheriting prior credentials"
       ]
     }

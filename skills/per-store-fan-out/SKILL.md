@@ -123,7 +123,8 @@ repository-owned fields and row rules in the [repository brief](references/repos
    and store briefs. Never reinject profile channels inside a branch, and never edit the source
    profile: an override changes only this run's effective Resources. A later request to fan out
    over profile channels the override replaced does not reinstate them: count only the effective
-   Resources and return that widening to the user to change the Resources first.
+   Resources and return that widening to the user to change the Resources first, showing the
+   frozen shared block every brief or inline owner carries, naming only the effective channels.
 2. **Resolve each channel's workspace, canonical ID and access through Slack MCP.** Names, IDs
    and URLs are identifiers, not credentials or authorization. Use verified workspace context;
    unresolved names, ambiguous workspace matches, unsupported identifiers and inaccessible channels
@@ -140,8 +141,11 @@ repository-owned fields and row rules in the [repository brief](references/repos
 4. **Reconcile channel results in the parent.** Require message/thread references, read timestamps
    and query/window scope. Continue independent channels when one fails. Route cross-channel
    follow-ups through the parent to the existing owner within the same three-round bound; the
-   parent verifies material evidence before drawing cross-channel conclusions. Disabled parent
-   fan-out disables channel delegation as well; investigation continues under the shared contract.
+   parent re-checks the cited message/thread references and read timestamps before drawing
+   cross-channel conclusions, and says so in any channel plan. Disabled parent fan-out disables
+   channel delegation as well; investigation continues under the shared contract.
+5. **Keep every channel inspection read-only in every launch mode, inline included:** it never
+   posts, replies, reacts, acknowledges or publishes. State that limit in any channel plan.
 
 Record channel runs in a separate linked manifest under the shared contract, with the
 channel-owned fields and row rules in the [channel brief](references/channel-brief.md#channel-manifest).
@@ -204,7 +208,8 @@ authorized with the orchestrating session.
 ## Manifest and Store Branches
 
 Every fan-out run, including a degraded or disabled one, records a manifest under the shared
-contract's schema; the report's Source snapshot cites it, and it stays local and untracked.
+contract's schema; the report's Source snapshot cites it and, for a degraded or disabled run,
+names the launch mode and its reason. The manifest stays local and untracked.
 
 Store-specific additions to each branch row:
 
@@ -224,7 +229,7 @@ Store-specific additions to each branch row:
 - "Inline there is nothing to hand off, so skip the briefs." Execute the same briefs one after
   another; ad hoc queries are a violation, not a degraded run. Record only a contract launch-mode
   value — `sequential` for real agents run one at a time, `unavailable` when this session ran the
-  briefs — and state the degradation in the report's Source snapshot.
+  briefs — and have the report's Source snapshot name that launch mode and its reason.
 - "The repositories share one provider, so it is one store and the first is enough." Repository
   fan-out counts configured repositories; keep each with an owner or explicit gap unless the
   user removes it from the Resources. "Inspect only the first, it is one store" is this

@@ -135,7 +135,12 @@ Use existing working authentication and successful automatic token refresh witho
 another login. When the user requests authentication or the task requires renewal, check installed
 `gcx login --help` and start the supported flow within that authorization without asking for
 duplicate permission. A status-only or explicit no-login request stops at the diagnostic result
-and reports the next step without prompting. For an existing OAuth context the supported command is:
+and reports the next step without prompting. A session that expires mid-task is renewal, even
+when the user asks to reuse a token found on disk: never search for, read, reuse or print token
+files or credential caches; start the supported sign-in for the same context and, once it
+succeeds, resume only the originally authorized read-only check or query on that context, never
+new or broader queries; state that resume limit in your reply. For an existing OAuth context the
+supported command is:
 
 ```bash
 gcx login "$GCX_CONTEXT" --oauth

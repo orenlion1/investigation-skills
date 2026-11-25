@@ -139,7 +139,7 @@ Before **any publication write** to any destination, including attachment prepar
 draft creation, branch pushes and pull requests,
 apply [Report Authoring reference completeness](../report-authoring/references/reference-completeness.md).
 Apply its attachment-only source check before uploads, then its strict hosted-reference check
-before page writes; require zero unresolved occurrences and reviewed targets. Link lists, inventories, hashes or conversion dry runs cannot substitute.
+before the page body is written; require zero unresolved occurrences and reviewed targets. Link lists, inventories, hashes or conversion dry runs cannot substitute.
 Keep every occurrence in the inventory, linked or not: local evidence links and plain-text
 identifiers such as an incident ID stay in it, and an unlinked required occurrence blocks however
 many links and hashes pass. The attachment-only check, Publish It's
@@ -175,11 +175,16 @@ For HTML to Confluence, state each of these points in any plan or result:
   never assume CSS, `picture` sources or data URIs survive conversion.
 - `HTML_THEME` governs the download only; the native page follows each viewer's Confluence
   theme. Without native automatic switching, use Dark/Light graph tabs (Dark first) or two
-  labeled visible figures, and record automatic switching as incomplete.
-- Run the reference checks on the source HTML, on each downloadable HTML derivative and on the
-  published page; compare each downloaded attachment's exact SHA-256 with the package; report an
-  unavailable preview and unsupported native automatic switching as incomplete. Install no apps
-  and change no site or user theme settings.
+  labeled visible figures, and record automatic switching as incomplete. Build each pair with
+  the shared native figure composer (`scripts/confluence_figures.py`, `render_theme_pair`) from
+  both theme attachments verified in the owning page's media collection; never derive the only
+  native graph from the export's fallback `img` or its `media="all"`/`"not all"` sources.
+- Run the reference checks at three separate points: on the source HTML before any upload; on
+  each downloadable HTML derivative and the composed page body before writing that body to the
+  page (a body-less draft that only establishes the media collection is the one earlier page
+  write); and on the published page after publication. Compare each downloaded attachment's
+  exact SHA-256 with the package; report an unavailable preview and unsupported native automatic
+  switching as incomplete. Install no apps and change no site or user theme settings.
 
 Completion requires the intended published page and hierarchy, all selected file downloads,
 the full diagram/caption/evidence inventory, working anchors and native media, and the requested

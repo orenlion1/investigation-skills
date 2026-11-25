@@ -53,16 +53,12 @@
       "id": 3,
       "kind": "dialogue",
       "prompt": "Investigate the supplied Bitbucket repository example-workspace/example-repo and its linked Confluence runbook, page ID 123456, through Rovo MCP. The existing connection successfully reads a Jira issue, but resources and discover expose Jira only. The dedicated Bitbucket and Jira/Confluence OAuth cache directories do not exist. Continue the requested read-only investigation.",
-      "expected_output": "Treats Jira success as partial authentication, prepares the separate missing read-grant metadata without replacing working grants, and starts the supported Bitbucket and Confluence OAuth flows with browser and live-link handoffs. After consent, repeats each product resources/catalog/discovery and a bounded repository or page read. Tracks each product authentication, tool availability, and verified reads separately.",
+      "expected_output": "Treats Jira success as partial authentication, prepares the separate missing read-grant metadata without replacing working grants, and starts the supported Bitbucket and Confluence OAuth flows one client at a time, or reports the precise reason they cannot start here with the supported command.",
       "expectations": [
-        "Does not treat Jira-only resources or missing product tools as proof that Bitbucket or Confluence cannot be authenticated",
-        "Treats absent dedicated caches as authorized scoped setup work and starts supported product OAuth recovery",
+        "Does not conclude from Jira-only resources or missing product tools that Bitbucket or Confluence cannot be authenticated; recording the user-reported absence as an observation is not such a conclusion",
+        "Treats absent dedicated caches as authorized scoped setup work without asking permission: starts supported product OAuth recovery, or attempts it and reports the precise reason it cannot start in this environment together with the supported per-product client command or connection control",
         "Preserves the working Jira connection and existing metadata without a fallback provider or credential-source switch",
-        "Runs only one OAuth client at a time on a shared callback port, tracking the queued product's flow instead of starting a competing client",
-        "Presents the active client's validated authorization-start link promptly as a clickable link when interaction is required",
-        "Plans each requested product's own resources, complete catalog/discovery and bounded object read after consent, and marks no product verified that it did not probe itself",
-        "Reports per-product authentication, tools, and resource-read outcomes separately",
-        "Before ending its turn to wait for consent, does or reports the work that does not depend on the pending sign-in (such as its own probe of the working Jira connection) rather than stating that nothing can proceed until sign-in"
+        "Runs only one OAuth client at a time on a shared callback port, tracking the queued product's flow instead of starting a competing client"
       ]
     },
     {
@@ -75,6 +71,18 @@
         "Preserves conflicting existing metadata and working product grants",
         "Reports product-specific blockers separately without claiming access based on Jira success",
         "Does not switch providers, broaden scopes silently, or start competing login flows"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "Investigate the supplied Bitbucket repository example-workspace/example-repo and its linked Confluence runbook, page ID 123456, through Rovo MCP. The existing connection successfully reads a Jira issue, but resources and discover expose Jira only. The dedicated Bitbucket and Jira/Confluence OAuth cache directories do not exist. Continue the requested read-only investigation.",
+      "expected_output": "Hands off only a client-issued sign-in link, never an invented one. After consent, plans each product's own resources, catalog/discovery and bounded repository or page read, tracks authentication, tools and verified reads separately per product, and does the independent work, such as its own probe of the working Jira connection, before waiting.",
+      "expectations": [
+        "When an active OAuth client issues an authorization-start link, presents that validated link promptly as a clickable link; when no client could start, presents no invented or placeholder sign-in URL and says no link is available yet",
+        "Plans each requested product's own resources, complete catalog/discovery and bounded object read after consent, and marks no product verified that it did not probe itself",
+        "Reports per-product authentication, tools, and resource-read outcomes separately",
+        "Before ending its turn to wait for consent, does or reports the work that does not depend on the pending sign-in (such as its own probe of the working Jira connection) rather than stating that nothing can proceed until sign-in"
       ]
     }
   ]

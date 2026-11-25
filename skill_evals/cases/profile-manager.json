@@ -142,7 +142,8 @@
       "expected_output": "User-specified configuration wins over Profile Manager. Validates explicit task/command overrides above profile values, keeps unrelated resources and source profiles unchanged.",
       "expectations": [
         "Preserves the explicit user Slack channel rather than replacing it with the profile channel",
-        "Uses load --field to carry #my-channel as the newer override, and states that --replace only permits rewriting an already-populated Resources section and never overrides the explicit TASK channel",
+        "Uses load --field to carry #my-channel as the newer override",
+        "Plans the reload into the already-populated Resources with load --replace, and states that --replace only permits rewriting that populated section and never overrides the explicit TASK channel",
         "Uses compose --field to resolve only the named scalar conflict; other conflicts still fail",
         "Validates the sources and effective values before writing",
         "States that the undeclared On-call task bullet is preserved by the load and that both source profiles stay unchanged by load and compose",
@@ -168,24 +169,24 @@
       "prompt": "Set GRAFANA_ASSISTANT=disabled in an existing resource profile and compose it with a profile storing enabled. Load the result into a task that explicitly selects enabled. Do not query Grafana. Plan the commands and the read-back; do not run them yet.",
       "expected_output": "Derives the enum from the template schema, previews and reads back the requested field-only profile update, refuses unresolved scalar composition conflicts, and preserves the explicit task override over the saved profile. Sends no Assistant prompt or Grafana query.",
       "expectations": [
-        "Schema exposes enabled/disabled with enabled default as configuration rather than an actual resource",
+        "States that schema reports GRAFANA_ASSISTANT as an enabled/disabled setting with enabled as its default, and that the setting is configuration rather than an actual resource",
         "Updates only GRAFANA_ASSISTANT without --replace, preserving omitted profile fields and unrelated unmanaged bytes",
         "Previews the update with --dry-run and reads it back",
         "Resolves composition conflicts only by explicit field selection or aligned sources",
-        "TASK value overrides the profile, and a load --field overrides the TASK",
-        "States that an invalid GRAFANA_ASSISTANT value or a duplicate GRAFANA_ASSISTANT setting in the TASK or an override makes the command fail before any write",
+        "States that the TASK's explicit enabled overrides the profile value at load, and that a load --field override would in turn override the TASK value",
+        "States that an invalid or duplicate GRAFANA_ASSISTANT value, whether in the TASK or in a --field override, makes the command fail before it writes anything",
         "No live Grafana query or Assistant prompt is sent by profile management"
       ]
     },
     {
       "id": 11,
       "kind": "dialogue",
-      "prompt": "My team profile already stores REPO=org/service-a. Store the fan out: DISABLED setting in it, and also pdf export: enabled. Earlier I wrote fan out as FAN OUT and fan_out; are those the same setting? Give the exact commands and what ends up stored; do not run them.",
+      "prompt": "My team profile already stores REPO=org/service-a. Store the fan out: DISABLED setting in it, and also pdf export: enabled. Earlier I wrote fan out as FAN OUT and fan_out; are those the same setting? The template labels these settings `Fan-out` and `Generate PDF`. Give the exact commands and what ends up stored; do not run them.",
       "expected_output": "Treats fan out, FAN OUT, fan_out and Fan-out as the one FAN_OUT setting, accepts the colon-delimited assignment and the uppercase value, stores the canonical lowercase disabled, and confirms by showing the profile.",
       "expectations": [
         "Resolves the differently spelled names to the single FAN_OUT setting without asking the user to restate it",
         "Passes the colon-delimited assignment with the uppercase value to --field and states the store holds lowercase disabled",
-        "States that pdf export matches no field and fails before any write instead of guessing a field for it"
+        "States that pdf export matches no field key or label and fails before any write, and does not map it to GENERATE_PDF or report GENERATE_PDF as stored"
       ]
     },
     {
@@ -218,7 +219,8 @@
       "expectations": [
         "Supports PDF as the only enabled report format",
         "Does not require, generate or attach either disabled format",
-        "States every enabled format keeps the same evidence and accounting cutoff, and that choosing formats does not rerun the investigation"
+        "States every enabled format keeps the same evidence and accounting cutoff",
+        "States that choosing or changing the enabled formats does not rerun the investigation"
       ]
     },
     {
@@ -238,7 +240,7 @@
       "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode. Plan the profile change and the hand-off; do not run anything yet.",
       "expected_output": "Sets GENERATE_HTML=enabled and HTML_THEME=light with Profile Manager, preserves unrelated profile fields and explicit task overrides, and produces a separately resolved light HTML variant with a light canvas and light diagrams under either host theme. Existing exports and historical accounting remain unchanged.",
       "expectations": [
-        "Uses the template-derived HTML_THEME enum with system as its default and rejects invalid values before writes",
+        "States that the template-derived HTML_THEME accepts light, dark or system with system as its default, and that any other value fails before any write",
         "Preserves task resources and keeps the HTML generation toggle independent of appearance",
         "States that fixed light keeps both page colors and diagram picture sources light despite the dark browser",
         "Leaves HTML generation and its validation to Publish It without refreshing the investigation or existing exports"
