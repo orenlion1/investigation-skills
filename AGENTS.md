@@ -125,7 +125,10 @@ After changing any skill or eval case, run `scripts/run-skill-quality-gate.sh`. 
 the catalog with the pinned upstream harness: standalone validation, structural lint,
 command parity, deterministic routing with an 80% rank-one threshold, and behavioral
 dry-runs over `skill_evals/cases`. The Skill Quality workflow enforces the same gate on
-pull requests, merge queues, and pushes to `main`. Every skill needs a case file in
+pull requests, merge queues, and pushes to `main`. The Live Behavioral Evals workflow
+executes behavioral evals against a model only when someone starts it, for one skill or the
+whole catalog and with a chosen model; it is opt-in, spends model usage, and needs the
+`ANTHROPIC_API_KEY` Actions secret, which `scripts/set-anthropic-api-key-secret.sh` stores. Every skill needs a case file in
 `skill_evals/cases/<name>.json` with at least 3 positive triggers, 2 negatives, and
 1 behavioral eval.
 
