@@ -86,5 +86,9 @@ class LiveEvalSpendTests(unittest.TestCase):
         self.assertEqual(spend.sum_spend_zips([blob.getvalue(), blob.getvalue()]), (0.8, 2))
 
 
+    def test_budget_is_allotted_by_eval_count(self):
+        self.assertEqual(spend.allot(50, {'a': 17, 'b': 1, 'c': 2}), {'a': 42.5, 'b': 2.5, 'c': 5.0})
+        self.assertEqual(spend.allot(-1, {'a': 3}), {'a': 0.0})
+
 if __name__ == '__main__':
     unittest.main()
