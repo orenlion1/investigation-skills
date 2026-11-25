@@ -35,6 +35,16 @@ the validation gate, in that order, with supporting detail below. Nothing in the
 new: each claim restates the detail with the same citation and the same qualification. Use
 the reference's skeleton for a new report and its checklist before delivery.
 
+- Each remediation row says whether it is proposed, implemented or validated, and names the
+  gate that would confirm it.
+- To restructure an existing report, edit it: move text verbatim, link each detail section to
+  a graph that moved, renumber figures in order of appearance, measure where the opening ends
+  in every selected format, regenerate those formats, and record the restructure in the
+  continuation record.
+- A revision or publication note never goes above the title. Record what changed in the
+  continuation record, and hand page composition and the version message to
+  [Publish It](../publish-it/SKILL.md), which owns both.
+
 ## Evidence Index
 
 - Start the Evidence index with the canonical `Source:` snapshot: investigated repository or
