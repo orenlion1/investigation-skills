@@ -7,12 +7,11 @@ description: "Trace an investigated problem to source code across the authorized
 
 ## Overview
 
-When a task supplies a source code repository, including through a loaded resource profile,
-trace each investigated problem to the relevant source code. The supplied repository is a
-starting point: search beyond it for the services, shared libraries, callers, consumers, and
-configuration that explain the observed behavior. The provider-scope authorization grant (what
-a supplied repository authorizes you to search) is repository policy and lives in the root
-routing files; this skill owns how the investigation is done within that scope.
+Any repository in a task, including a resource profile, establishes a VCS discovery starting
+point even when unrelated to the symptom. Inherit its verified provider and account/workspace
+under the root policy grant; search for and inspect relevant repositories without waiting for
+the user to name the service repository. Read [provider discovery](references/provider-discovery.md)
+before that search; it covers selection, evidence and a sanitized investigation example.
 
 When this skill runs as part of an investigation, use the root
 [soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md)
@@ -50,9 +49,8 @@ capability or access gap into the ledger and final report.
 
 ## Tracing Workflow
 
-- Resolve the authorized search scope independently from each supplied repository per the root policy grant,
-  honor any explicit narrower scope, keep searches relevant to the task, and record the
-  repositories and search scope inspected.
+- Resolve each supplied repository's authorized scope independently; honor narrower user limits.
+  Record discovery queries, candidate selection, inspected repositories and unavailable coverage.
 - Trace observed errors, alerts, and affected resources through the relevant execution paths
   and dependencies. Inspect the actual implementation and consumers before drawing a
   behavioral conclusion, including across repositories when the path crosses a boundary.
@@ -96,6 +94,8 @@ capability or access gap into the ledger and final report.
 ## Verification
 
 - [ ] Inspected repositories and search scope are recorded.
+- [ ] An unrelated supplied repository did not end discovery; relevant candidates were searched
+      and inspected, or the bounded no-match/access gap is recorded.
 - [ ] Each material causal claim and proposed change location carries a commit-pinned
       citation.
 - [ ] The symptom, triggering conditions, causal path, fix, and validation connect.

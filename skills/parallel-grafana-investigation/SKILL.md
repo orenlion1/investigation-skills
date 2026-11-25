@@ -82,6 +82,9 @@ it does not replace this orchestration or widen the user's scope.
      or wait for its result. This agent uses gcx and gcx agent skills only; it sends no
      Assistant prompt, including when the selected bundled guidance suggests one. Necessary
      independent reads can run concurrently inside this agent without new delegation pairs.
+     For root-cause investigations, make the mandatory
+     [profiling decision](references/profiling-coverage.md): unexplained CPU pressure requires
+     Pyroscope discovery and incident-aligned reads within the authorized scope.
 3. **Record the manifest.** Follow the shared contract, including degraded or Assistant-disabled
    runs. Account for the Assistant branch and the direct gcx branch with their observed agent
    identities and launch times, or nulls when never launched. Record which bundled skills the
@@ -94,6 +97,8 @@ it does not replace this orchestration or widen the user's scope.
    For an exact query, report its observed direct result; for a capped listing, disclose the
    cap without claiming exhaustive coverage. Do not substitute Assistant prose for query data.
    A successful connection is not query success; an empty result is not proof of health.
+   Apply the profiling coverage check before delivery. Explain alert recurrence separately
+   from its workload driver; unresolved driver or source evidence stays an explicit gap.
 
 ## Cost controls and failures
 
@@ -141,6 +146,8 @@ acknowledgments, messages and publication require separate authorization.
   the direct gcx branch continued and both branches remain accounted for in the manifest.
 - No internal command recursively launched another pair; historical endpoint and parent
   delegation restrictions remained intact.
+- Root-cause investigations record profiling evidence or a concrete exclusion/unavailability
+  outcome; an alert-threshold explanation alone does not establish the CPU driver.
 
 [README.md](README.md) explains the split for human readers and holds the saved-profile form of
 the Assistant setting; it is not a required runtime read.
