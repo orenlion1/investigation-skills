@@ -19,6 +19,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
@@ -31,6 +33,8 @@ SPEND_ARTIFACT_PREFIX = 'live-evals-spend-'
 # receives them, so it cannot mint tokens of its own.
 OIDC_REQUEST_VARIABLES = ('ACTIONS_ID_TOKEN_REQUEST_URL', 'ACTIONS_ID_TOKEN_REQUEST_TOKEN')
 REFUSED_EXIT = 75
+TOKEN_ATTEMPTS = 5
+TOKEN_RETRY_SECONDS = 2
 
 
 def snapshot(projects):
@@ -90,8 +94,19 @@ def mint_identity_token(audience, env):
     separator = '&' if '?' in url else '?'
     request = urllib.request.Request(url + separator + urllib.parse.urlencode({'audience': audience}))
     request.add_header('Authorization', 'Bearer ' + env['ACTIONS_ID_TOKEN_REQUEST_TOKEN'])
-    with urllib.request.urlopen(request, timeout=30) as response:
-        value = json.loads(response.read()).get('value')
+    # GitHub's token service occasionally answers 5xx; one failure must not end the skill's run.
+    for attempt in range(TOKEN_ATTEMPTS):
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                value = json.loads(response.read()).get('value')
+            break
+        except urllib.error.HTTPError as error:
+            if error.code < 500 or attempt == TOKEN_ATTEMPTS - 1:
+                raise
+        except urllib.error.URLError:
+            if attempt == TOKEN_ATTEMPTS - 1:
+                raise
+        time.sleep(TOKEN_RETRY_SECONDS * 2 ** attempt)
     if not value:
         raise RuntimeError('GitHub returned no OIDC token')
     return value

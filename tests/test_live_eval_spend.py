@@ -97,9 +97,14 @@ class LiveEvalSpendTests(unittest.TestCase):
     def test_oidc_token_is_minted_per_call_and_minting_variables_are_withheld(self):
         import http.server, threading
         seen = []
+        failed = []
 
         class Issuer(http.server.BaseHTTPRequestHandler):
             def do_GET(self):
+                if not failed:
+                    # The first request fails as GitHub's token service sometimes does.
+                    failed.append(True)
+                    self.send_response(503); self.end_headers(); return
                 seen.append((self.path, self.headers.get('Authorization')))
                 body = json.dumps({'value': 'token-%d' % len(seen)}).encode()
                 self.send_response(200); self.end_headers(); self.wfile.write(body)
