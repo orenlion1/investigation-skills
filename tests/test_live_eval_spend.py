@@ -37,6 +37,9 @@ class LiveEvalSpendTests(unittest.TestCase):
         self.ledger = self.tmp / 'ledger.jsonl'
         self.env = {**os.environ, 'LIVE_EVAL_REAL_CLAUDE': str(self.real), 'LIVE_EVAL_LEDGER': str(self.ledger),
                     'LIVE_EVAL_PROJECTS': str(self.tmp / 'projects')}
+        # These tests exercise the unisolated path; CI runners set GITHUB_ACTIONS themselves.
+        for name in ('GITHUB_ACTIONS', 'LIVE_EVAL_ISOLATION_USER'):
+            self.env.pop(name, None)
 
     def call(self, *args, cost='0.25', budget=None):
         env = {**self.env, 'STUB_COST': cost}
