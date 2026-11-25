@@ -45,6 +45,10 @@
       {
         "prompt": "Check Grafana SLO health and Synthetic Monitoring results for production",
         "top_k": 3
+      },
+      {
+        "prompt": "Investigate recurring CPU saturation in Grafana with Pyroscope profiles and reconcile the workload driver with the alert flapping mechanism",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -220,6 +224,44 @@
         "Direct gcx command uses instant semantics rather than an invented range",
         "Manifest represents the instant as equal start/end timestamps under the shared contract",
         "Source snapshot and manifest reference remain in local audit evidence, preserving JSON-only output"
+      ]
+    },
+    {
+      "id": 15,
+      "kind": "dialogue",
+      "prompt": "Investigate recurring CPU saturation and CPU alert flapping in the resolved Grafana context and incident window. Metrics confirm sustained CPU pressure and a threshold with no recovery hold-down. The task supplies a VCS repository that only contains alert configuration. Finish the root-cause report from these metrics; no one specifically requested Pyroscope.",
+      "expected_output": "Attempts relevant Pyroscope discovery and incident-aligned reads within scope, separates threshold recurrence from workload cause, and hands verified application hotspots to source investigation through the parent.",
+      "expectations": [
+        "Makes a profiling decision without waiting for a user or Assistant profiling suggestion",
+        "Direct branch discovers profiling datasource, available profile types, workload labels and incident coverage and attempts actual CPU profile reads when available",
+        "Inspects available blocking or contention profiles when a deadlock hypothesis is introduced rather than inferring deadlock from CPU alone",
+        "Uses scoped baseline/recovery or affected-pod comparisons when available and records missing comparisons without expanding scope",
+        "Retains exact profile query metadata, limits and sampling caveats, distinguishing inclusive and self values",
+        "Routes hotspot source leads through the parent Source Investigation owner even if the supplied VCS repository is unrelated while keeping the direct branch gcx-only",
+        "Does not call the CPU root cause confirmed solely because alert threshold/reset behavior was explained"
+      ]
+    },
+    {
+      "id": 16,
+      "kind": "dialogue",
+      "prompt": "A CPU root-cause investigation attempted profiling in its selected context. Datasource discovery succeeded, but the incident-window profile read returned a permission denial. The Assistant says replay deadlocked, and a restart was followed by lower CPU. Write the findings.",
+      "expected_output": "Records unavailable profiling with the actual failed read, reports restart association and confirmed metrics, and leaves the replay/deadlock mechanism unverified.",
+      "expectations": [
+        "Retains the sanitized failed profile operation, context/window and concrete permission blocker as unavailable evidence",
+        "Does not reinterpret denial as empty results, healthy workload or proof of deadlock",
+        "Separates restart association from a proven defect and keeps Assistant conclusions as unverified leads",
+        "Delivers verified findings and explicit profiling/source gaps without claiming root-cause completeness or changing contexts to bypass denial"
+      ]
+    },
+    {
+      "id": 17,
+      "kind": "dialogue",
+      "prompt": "Run only the exact CPU PromQL expression already supplied in context ops for the supplied timestamps, and return values only. Do not inspect profiles or source.",
+      "expected_output": "Preserves the exact scoped query and output, records profiling excluded by explicit scope in local audit evidence, and does not broaden the operation into root-cause investigation.",
+      "expectations": [
+        "Runs only the authorized exact query through the existing workflow without extra profiling or source reads",
+        "Records the user-scope profiling exclusion in local audit evidence without adding prose to values-only output",
+        "Does not treat the profiling decision as authority to expand resources, window or context"
       ]
     }
   ]
