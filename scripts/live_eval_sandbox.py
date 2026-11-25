@@ -40,9 +40,11 @@ def isolated_environment(env, home, proxy, real, token_file=None):
     return child
 
 
-def isolated_command(user, child_env, real, argv):
-    return ['sudo', '-n', '-u', user, '--', 'env', '-i', *(f'{k}={v}' for k, v in sorted(child_env.items())),
-            real, *argv]
+def isolated_command(user, child_env, real, argv, workdir):
+    # The eval user owns the working directory and the runner cannot enter it, so the change of
+    # directory happens on the eval user's side (GNU env --chdir), not in the runner's process.
+    return ['sudo', '-n', '-u', user, '--', 'env', '-i', f'--chdir={workdir}',
+            *(f'{k}={v}' for k, v in sorted(child_env.items())), real, *argv]
 
 
 def sudo(*args):
@@ -64,8 +66,8 @@ def run_isolated(user, proxy, real, argv, env, projects, token=None, stdin=None)
     owner = f'{os.getuid()}:{os.getgid()}'
     try:
         sudo('chown', '-R', user, str(home), str(work))
-        command = isolated_command(user, isolated_environment(env, home, proxy, real, token_file), real, argv)
-        return subprocess.run(command, cwd=work, stdin=stdin, check=False).returncode
+        command = isolated_command(user, isolated_environment(env, home, proxy, real, token_file), real, argv, work)
+        return subprocess.run(command, stdin=stdin, check=False).returncode
     finally:
         subprocess.run(['sudo', '-n', 'pkill', '-KILL', '-u', user], check=False)
         projects.mkdir(parents=True, exist_ok=True)
