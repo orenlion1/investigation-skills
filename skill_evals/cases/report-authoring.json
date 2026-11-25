@@ -114,7 +114,7 @@
       "expectations": [
         "Does not place a publication note, revision note or navigation preamble above the report title",
         "Records what changed in the continuation record",
-        "Names Publish It as the owner of page composition or the version message instead of composing the published page itself"
+        "Assigns page composition or version-message handling to Publish It, either explicitly naming its ownership or loading and following that skill. An assistant applying the owner is valid routing; independent composition without the owner fails"
       ]
     },
     {
@@ -125,7 +125,7 @@
       "expectations": [
         "Creates and embeds an actual evidence-backed flame graph next to the profiling finding, with matching static light/dark variants under Diagramming Style",
         "Preserves the saved stack relationships and reports the loader as 85 percent of the whole sampled profile without summing ancestor shares",
-        "Uses a short takeaway caption with an evidence link; puts rendering mechanics and extended query metadata (datasource, selector, profile type, limits) in the Evidence index entry the caption links to rather than in the caption",
+        "Uses one or two takeaway sentences with an E1 link as the caption; puts rendering mechanics and extended query metadata (datasource, selector, profile type, limits) in the linked Evidence index entry rather than the caption. Grade this independently of required report-layout tables elsewhere",
         "Leaves the triggering defect and duplicate replay unverified; no new provider query, publication, HTML or PDF is performed"
       ],
       "files": [

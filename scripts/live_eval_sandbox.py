@@ -51,6 +51,43 @@ def sudo(*args):
     subprocess.run(['sudo', '-n', *args], check=True)
 
 
+def stage_skill_catalog(catalog, work, argv):
+    """Give an executor tracked skill packages, never the checkout, cases or local files."""
+    catalog = Path(catalog)
+    if catalog.is_symlink() or not catalog.is_dir():
+        raise ValueError('live-eval skill catalog must be a real directory')
+    root = Path(subprocess.check_output(
+        ['git', '-C', str(catalog), 'rev-parse', '--show-toplevel'], text=True).strip()).resolve()
+    catalog = catalog.resolve()
+    relative = catalog.relative_to(root)
+    if relative.as_posix() != 'skills':
+        raise ValueError('live-eval catalog must be the repository skills directory')
+    tracked = subprocess.check_output(
+        ['git', '-C', str(root), 'ls-files', '-z', '--', str(relative)], text=True)
+    sources = [root / name for name in tracked.split('\0') if name]
+    if not sources:
+        raise ValueError('live-eval catalog has no tracked package files')
+    # Validate the entire input before creating anything; a replaced directory can also leak files.
+    for source in sources:
+        source.relative_to(catalog)
+        if not source.is_file() or any(p.is_symlink() for p in (source, *source.parents)
+                                       if p == catalog or catalog in p.parents):
+            raise ValueError('live-eval skill packages cannot contain symlinks or missing files')
+    args = list(argv)
+    prompt = args.index('--append-system-prompt') + 1
+    destination = Path(work) / '.eval-skills'
+    destination.mkdir()
+    for source in sources:
+        target = destination / source.relative_to(catalog)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+    args[prompt] += (f'\n\nComplete skill packages are available at {destination}/<skill-name>/. '
+                     'Resolve each relative reference from its owning SKILL.md directory; '
+                     'read linked references and bundled scripts/assets as needed. '
+                     'The source checkout and eval answers are not available.')
+    return args
+
+
 def run_isolated(user, proxy, real, argv, env, projects, token=None, stdin=None):
     """Run one call as `user` and return its exit code."""
     executor = '--output-format' in argv
@@ -65,6 +102,10 @@ def run_isolated(user, proxy, real, argv, env, projects, token=None, stdin=None)
     (home / '.claude' / 'projects').mkdir(parents=True)
     owner = f'{os.getuid()}:{os.getgid()}'
     try:
+        if executor:
+            if not env.get('LIVE_EVAL_SKILLS_DIR'):
+                raise ValueError('LIVE_EVAL_SKILLS_DIR is required for isolated executors')
+            argv = stage_skill_catalog(env['LIVE_EVAL_SKILLS_DIR'], work, argv)
         sudo('chown', '-R', user, str(home), str(work))
         command = isolated_command(user, isolated_environment(env, home, proxy, real, token_file), real, argv, work)
         return subprocess.run(command, stdin=stdin, check=False).returncode

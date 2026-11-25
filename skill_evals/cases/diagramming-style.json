@@ -73,12 +73,12 @@
     {
       "id": 4,
       "kind": "dialogue",
-      "prompt": "Render a flame graph from a saved Pyroscope CPU stack. Focus on the parser subtree, which is 85% of the full profile, and make its root fill the image. How will you label and verify it?",
-      "expected_output": "Preserves true stack weights and topology, explicitly records subtree normalization, and verifies readable themes and selected formats.",
+      "prompt": "Plan a flame graph from a saved Pyroscope CPU stack that I will supply later. Focus on the parser subtree, which is 85% of the full profile, and make its root fill the image. No stack file is available yet: explain how you will label and verify it; do not render or fabricate data.",
+      "expected_output": "Plans a rendering that preserves stack weights and topology, explicitly records subtree normalization, and checks readable themes and selected formats once the stack is supplied.",
       "expectations": [
         "Clearly identifies subtree focus and whether percentages use the subtree or whole-profile denominator",
-        "Preserves caller/callee nesting, inclusive widths and self samples without adding overlapping shares",
-        "Uses saved stack data and reproducible rendering; checks matching light/dark geometry and readability in selected outputs"
+        "Plans a saved-stack rendering that retains parent/child structure and inclusive/self weights, either by explicit preservation steps or by using the bundled renderer and describing its parent/self validation checks. Does not propose summing overlapping ancestor/descendant shares",
+        "Plans to use supplied stack data and a reproducible renderer, then check matching light/dark geometry and readability in selected outputs; does not invent or claim a completed render without the stack"
       ]
     }
   ]

@@ -57,7 +57,8 @@ it does not replace this orchestration or widen the user's scope.
    requests. A late matching request does not automatically start another prompt.
 2. **Launch both sub-agents before awaiting either result.** Each brief, the direct one included,
    states the shared inputs as its own explicit fields (context, exact expression, window or
-   instant, timezone, output constraint), not only inside an embedded command line:
+   instant, timezone, output constraint), not only inside an embedded command line. Expand
+   the literal values in each brief; “shared block above” is not a self-contained handoff:
    - **Grafana Assistant agent:** send the same request through `gcx assistant prompt` with
      explicit `--context`, a fresh conversation and the shared read-only scope. For an exact
      query, retain the expression, parameters and requested output; do not substitute an
@@ -102,11 +103,12 @@ it does not replace this orchestration or widen the user's scope.
    and end both set to the instant. Account for
    the Assistant branch and the direct gcx branch with their observed agent identities and
    launch times, or nulls when never launched. Record which bundled skills the
-   direct branch used. The report or response's Source snapshot cites the local manifest.
+   direct branch used. In the report or response's Source snapshot, add a labelled
+   `Fan-out manifest: <absolute path>` reference. Re-read that section to verify placement.
    When the requested output excludes prose or citations (for example values-only or JSON),
    write that Source snapshot, citing the manifest by its absolute path, to a local audit file
    beside the manifest instead. The reply then holds only the requested format or the bare
-   limitation: no brief recap, file locations, snapshot or contract notes.
+   limitation: no launch summaries, brief recap, file locations, snapshot or contract notes.
    Record an explicit user exclusion of profiling or source reads there as a scope limitation.
 4. **Reconcile and verify.** Check that both agents used the same resolved inputs. Verify
    material claims against direct evidence and report disagreements, gaps and limitations.
@@ -162,7 +164,8 @@ acknowledgments, messages and publication require separate authorization.
 - The direct agent loaded the relevant refreshed bundled skills and executed actual gcx reads;
   printing skill instructions alone was not treated as execution.
 - Exact expressions, resource filters, limits, output constraints and applicable windows survived
-  both briefs unchanged; non-temporal reads did not gain an invented time window.
+  both briefs as literal input fields, without shared-block references; non-temporal reads
+  did not gain an invented time window.
 - Assistant and delegated output stayed leads until the orchestrator verified material claims.
   Direct observed results, empty results, denials and unavailable evidence remain distinct.
 - A disabled Assistant sent zero prompts, including through direct-branch skill guidance;

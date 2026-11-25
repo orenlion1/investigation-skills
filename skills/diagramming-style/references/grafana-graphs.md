@@ -49,6 +49,22 @@ with interactive graph support, and it grants no additional resource or publicat
 
 ## Profiling views
 
+Before rendering, read the [theme profiles](diagramming-style.md#light-and-dark-profiles).
+Produce both light and dark variants from retained code that reads the saved stack; a manually
+positioned SVG from summary percentages is not a reproducible profile rendering. Use the
+bundled standard-library [renderer](../scripts/render_flamegraph.py) for Pyroscope
+`names`/`levels` JSON (bare or under `flamegraph`), or a verified native export:
+
+```sh
+python3 scripts/render_flamegraph.py --input profile.json --light flame-light.svg --dark flame-dark.svg
+```
+
+Run that command from this skill's directory with caller-resolved paths. `--focus` accepts one
+exact, unique frame name; `--max-depth` defaults to 16. The output receipt records the source
+hash, whole-profile percentage denominator and omitted descendants; retain it with evidence.
+The helper rejects invalid stack relationships and existing output paths; do not replace a
+failed render with a hand-drawn graph.
+
 When the report owner requires a Pyroscope flame graph, render the actual inspected stack
 results or a verified export. Preserve caller/callee nesting, inclusive widths, self values,
 units and sampling semantics. Do not sum overlapping ancestor/descendant shares. Ordinary

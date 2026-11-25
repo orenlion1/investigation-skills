@@ -72,9 +72,10 @@ Resolve selected report formats through the [delivery contract](../open-edit-clo
 Inventory every material incident, investigation, backing chat, conversation and cross-report
 evidence reference at its point of use: reconciliation prose, coverage tables and evidence-index
 entries all count. A working link elsewhere, attachment hash or report-title link never satisfies
-an unlinked occurrence. For each unlinked occurrence, report its location and the
-destination derived from its source, or say the provenance is unavailable; a matching authored
-link is not proof the destination opens. Register source-derived identities and visible aliases, review the full
+an unlinked occurrence. Return an occurrence table giving each unresolved location and
+its exact source-derived URL or file/fragment target, or explicit unavailable provenance.
+"The link exists" and a pointer elsewhere do not supply that destination; authored-link
+matching is not navigation acceptance. Register source-derived identities and visible aliases, review the full
 source for omitted references, and retain occurrence-level diagnostics and separate unique-target
 counts. Unavailable provenance and unverified navigation remain explicit incomplete results.
 

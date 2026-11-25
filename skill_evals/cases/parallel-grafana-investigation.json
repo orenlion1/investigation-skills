@@ -277,7 +277,7 @@
       "expectations": [
         "Hands retained stack data and metadata to Report Authoring for its profiling evidence requirement",
         "Names Diagramming Style as rendering/presentation owner without duplicating rendering rules into the query workflow",
-        "Preserves the hotspot-versus-defect distinction and performs no new query or delegation"
+        "Preserves the hotspot-versus-defect distinction, makes no new provider query and launches no agent; describing a reporting handoff is not a new agent launch"
       ]
     }
   ]

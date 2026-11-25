@@ -6,6 +6,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +48,111 @@ class IsolationFlagTests(unittest.TestCase):
         result = subprocess.run([sys.executable, str(SHIM), '-p'], input='x', capture_output=True, text=True, env=env)
         self.assertEqual(result.returncode, 75)
         self.assertIn('LIVE_EVAL_ISOLATION_USER', result.stderr)
+
+
+class SkillPackageTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.repo = self.root / 'checkout'
+        self.repo.mkdir()
+        subprocess.run(['git', 'init', '-q', str(self.repo)], check=True)
+        self.catalog = self.repo / 'skills'
+        for relative, text in {
+            'report-authoring/SKILL.md': 'Read references/evidence.md',
+            'report-authoring/references/evidence.md': 'Use the actual stack',
+            'diagramming-style/SKILL.md': 'Read references/style.md',
+            'diagramming-style/references/style.md': 'Render both themes',
+            'diagramming-style/scripts/render.py': '# renderer',
+        }.items():
+            path = self.catalog / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text)
+        subprocess.run(['git', '-C', str(self.repo), 'add', 'skills'], check=True)
+        (self.repo / '.env').write_text('PRIVATE')
+        (self.catalog / 'report-authoring' / 'untracked-secret').write_text('PRIVATE')
+        self.work = self.root / 'work'
+        self.work.mkdir()
+
+    def test_executor_receives_complete_tracked_packages_and_reference_location(self):
+        argv = ['-p', '--output-format', 'stream-json', '--append-system-prompt', 'skill instructions']
+        actual = sandbox.stage_skill_catalog(self.catalog, self.work, argv)
+        package = self.work / '.eval-skills'
+        self.assertEqual((package / 'report-authoring/references/evidence.md').read_text(),
+                         'Use the actual stack')
+        self.assertTrue((package / 'diagramming-style/scripts/render.py').is_file())
+        self.assertFalse((package / 'report-authoring/untracked-secret').exists())
+        self.assertFalse((package / '.env').exists())
+        self.assertFalse((package / '.git').exists())
+        prompt = actual[actual.index('--append-system-prompt') + 1]
+        self.assertIn('skill instructions', prompt)
+        self.assertIn(str(package), prompt)
+        self.assertNotIn(str(self.repo), prompt)
+        self.assertEqual(argv[-1], 'skill instructions')
+
+    def test_isolated_executor_can_find_references_but_receives_no_checkout_location(self):
+        original_run = subprocess.run
+        launched = []
+        home = self.root / 'home'
+        home.mkdir()
+
+        def run(command, **kwargs):
+            if command[0] == 'git':
+                return original_run(command, **kwargs)
+            if '--append-system-prompt' in command:
+                launched.append(command)
+                prompt = command[command.index('--append-system-prompt') + 1]
+                self.assertIn(str(self.work / '.eval-skills'), prompt)
+                self.assertNotIn(str(self.repo), prompt)
+                self.assertTrue((self.work / '.eval-skills/report-authoring/references/evidence.md').is_file())
+                self.assertFalse(any(v.startswith('LIVE_EVAL_SKILLS_DIR=') for v in command))
+            return subprocess.CompletedProcess(command, 0)
+
+        with patch.object(sandbox.os, 'getcwd', return_value=str(self.work)), \
+                patch.object(sandbox.tempfile, 'mkdtemp', return_value=str(home)), \
+                patch.object(sandbox.subprocess, 'run', side_effect=run):
+            code = sandbox.run_isolated('eval', 'http://localhost:3128', '/bin/claude',
+                                        ['-p', '--output-format', 'stream-json',
+                                         '--append-system-prompt', 'skill instructions'],
+                                        {'LIVE_EVAL_SKILLS_DIR': str(self.catalog)}, self.root / 'sessions')
+        self.assertEqual(code, 0)
+        self.assertEqual(len(launched), 1)
+
+    def test_grader_does_not_receive_skill_packages(self):
+        def temporary(prefix):
+            directory = self.root / prefix
+            directory.mkdir()
+            return str(directory)
+
+        with patch.object(sandbox.tempfile, 'mkdtemp', side_effect=temporary), \
+                patch.object(sandbox, 'stage_skill_catalog', side_effect=AssertionError('grader packages')), \
+                patch.object(sandbox.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)):
+            self.assertEqual(sandbox.run_isolated(
+                'eval', 'http://localhost:3128', '/bin/claude', ['-p'],
+                {'LIVE_EVAL_SKILLS_DIR': str(self.catalog)}, self.root / 'sessions'), 0)
+
+    def test_package_rejects_symlinks_and_existing_destination(self):
+        target = self.catalog / 'report-authoring/references/evidence.md'
+        target.unlink()
+        target.symlink_to(self.repo / '.env')
+        with self.assertRaises(ValueError):
+            sandbox.stage_skill_catalog(self.catalog, self.work, ['--append-system-prompt', 'x'])
+        self.assertFalse((self.work / '.eval-skills').exists())
+        target.unlink()
+        target.write_text('safe')
+        (self.work / '.eval-skills').mkdir()
+        with self.assertRaises(FileExistsError):
+            sandbox.stage_skill_catalog(self.catalog, self.work, ['--append-system-prompt', 'x'])
+
+    def test_package_rejects_directory_symlinks_before_copying(self):
+        reference = self.catalog / 'report-authoring/references'
+        (reference / 'evidence.md').unlink()
+        reference.rmdir()
+        reference.symlink_to(self.repo, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            sandbox.stage_skill_catalog(self.catalog, self.work, ['--append-system-prompt', 'x'])
+        self.assertFalse((self.work / '.eval-skills').exists())
 
 
 class ProxyTests(unittest.TestCase):

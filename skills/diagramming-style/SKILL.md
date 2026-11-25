@@ -20,6 +20,10 @@ topic reference when the task matches:
 | Relevant Grafana data available within the authorized scope | [Grafana data and interactive graphs](references/grafana-graphs.md) | Enrich diagrams and reports with evidence-backed graphs from Grafana CLI and interactive views supported by the current host, following its scoped queries, provenance, theme checks, and matching static report views. Use the graphs to explain the findings; record unavailable capabilities and continue with verified data rather than making Grafana a prerequisite for ordinary diagramming. |
 | Origin of the conventions | [Reference provenance](references/provenance.md) | Background only. |
 
+Before returning a caption-only or prose edit, inspect **both theme exports themselves**
+(read SVG text or view raster images). Name both checked files and the title/caveat result
+in delivery. A file listing, unchanged DOT source or unchanged bytes is not that inspection.
+
 Core rules, detailed in the guide:
 
 - Use plain labels, whitespace, and restrained typography. Avoid decorative node boxes,
