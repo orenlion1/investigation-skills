@@ -3,7 +3,8 @@ name: Live Behavioral Evals
 # Opt-in and on demand only: executes behavioral evals against a model when someone starts
 # it. It never runs on pull requests, merge queues or pushes, because each run spends model
 # usage. It authenticates to Anthropic through GitHub OIDC workload identity federation
-# (ANTHROPIC_FEDERATION_RULE_ID and ANTHROPIC_ORGANIZATION_ID repository variables).
+# (ANTHROPIC_FEDERATION_RULE_ID, ANTHROPIC_ORGANIZATION_ID, ANTHROPIC_SERVICE_ACCOUNT_ID and
+# ANTHROPIC_WORKSPACE_ID repository variables).
 #
 # Spend is metered and capped: every model call goes through scripts/live-evals-runner/claude,
 # which records its cost, and runs pause once the month's spend reaches the
@@ -111,9 +112,15 @@ jobs:
         env:
           ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
           ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+          ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
+          ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
         run: |
-          if [ -z "$ANTHROPIC_FEDERATION_RULE_ID" ] || [ -z "$ANTHROPIC_ORGANIZATION_ID" ]; then
-            echo '::error::ANTHROPIC_FEDERATION_RULE_ID or ANTHROPIC_ORGANIZATION_ID variable is not set.'
+          missing=''
+          for name in ANTHROPIC_FEDERATION_RULE_ID ANTHROPIC_ORGANIZATION_ID ANTHROPIC_SERVICE_ACCOUNT_ID ANTHROPIC_WORKSPACE_ID; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Repository variables not set:$missing"
             exit 1
           fi
 
@@ -127,8 +134,8 @@ jobs:
         env:
           ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
           ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
-          ANTHROPIC_SERVICE_ACCOUNT_ID: svac_011STeYdkVGepjQBALKrB8CM
-          ANTHROPIC_WORKSPACE_ID: wrkspc_01L6vCTR95hgQx5JNzE7thNs
+          ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
+          ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
           ANTHROPIC_MODEL: ${{ inputs.model }}
           # The runner shim mints one GitHub OIDC token per model call for this audience.
           LIVE_EVAL_OIDC_AUDIENCE: https://api.anthropic.com
