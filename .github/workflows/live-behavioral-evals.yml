@@ -1,0 +1,114 @@
+name: Live Behavioral Evals
+
+# Opt-in and on demand only: executes behavioral evals against a model when someone starts
+# it. It never runs on pull requests, merge queues or pushes, because each run spends model
+# usage. It needs the ANTHROPIC_API_KEY Actions secret
+# (scripts/set-anthropic-api-key-secret.sh).
+on:
+  workflow_dispatch:
+    inputs:
+      skill:
+        description: Skill to evaluate, or "all" for the whole catalog
+        required: true
+        default: all
+        type: string
+      model:
+        description: Model that performs and grades the evals (Sonnet for routine runs, Fable to confirm a failure)
+        required: true
+        default: claude-sonnet-5-5
+        type: choice
+        options:
+          - claude-sonnet-5-5
+          - claude-fable-5-2
+
+concurrency:
+  group: live-behavioral-evals-${{ github.ref }}-${{ inputs.skill }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  skills:
+    name: List skills
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      skills: ${{ steps.list.outputs.skills }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Resolve the requested skills
+        id: list
+        env:
+          SKILL: ${{ inputs.skill }}
+        run: |
+          set -euo pipefail
+          skills=$(python3 - <<'PY'
+          import json, os, pathlib, sys
+          known = sorted(p.stem for p in pathlib.Path("skill_evals/cases").glob("*.json"))
+          wanted = os.environ["SKILL"].strip()
+          if wanted == "all":
+              print(json.dumps(known))
+          elif wanted in known:
+              print(json.dumps([wanted]))
+          else:
+              sys.exit("Unknown skill; use all or one of: " + ", ".join(known))
+          PY
+          )
+          printf 'skills=%s\n' "$skills" >>"$GITHUB_OUTPUT"
+
+  live-evals:
+    name: Live evals (${{ matrix.skill }}, ${{ inputs.model }})
+    needs: skills
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        skill: ${{ fromJSON(needs.skills.outputs.skills) }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Require the model credential
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo '::error::The ANTHROPIC_API_KEY secret is not set; run scripts/set-anthropic-api-key-secret.sh.'
+            exit 1
+          fi
+
+      - name: Install the pinned Claude Code runner
+        run: |
+          set -euo pipefail
+          npm install --global --no-fund --no-audit @anthropic-ai/claude-code@2.1.332
+          claude --version
+
+      - name: Execute the skill's behavioral evals
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ inputs.model }}
+          SKILL: ${{ matrix.skill }}
+        run: |
+          set -o pipefail
+          results="$RUNNER_TEMP/live-eval-results"
+          mkdir -p "$results"
+          scripts/run-skill-quality-gate.sh --execute-behavioral --skill "$SKILL" \
+            --output-dir "$results" 2>&1 | tee "$results/runner.log"
+
+      - name: Upload grading files
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: live-evals-${{ matrix.skill }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/live-eval-results
+          if-no-files-found: warn
+          retention-days: 7
