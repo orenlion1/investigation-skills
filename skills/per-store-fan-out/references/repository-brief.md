@@ -25,7 +25,7 @@ schema stay in [the delegation contract](delegation-contract.md).
 - Timezone: <IANA timezone>
 - Task questions: <the task's questions, verbatim>
 - Constraints: read-only; only the objects above; AWS stays within
-  us-east-1/eu-central-1; no mutations, acknowledgments, messages, or publication.
+  the Region(s) the task's Resources name; no mutations, acknowledgments, messages, or publication.
 
 ## Repository-specific questions
 - <the task's relevant source questions for this repository>

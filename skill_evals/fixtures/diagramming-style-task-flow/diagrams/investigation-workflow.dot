@@ -1,0 +1,11 @@
+// One source for every export; diagrams/render.sh supplies each theme's palette.
+digraph InvestigationWorkflow {
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=12, nodesep=0.5, ranksep=0.8];
+  node [shape=plaintext, fontname="Helvetica", fontsize=12];
+  edge [fontname="Helvetica", fontsize=11];
+  open [label="Open task"];
+  investigate [label="Investigate"];
+  report [label="Report"];
+  open -> investigate -> report;
+}

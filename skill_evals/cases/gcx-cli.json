@@ -44,13 +44,16 @@
     },
     {
       "id": 2,
-      "kind": "dialogue",
-      "prompt": "Investigate incident-example with a parent-prepared compatible rhyming matching handoff for the unsent Assistant branch.",
-      "expected_output": "Preserves original problem and full matching request in one initial prompt; Uses explicit context, records receipt and references; Does not send an extra matching prompt; verifies material leads.",
+      "kind": "execution",
+      "prompt": "Investigate incident-example as the unsent Grafana Assistant branch, using the parent-prepared compatible rhyming matching handoff in gcx-cli-assistant-handoff/handoff/prepared-assistant-search.json and the branch record in gcx-cli-assistant-handoff/handoff/assistant-branch.json. gcx is not installed and there is no network here, so do not install, sign in or submit anything: prepare the branch's submission and record it under gcx-cli-assistant-handoff/out/ so it can run once gcx is available.",
+      "expected_output": "Prepares one initial Assistant prompt carrying the branch's original request and the full matching request with the explicit context from the handoff, records a pending execution receipt with the handoff references, sends no extra matching prompt and keeps any returned matches as leads for parent verification.",
       "expectations": [
-        "Preserves original problem and full matching request in one initial prompt",
-        "Uses explicit context, records receipt and references",
-        "Does not send an extra matching prompt; verifies material leads"
+        "Prepares exactly one initial Assistant prompt that contains both the branch's original problem and the full matching request from the handoff",
+        "Uses the handoff's explicit context (example) rather than current-context, and records a local execution receipt with the prepared and owner references, the endpoint IDs and a pending, not-submitted status",
+        "Prepares no extra or separate matching prompt, claims no submission or response, and states that any returned matches stay leads until verified"
+      ],
+      "files": [
+        "gcx-cli-assistant-handoff"
       ]
     }
   ]

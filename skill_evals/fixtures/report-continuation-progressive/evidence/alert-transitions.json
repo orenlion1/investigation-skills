@@ -1,0 +1,10 @@
+{
+  "synthetic": true,
+  "window": {"start": "2026-11-09T14:00:00Z", "end": "2026-11-09T15:00:00Z"},
+  "rule": {"predicate": "cpu_percent > 85", "pending": "2m", "recovery_hold_down": null},
+  "transitions": [
+    {"at": "2026-11-09T14:02:00Z", "state": "firing"},
+    {"at": "2026-11-09T14:09:00Z", "state": "resolved"},
+    {"at": "2026-11-09T14:13:00Z", "state": "firing"}
+  ]
+}

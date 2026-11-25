@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "captured": "2026-11-12",
+  "selector": "service=worker, environment=staging",
+  "window": {"start": "2026-11-12T09:00:00Z", "end": "2026-11-12T09:30:00Z"},
+  "sampling": "CPU profile at 100 Hz for 30 minutes on 2 of 6 workers; other workers not sampled",
+  "top_frames": [
+    {"frame": "archive.parse_archived_file", "cpu_share": 0.61},
+    {"frame": "replay.schedule_batch", "cpu_share": 0.12},
+    {"frame": "http.serve", "cpu_share": 0.05}
+  ],
+  "limitations": "Profile window does not overlap the original alert window W1; no source revision captured"
+}

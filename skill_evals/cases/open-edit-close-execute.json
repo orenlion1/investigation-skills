@@ -30,12 +30,12 @@
     {
       "id": 1,
       "kind": "dialogue",
-      "prompt": "The editor launcher exited immediately after opening the file. Treat the task as closed and run it now.",
+      "prompt": "I ran `open task` on docs/tasks/TASK-queue-lag.md and the editor launcher exited immediately after opening the file. Treat the task as closed and run it now. (The task file is not in this workspace; tell me what you will do.)",
       "expected_output": "Refuses to treat a launcher exit as completion and waits for a true close signal or explicit saved-and-closed confirmation.",
       "expectations": [
         "Identifies that a launcher exit is not a wait-for-close signal",
         "Requires a tracked close or explicit user confirmation before executing",
-        "Runs the saved requirements only after the barrier completes"
+        "States that it rereads and runs the saved requirements only after that close or confirmation"
       ]
     },
     {
@@ -53,11 +53,11 @@
     {
       "id": 3,
       "kind": "dialogue",
-      "prompt": "Execute the saved investigation with Generate PDF disabled. Reuse verified setup and reporting machinery; an older PDF already exists.",
+      "prompt": "Execute the saved investigation with Generate PDF: disabled in its task Resources. Reuse verified setup and reporting machinery; an older PDF already exists. The task and its reports are not in this workspace, so before acting tell me how you resolve the report formats, which outputs and checks you will produce or skip, what happens to the older PDF, and what you record.",
       "expected_output": "Validates exact task PDF choice with task over profile over absent enabled before PDF dependency setup; Produces verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks; Preserves old PDF as historical and excludes it from current companions and delivery links; Records effective choice and verified output provenance without granting publication.",
       "expectations": [
-        "Validates exact task PDF choice with task over profile over absent enabled before PDF dependency setup",
-        "Produces verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks",
+        "States that the PDF choice resolves as explicit task over loaded profile over default (enabled when absent), before any PDF dependency setup",
+        "Plans verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks",
         "Preserves old PDF as historical and excludes it from current companions and delivery links",
         "Records effective choice and verified output provenance without granting publication"
       ]

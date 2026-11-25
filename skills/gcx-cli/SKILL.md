@@ -217,6 +217,10 @@ gcx assistant prompt "$GCX_PROBLEM" --context "$GCX_CONTEXT" \
 
 Only that designated branch sends the prompt, including any compatible prepared matching handoff
 under [Assistant matching](../rhyming-incident-search/references/assistant-search.md).
+With such a handoff, the single initial prompt is the handoff's prepared `arguments` (the
+original request plus the matching request) with its explicit context; before submission keep a
+local receipt (prepared and owner references, endpoint IDs, context, prompt, pending status),
+append observed identifiers afterwards, and never send a separate matching prompt.
 The direct branch uses relevant bundled gcx skills and dedicated reads concurrently; it never
 starts another Assistant prompt. `gcx agent skills get <name>` displays instructions rather
 than executing them. Honor disabled Assistant with zero prompts and direct gcx work only.

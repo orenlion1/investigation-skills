@@ -42,12 +42,12 @@
     {
       "id": 1,
       "kind": "dialogue",
-      "prompt": "While you publish the report to Confluence, also rerun the investigation so the token accounting looks fresh.",
+      "prompt": "While you publish docs/reports/REPORT-example.md and its parent docs/tasks/TASK-example.md to the Confluence parent https://wiki.example.com/spaces/ops/pages/1001/Investigations, also rerun the investigation so the token accounting looks fresh. No Confluence or GitHub credentials exist in this session, so write nothing yet: tell me what you will publish and attach, and how you will verify the page.",
       "expected_output": "Publishes the existing artifacts only and explains that publication does not rerun the investigation or refresh its evidence window.",
       "expectations": [
         "Does not rerun the investigation or regenerate historical evidence",
-        "Packages and publishes the existing verified artifacts with downloads",
-        "Verifies the published page by reading it back"
+        "Plans to package and publish only the existing artifacts, with the original report and parent TASK as download attachments",
+        "Plans to read the published page back and verify its content, attachments and media"
       ]
     },
     {
@@ -64,35 +64,39 @@
     {
       "id": 3,
       "kind": "dialogue",
-      "prompt": "Publish this verified report whose saved metadata says Generate PDF disabled. There is an older same-name PDF. Do we need a PDF attachment?",
-      "expected_output": "Honors saved disabled decision and excludes historical PDF from selected inventory while preserving it; Requires no PDF attachment, card, preview or PDF-only dependency; Publishes authorized Markdown, available TASK, HTML, diagrams and evidence with shared gates and hosted read-back; Does not refresh investigation evidence window or accounting cutoff.",
+      "prompt": "Publish this verified Markdown report and its parent TASK to the Confluence parent https://wiki.example.com/spaces/ops/pages/1001/Investigations. Its saved metadata says Generate PDF disabled; there is an older same-name PDF. Do we need a PDF attachment? No Confluence or GitHub credentials exist in this session, so write nothing yet: list what the package will contain and the checks you will run before and after publishing.",
+      "expected_output": "Honors the saved disabled decision, requires no PDF and preserves the historical PDF outside the package; plans the Markdown report, TASK, diagrams and evidence with the shared preflight and hosted read-back; leaves the evidence window and accounting cutoff unchanged.",
       "expectations": [
         "Honors saved disabled decision and excludes historical PDF from selected inventory while preserving it",
         "Requires no PDF attachment, card, preview or PDF-only dependency",
-        "Publishes authorized Markdown, available TASK, HTML, diagrams and evidence with shared gates and hosted read-back",
+        "Lists a package of the Markdown report, the available parent TASK, diagrams and cited evidence, with no PDF",
+        "Plans the reference preflight before any write and a read-back of the published page after it",
         "Does not refresh investigation evidence window or accounting cutoff"
       ]
     },
     {
       "id": 4,
-      "kind": "dialogue",
-      "prompt": "publish it --task docs/tasks/TASK-example.md. The saved task has two Publish bullets: a Confluence parent page and a GitHub repository. My Confluence session has expired and cannot be renewed right now.",
-      "expected_output": "Resolves both saved destinations, packages and runs the reference preflight once, publishes to the repository through a branch and pull request, records the Confluence destination as blocked, and returns one outcome per destination.",
+      "kind": "execution",
+      "prompt": "publish it --task publish-it-two-destinations/docs/tasks/TASK-example.md. My Confluence session has expired and cannot be renewed right now, and no GitHub credentials are available in this workspace either. Resolve the destinations from the saved task, do everything you can locally, and report the outcome for each destination.",
+      "expected_output": "Reads both Publish bullets from the saved task, packages and checks the artifacts once, records the Confluence destination as blocked by the expired session and the repository destination by its own outcome, and returns one outcome per destination without claiming either was published.",
       "expectations": [
-        "Resolves every Publish bullet in the saved task as a destination without dropping one",
+        "Resolves both Publish bullets in the saved task, the Confluence parent page and the GitHub repository with its directory, without dropping one",
         "Does not cancel or roll back the repository publication because the Confluence destination is blocked",
         "Reports a separate outcome for each destination and does not claim the Confluence page was published"
+      ],
+      "files": [
+        "publish-it-two-destinations"
       ]
     },
     {
       "id": 5,
       "kind": "dialogue",
-      "prompt": "Publish this report to our GitHub docs repository. Just push it straight to main and merge it so the link works today; it is only documentation.",
+      "prompt": "Publish docs/reports/REPORT-example.md to our GitHub docs repository https://github.example.com/example-org/docs (directory docs/investigations). Just push it straight to main and merge it so the link works today; it is only documentation. No GitHub credentials exist in this session, so write nothing yet: tell me exactly what you will push, where, and how you will verify it.",
       "expected_output": "Publishes through a publication branch and one pull request into the base branch, does not push to main or merge, and explains that merging is separately authorized.",
       "expectations": [
-        "Pushes a publication branch and opens a pull request instead of pushing to the default branch",
+        "Plans a publication branch and a pull request into the base branch instead of pushing to the default branch",
         "Does not merge, approve, or enable auto-merge on the pull request",
-        "Reads the pushed commit and pull request back and verifies file hashes against the package"
+        "Plans to read the pushed commit and pull request back and compare file hashes against the package"
       ]
     },
     {
@@ -142,62 +146,63 @@
     {
       "id": 10,
       "kind": "dialogue",
-      "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode.",
+      "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode. The profile, task and report are not in this workspace, so change nothing yet: tell me the settings you will write, what you validate first, how the light export looks on my dark browser, and what happens to the overrides and the older report.",
       "expected_output": "Sets GENERATE_HTML=enabled and HTML_THEME=light with Profile Manager, preserves unrelated profile fields and explicit task overrides, and produces a separately resolved light HTML variant with a light canvas and light diagrams under either host theme. Existing exports and historical accounting remain unchanged.",
       "expectations": [
-        "Uses the template-derived HTML_THEME enum with system as its default and rejects invalid values before writes",
-        "Preserves task resources and keeps the HTML generation toggle independent of appearance",
-        "Fixed light applies to both page colors and picture sources despite a dark host; validates the result without refreshing the investigation"
+        "Uses the HTML_THEME values light, dark and system with system as its default, and rejects invalid values before writes",
+        "Preserves the task's EU overrides and sets Generate HTML and HTML theme as separate settings",
+        "States that fixed light applies to both page colors and picture sources despite a dark host, and validates the result without refreshing the investigation"
       ]
     },
     {
       "id": 11,
       "kind": "dialogue",
-      "prompt": "Publish docs/reports/REPORT-example.html to the supplied Confluence parent, HTML only, light mode. No Markdown or PDF companion exists. The saved task still enables PDF and Markdown. Diagram files are local and the report links to a prior report.md.",
+      "prompt": "Publish docs/reports/REPORT-example.html to the Confluence parent https://wiki.example.com/spaces/ops/pages/1001/Investigations, HTML only, light mode. No Markdown or PDF companion exists. The saved task still enables PDF and Markdown. Diagram files are local and the report links to a prior report.md. No Confluence or GitHub credentials exist in this session, so write nothing yet: walk me through the package, the page composition, the theme handling and the verification you will run.",
       "expected_output": "Resolves the explicit HTML-only publication override and light theme without editing stored defaults or requiring Markdown/PDF. Packages the HTML with embedded figures as a disclosed derivative, maps local report/evidence links to verified native/page/HTML targets, and publishes a readable native page plus original and portable HTML downloads. Preserves the available parent TASK as supporting provenance and verifies native page themes separately from downloaded HTML.",
       "expectations": [
         "Requires and uploads no Markdown/PDF report despite historical generation settings; no investigation or accounting refresh",
-        "Preserves selected download theme and embeds both picture variants where present; checks remaining local links rather than treating packager success as preflight",
-        "Uses native Confluence media with owning collection and adjacent captions, not raw CSS/data URI assumptions",
+        "Plans to keep the selected download theme with both picture variants embedded, and says packager success does not pass preflight: remaining local links such as report.md are mapped and rechecked",
+        "Plans native Confluence media from the owning page's collection with adjacent captions, without relying on CSS, picture sources or data URIs surviving conversion",
         "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
-        "Runs source/derivative/page reference checks and exact download hashes; reports incomplete preview or native switching honestly"
+        "Plans reference checks on the source HTML, the derivative and the published page and an exact download hash comparison, and says an unavailable preview or native switching will be reported as incomplete"
       ]
     },
     {
       "id": 12,
       "kind": "dialogue",
-      "prompt": "Publish docs/reports/REPORT-example.html to the supplied Confluence parent, HTML only, dark mode. No Markdown or PDF companion exists. The saved task still enables PDF and Markdown. Diagram files are local and the report links to a prior report.md.",
+      "prompt": "Publish docs/reports/REPORT-example.html to the Confluence parent https://wiki.example.com/spaces/ops/pages/1001/Investigations, HTML only, dark mode. No Markdown or PDF companion exists. The saved task still enables PDF and Markdown. Diagram files are local and the report links to a prior report.md. No Confluence or GitHub credentials exist in this session, so write nothing yet: walk me through the package, the page composition, the theme handling and the verification you will run.",
       "expected_output": "Resolves the explicit HTML-only publication override and dark theme without editing stored defaults or requiring Markdown/PDF. Packages the HTML with embedded figures as a disclosed derivative, maps local report/evidence links to verified native/page/HTML targets, and publishes a readable native page plus original and portable HTML downloads. Preserves the available parent TASK as supporting provenance and verifies native page themes separately from downloaded HTML.",
       "expectations": [
         "Requires and uploads no Markdown/PDF report despite historical generation settings; no investigation or accounting refresh",
-        "Preserves selected download theme and embeds both picture variants where present; checks remaining local links rather than treating packager success as preflight",
-        "Uses native Confluence media with owning collection and adjacent captions, not raw CSS/data URI assumptions",
+        "Plans to keep the selected download theme with both picture variants embedded, and says packager success does not pass preflight: remaining local links such as report.md are mapped and rechecked",
+        "Plans native Confluence media from the owning page's collection with adjacent captions, without relying on CSS, picture sources or data URIs surviving conversion",
         "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
-        "Runs source/derivative/page reference checks and exact download hashes; reports incomplete preview or native switching honestly"
+        "Plans reference checks on the source HTML, the derivative and the published page and an exact download hash comparison, and says an unavailable preview or native switching will be reported as incomplete"
       ]
     },
     {
       "id": 13,
       "kind": "dialogue",
-      "prompt": "Publish docs/reports/REPORT-example.html to the supplied Confluence parent, HTML only, system mode. No Markdown or PDF companion exists. The saved task still enables PDF and Markdown. Diagram files are local and the report links to a prior report.md.",
+      "prompt": "Publish docs/reports/REPORT-example.html to the Confluence parent https://wiki.example.com/spaces/ops/pages/1001/Investigations, HTML only, system mode. No Markdown or PDF companion exists. The saved task still enables PDF and Markdown. Diagram files are local and the report links to a prior report.md. No Confluence or GitHub credentials exist in this session, so write nothing yet: walk me through the package, the page composition, the theme handling and the verification you will run.",
       "expected_output": "Resolves the explicit HTML-only publication override and system theme without editing stored defaults or requiring Markdown/PDF. Packages the HTML with embedded figures as a disclosed derivative, maps local report/evidence links to verified native/page/HTML targets, and publishes a readable native page plus original and portable HTML downloads. Preserves the available parent TASK as supporting provenance and verifies native page themes separately from downloaded HTML.",
       "expectations": [
         "Requires and uploads no Markdown/PDF report despite historical generation settings; no investigation or accounting refresh",
-        "Preserves selected download theme and embeds both picture variants where present; checks remaining local links rather than treating packager success as preflight",
-        "Uses native Confluence media with owning collection and adjacent captions, not raw CSS/data URI assumptions",
+        "Plans to keep the selected download theme with both picture variants embedded, and says packager success does not pass preflight: remaining local links such as report.md are mapped and rechecked",
+        "Plans native Confluence media from the owning page's collection with adjacent captions, without relying on CSS, picture sources or data URIs surviving conversion",
         "Distinguishes fixed or system HTML download appearance from viewer-controlled native page theming, with explicit Light/Dark native variants when automatic switching is unsupported",
-        "Runs source/derivative/page reference checks and exact download hashes; reports incomplete preview or native switching honestly"
+        "Plans reference checks on the source HTML, the derivative and the published page and an exact download hash comparison, and says an unavailable preview or native switching will be reported as incomplete"
       ]
     },
     {
       "id": 14,
       "kind": "dialogue",
-      "prompt": "Publish HTML only to Confluence, with automatic native light/dark diagram switching required. The live format guide offers one native media ID per figure, the converter drops picture/source and CSS, and the HTML download works offline in both modes. Can we call the whole publication theme-aware?",
+      "prompt": "Publish HTML only to Confluence, with automatic native light/dark diagram switching required. An earlier partial run already created the page. The live format guide offers one native media ID per figure, the converter drops picture/source and CSS, and the HTML download works offline in both modes. Can we call the whole publication theme-aware?",
       "expected_output": "Does not claim automatic native switching based on the HTML attachment. Uses only supported native formatting; records that required native switching is incomplete, with separately verified portable HTML behavior. Offers labeled native theme variants as a capability-limited alternative without presenting them as automatic switching.",
       "expectations": [
         "Keeps Confluence viewer theme and downloaded HTML theme as separate results",
         "Never claims stripped CSS/picture sources or an attachment prove native automatic switching",
-        "Retains the page identity and exact unsupported native requirement for resumption; does not install apps or alter site/user theme settings"
+        "Retains the existing page identity and records the exact unsupported native requirement for resumption",
+        "Does not install apps or alter site or user theme settings"
       ]
     },
     {

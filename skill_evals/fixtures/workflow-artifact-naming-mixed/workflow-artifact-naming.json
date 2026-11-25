@@ -1,0 +1,4 @@
+{
+  "schema": "workflow-artifact-naming/v1",
+  "locations": {"REPORT": "docs/investigations"}
+}

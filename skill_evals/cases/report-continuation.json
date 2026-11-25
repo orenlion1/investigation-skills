@@ -37,8 +37,8 @@
   "evals": [
     {
       "id": 1,
-      "kind": "dialogue",
-      "prompt": "The source task already has an investigation report. After its first delivery I asked whether replay caused the CPU problem, the agent gave a provisional answer, I added the application repository and requested code validation. We have new profiling evidence but code inspection is pending. Update the report now.",
+      "kind": "execution",
+      "prompt": "report-continuation-progressive/docs/tasks/TASK-worker-cpu.md already has an investigation report. After its first delivery I asked whether replay caused the CPU problem, the agent gave a provisional answer, I added the application repository and requested code validation; those turns are saved in report-continuation-progressive/notes/turns-after-delivery.md. We have new profiling evidence but code inspection is pending. Update the report now. Stay offline.",
       "expected_output": "Resolves the existing canonical report and updates it progressively with dated questions, responses, evidence and task resource changes, leaving code validation open.",
       "expectations": [
         "Updates the existing owned report rather than inventing a suffixed report",
@@ -47,12 +47,15 @@
         "Reconciles the main conclusion with observed profiling and preserves earlier alert evidence",
         "Marks the draft and missing source/format checks as incomplete instead of delaying all report updates until final findings",
         "Excludes unrelated editor and delivery conversation from the incident narrative"
+      ],
+      "files": [
+        "report-continuation-progressive"
       ]
     },
     {
       "id": 2,
-      "kind": "dialogue",
-      "prompt": "The original report and its later follow-up cover the same incident. The task now links only the follow-up because an earlier agent added it. I explicitly select the original report as canonical. Apply continuation, keep historical artifacts, and preserve all existing resource settings.",
+      "kind": "execution",
+      "prompt": "In report-continuation-fragmented, the original report docs/reports/REPORT-queue-stall.md and its later follow-up cover the same incident. The task now links only the follow-up because an earlier agent added it. I explicitly select the original report as canonical. Apply continuation, keep historical artifacts, and preserve all existing resource settings. Stay offline.",
       "expected_output": "Uses the explicit original report selection, integrates relevant follow-up evidence and Q&A there, and repairs the task report link without deleting the historical follow-up or rewriting task resources.",
       "expectations": [
         "Honors explicit canonical identity over recency, suffixes and the newer task link",
@@ -60,18 +63,24 @@
         "Preserves the separate follow-up artifact as historical and maintains retrievable provenance",
         "Updates only authorized task links and preserves every resource/configuration setting",
         "Does not publish or delete artifacts implicitly"
+      ],
+      "files": [
+        "report-continuation-fragmented"
       ]
     },
     {
       "id": 3,
-      "kind": "dialogue",
-      "prompt": "A follow-on question disproved the earlier replay-deadlock explanation. Update the same report. The original metrics, original accounting cutoff and original published page must remain auditable.",
+      "kind": "execution",
+      "prompt": "In report-continuation-superseded, a follow-on question saved in notes/follow-on.md disproved the earlier replay-deadlock explanation. Update the same report. The original metrics, original accounting cutoff and original published page must remain auditable. Stay offline.",
       "expected_output": "Corrects the conclusion with dated evidence, retains prior observations and identifies the superseded hypothesis while preserving historical accounting and publication boundaries.",
       "expectations": [
         "Progressively updates the canonical report and records the new question, answer and why the hypothesis was superseded",
         "Does not silently delete earlier evidence or change its observation window",
         "Delegates accounting treatment to Token Usage rather than inventing new totals or rolling old usage into the new revision",
         "Keeps external publication unchanged without publication authorization"
+      ],
+      "files": [
+        "report-continuation-superseded"
       ]
     },
     {
@@ -87,20 +96,23 @@
     },
     {
       "id": 5,
-      "kind": "dialogue",
-      "prompt": "For the same investigation, HTML is now the only selected deliverable and there is no Markdown report file. New findings just arrived; continue the canonical report.",
+      "kind": "execution",
+      "prompt": "For the same investigation in report-continuation-html-only, HTML is now the only selected deliverable and there is no Markdown report file. New findings just arrived in evidence/new-findings.json; continue the canonical report. Stay offline.",
       "expected_output": "Maintains canonical investigation identity while updating internal content and regenerating only the selected format through its existing owners.",
       "expectations": [
         "Does not require or create a delivered Markdown report when disabled",
         "Distinguishes format conversion from new findings and keeps one canonical investigation identity",
         "Regenerates selected companions from the updated content and labels stale or unverified outputs explicitly",
         "Uses the existing format delivery and evidence checks rather than inventing rendering rules"
+      ],
+      "files": [
+        "report-continuation-html-only"
       ]
     },
     {
       "id": 6,
-      "kind": "dialogue",
-      "prompt": "Use the synthetic transferred task/report package under evals/fixtures/report-continuation-transfer. A different user runs its existing investigation. The report includes prior questions, a corrected agent answer, a user-added requirement not yet reflected in the task, and an unavailable evidence attachment. No original conversation is available. Resume the task using Report Continuation. Stay offline and preserve evidence.",
+      "kind": "execution",
+      "prompt": "Use the synthetic transferred task/report package under report-continuation-transfer/. A different user runs its existing investigation. The report includes prior questions, a corrected agent answer, a user-added requirement not yet reflected in the task, and an unavailable evidence attachment. No original conversation is available. Resume the task using Report Continuation. Stay offline and preserve evidence.",
       "expected_output": "Loads saved context before planning or querying, reconciles the explicit requirement, preserves the corrected answer and historical evidence, and reports the attachment gap and next feasible action.",
       "expectations": [
         "Reads the task, canonical report, continuation record, checkpoint and necessary declared dependencies before proposing an investigation plan or issuing queries",
@@ -109,12 +121,15 @@
         "Identifies unavailable evidence and its effect; completes independent work without claiming ready handoff or complete context",
         "Treats the unqualified run as continuation rather than rerunning all completed checks or creating a new report",
         "Uses the receiving user authorization and access instead of inheriting historical approvals or sessions"
+      ],
+      "files": [
+        "report-continuation-transfer"
       ]
     },
     {
       "id": 7,
-      "kind": "dialogue",
-      "prompt": "Prepare this continuing investigation for another user. You have the latest turns, an unanswered user question, an older report summary, and local-only evidence outside the checkout. No upload or publication is authorized.",
+      "kind": "execution",
+      "prompt": "Prepare the continuing investigation in report-continuation-handoff for another user. You have the latest turns in notes/latest-turns.md, an unanswered user question, an older report summary, and local-only evidence outside the checkout. No upload or publication is authorized. Stay offline.",
       "expected_output": "Records all available investigation questions and responses, updates the resume checkpoint and dependency inventory, and describes partial transfer readiness without external writes.",
       "expectations": [
         "Accounts for every investigation question, correction, constraint and configuration decision, marking the unanswered question pending rather than dropping it",
@@ -123,6 +138,9 @@
         "Inventories local-only evidence as unavailable to the recipient until packaged or retrievable, even if the path is relative",
         "Routes packaging and evidence validation to existing owners without uploading or copying credentials",
         "Keeps current requirements in the task and answers/evidence/history in the report rather than duplicating a transcript"
+      ],
+      "files": [
+        "report-continuation-handoff"
       ]
     },
     {

@@ -148,6 +148,9 @@ successful operation, result cap, and any untested capability. A connection is v
 to the level actually observed; distinguish a reachable endpoint from authenticated discovery
 and a successful read. A single workspace sample is not an exhaustive membership or permission
 inventory. Stop after the requested probe and identify any remaining authentication step.
+When asked to draft or post a message after a check, restate the observed check results and their
+limits, then hand composition and posting back to the owning task or workflow, which carries its
+own approval; do not draft or post from this skill.
 
 ## Common Rationalizations
 

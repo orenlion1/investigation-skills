@@ -1,0 +1,12 @@
+// One source for both themes; diagrams/render.sh supplies the palette.
+digraph QueueFlow {
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=12, label="Queue flow", labelloc=t, labeljust=l, nodesep=0.5, ranksep=0.9];
+  node [shape=plaintext, fontname="Helvetica", fontsize=12];
+  edge [fontname="Helvetica", fontsize=11];
+  producer [label="Activity\nPublish order events"];
+  queue [label="Artifact\norders queue"];
+  worker [label="Activity\nProcess orders"];
+  producer -> queue [label="  produces"];
+  queue -> worker [label="  input"];
+}

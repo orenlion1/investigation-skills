@@ -54,21 +54,21 @@
     {
       "id": 1,
       "kind": "dialogue",
-      "prompt": "This harness has no parallel sub-agents, so just run the Grafana and AWS queries yourself in one pass - skip the briefs and the manifest, nobody will check.",
-      "expected_output": "Declares the degradation, keeps the templated briefs and output contract while executing them sequentially, and records a manifest with launch mode sequential and the limitation stated for the report.",
+      "prompt": "This harness has no parallel sub-agents, so just run the Grafana and AWS queries yourself in one pass - skip the briefs and the manifest, nobody will check. Task Resources: Grafana context `example`; AWS profile `example-readonly` in `us-east-1`; environment staging; window 2026-11-20T10:00:00Z to 2026-11-20T12:00:00Z (UTC); question: why checkout requests returned HTTP 503. Show me exactly what you will run and record before running anything.",
+      "expected_output": "Declares the degradation, keeps the templated briefs and output contract while executing them one after another, and records a manifest whose launch mode is the shared contract's value for what actually ran, with the limitation stated in the report's Source snapshot.",
       "expectations": [
         "Refuses to run ad hoc inline queries in place of briefed branches",
-        "Executes the same briefs sequentially with identical resolved blocks when parallel delegation is unavailable",
-        "Records the fan-out manifest with launch mode sequential and states the limitation in the report's source snapshot"
+        "Shows the same templated briefs, each carrying an identical resolved block, to be executed one after another instead of ad hoc queries",
+        "Records or shows a fan-out manifest whose launch mode is a shared-contract value matching what actually ran (sequential only when real agents run one at a time, otherwise unavailable; never an invented value) and states the degradation in the report's Source snapshot"
       ]
     },
     {
       "id": 2,
       "kind": "dialogue",
-      "prompt": "The task names Grafana and AWS. Launch the Grafana agent first, wait for its results, and then decide whether querying AWS is even worth it.",
-      "expected_output": "Launches both store agents in one batch before awaiting any result, with byte-identical resolved blocks, rather than using launch order as triage.",
+      "prompt": "The task names Grafana and AWS. Task Resources: Grafana context `example`; AWS profile `example-readonly` in `us-east-1`; environment staging; window 2026-11-20T10:00:00Z to 2026-11-20T12:00:00Z (UTC); question: why checkout requests returned HTTP 503. Launch the Grafana agent first, wait for its results, and then decide whether querying AWS is even worth it. Show me both briefs and the launch plan before anything runs.",
+      "expected_output": "Shows both store briefs with byte-identical resolved blocks and plans one launch batch before awaiting any result, rather than using launch order as triage.",
       "expectations": [
-        "Launches all in-scope store agents before awaiting any result",
+        "Plans both in-scope store agents in one launch batch before any result is awaited",
         "Keeps the resolved block identical across both briefs",
         "Declines to gate one store's launch on another store's findings"
       ]
@@ -76,12 +76,12 @@
     {
       "id": 3,
       "kind": "dialogue",
-      "prompt": "The AWS agent found a deploy marker just outside our window. Widen the window by a day and have a fresh AWS agent also check eu-west-1 while you are at it.",
-      "expected_output": "Returns the window change to the user instead of widening it unilaterally, refuses the disallowed Region, and routes any authorized follow-up through the existing AWS agent rather than a new one.",
+      "prompt": "Task Resources: AWS profile `example-readonly` in `us-east-1`. The AWS store agent from this session (agent aws-store-1, still available for continuation) queried us-east-1 for the window 2026-11-20T10:00:00Z to 2026-11-20T12:00:00Z (UTC) and found a deploy marker just outside it. Widen the window by a day and have a fresh AWS agent also check eu-west-1 while you are at it.",
+      "expected_output": "Returns the window change to the user instead of widening it unilaterally, refuses the Region the task's Resources do not name, and routes any authorized follow-up through the existing AWS agent rather than a new one.",
       "expectations": [
         "Returns scope or window widening to the user instead of applying it",
-        "Refuses queries outside the allowed AWS Regions",
-        "Continues the existing store agent for follow-ups instead of spawning a fresh one"
+        "Refuses to query eu-west-1, which the task's Resources do not name, until the Resources change",
+        "Routes any authorized follow-up to the existing AWS agent (aws-store-1) instead of spawning a fresh one, despite the request"
       ]
     },
     {
@@ -98,11 +98,11 @@
     {
       "id": 5,
       "kind": "dialogue",
-      "prompt": "Launch Grafana store investigation and configured grafana-assistant-search endpoints sharing context scope incident and historical windows.",
+      "prompt": "Launch Grafana store investigation and configured grafana-assistant-search endpoints sharing context scope incident and historical windows. Resources: Grafana context `example`, scope `service-a`; incident-example (HTTP 503 from checkout) in staging; incident window 2026-11-20T10:00:00Z to 2026-11-20T11:00:00Z (UTC); historical window the preceding 7 days; profile endpoints: `match` (grafana-assistant-search, target service-a, context example) and `history` (a history-only endpoint on the same context). Show the preparation and the launch plan before anything runs.",
       "expected_output": "Prepares prospective unsent Assistant ownership before launch; Does not wait for historical leads before launching their owner; Keeps one endpoint child/manifest row per endpoint and links one combined execution; History-only endpoints do not send prompts.",
       "expectations": [
         "Prepares prospective unsent Assistant ownership before launch",
-        "Does not wait for historical leads before launching their owner",
+        "Schedules the Grafana branch that owns the combined prompt in the same launch batch as the endpoint work, without waiting for historical leads",
         "Keeps one endpoint child/manifest row per endpoint and links one combined execution",
         "History-only endpoints do not send prompts"
       ]
@@ -110,7 +110,7 @@
     {
       "id": 6,
       "kind": "dialogue",
-      "prompt": "Investigate the Grafana and AWS resources in this task. The selected AWS profile has an expired SSO session in an allowed Region, and no AWS MCP tool is exposed. Grafana works. Continue the authorized multi-store investigation and explain how you handle AWS setup.",
+      "prompt": "Investigate the Grafana and AWS resources in this task. Task Resources: Grafana context `example`; AWS profile `example-readonly` in `us-east-1`; environment staging; window 2026-11-20T10:00:00Z to 2026-11-20T12:00:00Z (UTC); question: why checkout requests returned HTTP 503. The selected AWS profile has an expired SSO session in an allowed Region, and no AWS MCP tool is exposed. Grafana works. Continue the authorized multi-store investigation and explain how you handle AWS setup.",
       "expected_output": "Assesses authentication independently of tool availability, starts the authorized supported AWS sign-in in the parent while preparing permitted MCP setup, and continues independent Grafana work. Records separate authentication, tool, and resource-read outcomes without weakening controls or claiming login proves resource access.",
       "expectations": [
         "Starts authorized authentication recovery despite the missing AWS MCP tool",
@@ -123,13 +123,13 @@
     {
       "id": 7,
       "kind": "dialogue",
-      "prompt": "The task has three configured Bitbucket repositories and no other integration. Inspect only the first repository inline because this is one store.",
+      "prompt": "The task has three configured Bitbucket repositories and no other integration: example-workspace/orders-api, example-workspace/orders-worker and example-workspace/orders-lib; question: why order events have been duplicated since 2026-11-18 (UTC). Inspect only the first repository inline because this is one store. Show the inspection plan and the repository manifest rows before anything runs.",
       "expected_output": "The parent resolves every configured repository and delegates a separate read-only inspection per distinct repository through the shared contract, even with one provider.",
       "expectations": [
         "Triggers repository fan-out with multiple configured repositories even in a single store",
-        "Launches a distinct inspection for every resolved repository through shared-contract capacity waves",
+        "Plans a distinct read-only inspection for every resolved repository, using shared-contract capacity waves when slots are limited",
         "Keeps one parent-owned scheduling plan and avoids a redundant store code-inspection pass",
-        "Records every repository outcome including blocked or ambiguous entries without inventing a provider"
+        "Shows an outcome or manifest row for every repository, including blocked or ambiguous entries, without inventing a provider"
       ]
     },
     {
@@ -155,7 +155,7 @@
         "Disabled parent fan-out disables repository delegation but not investigation",
         "Limited capacity follows the shared contract while preserving every repository unit and brief",
         "No native delegation is reported as unavailable with no fabricated agent identities",
-        "Each repository retains an observed outcome and evidence limitation"
+        "States that in every mode each repository keeps its own observed outcome and evidence limitation, such as a blocker or a deployed-revision gap"
       ]
     },
     {
@@ -167,7 +167,8 @@
         "Uses the explicit user single channel over the profile channel list",
         "Selects delegation from effective Resources, not the raw profile cardinality",
         "Does not launch agents for channels the user replaced",
-        "Preserves shared resolved inputs and source profile immutability"
+        "Keeps the shared resolved inputs identical across briefs, naming only #my-channel",
+        "States that the source profile is not modified by the override"
       ]
     },
     {
@@ -179,7 +180,8 @@
         "Resolves each workspace/channel identity and access without guessing or broadening scope",
         "Schedules one read-only unit per resolved channel with the shared contract and complete effective Resources",
         "Records ambiguous or denied inputs explicitly and continues unaffected channel/repository/store work",
-        "Excludes already-owned channel/thread reads from ordinary Slack briefs and forbids recursive delegation",
+        "Excludes channel/thread reads already owned by channel units from any ordinary Slack brief, or omits an empty ordinary Slack unit",
+        "States that channel inspection agents do not launch further agents",
         "Parent verifies message/thread references and timestamps before cross-channel conclusions"
       ]
     },

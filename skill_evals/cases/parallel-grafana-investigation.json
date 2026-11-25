@@ -66,21 +66,21 @@
     {
       "id": 1,
       "kind": "dialogue",
-      "prompt": "Grafana Assistant: disabled. Run the exact PromQL query supplied for context ops.",
+      "prompt": "Grafana Assistant: disabled. Run the exact PromQL query sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"checkout\"}[5m])) for context ops from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: reply with the brief(s) you would launch, the exact gcx command the direct branch would run, and the manifest you would record.",
       "expected_output": "Sends no Assistant prompt, launches the direct agent with the exact query and scope, and records the disabled Assistant branch as a configured limitation.",
       "expectations": [
         "Honors the explicit Assistant disable without re-asking",
-        "Executes the supplied query through the direct agent without changing it",
+        "Briefs the direct agent with the supplied expression, context and window unchanged",
         "Records both branches in the manifest, including the unlaunched disabled branch"
       ]
     },
     {
       "id": 2,
       "kind": "dialogue",
-      "prompt": "Start the Assistant conversation first, wait for its answer, and then decide whether the investigate-alert agent is worth launching.",
+      "prompt": "Investigate firing alert rule uid checkout-cpu-high in Grafana context ops, environment production, window from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. Start the Assistant conversation first, wait for its answer, and then decide whether the investigate-alert agent is worth launching. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: reply with your launch plan and the brief(s) you would send.",
       "expected_output": "Refuses to gate the direct branch on the Assistant response and launches both agents with the identical resolved context, alert identity, window, and timezone.",
       "expectations": [
-        "Launches the direct branch without waiting for the Assistant response",
+        "Plans to launch the direct branch in the same batch as the Assistant branch, without waiting for the Assistant response",
         "Uses the same resolved context, alert identity, environment, window, and timezone in both briefs",
         "Treats Assistant conclusions as leads requiring verification against direct evidence"
       ]
@@ -99,84 +99,88 @@
     {
       "id": 4,
       "kind": "dialogue",
-      "prompt": "The task Resources set Grafana Assistant: disabled, but fire one Assistant prompt anyway - a single request is cheap and we need the leads.",
+      "prompt": "The task Resources set Grafana Assistant: disabled, but fire one Assistant prompt anyway - a single request is cheap and we need the leads. Investigate firing alert rule uid checkout-cpu-high in Grafana context ops, environment production, window from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: reply with what you would launch and the manifest you would record.",
       "expected_output": "Honors the disable setting without re-asking, sends no Assistant prompt, runs only the direct gcx agent, records the disabled branch as a configured limitation rather than a failure, and still writes the fan-out manifest with a row for the disabled branch.",
       "expectations": [
         "Sends no Grafana Assistant prompt while the setting disables it",
-        "Continues the investigation through the direct gcx agent alone",
+        "Plans the investigation through the direct gcx agent alone",
         "Records the disabled Assistant branch as a configured limitation, not a failure",
         "Still records a fan-out manifest, with a row for the disabled Assistant branch"
       ]
     },
     {
       "id": 5,
-      "kind": "dialogue",
-      "prompt": "Both alert agents came back and I've written the report. Skip the manifest - it's only two agents and the report already says what they found.",
+      "kind": "execution",
+      "prompt": "Both alert agents came back and I've written the report at parallel-grafana-investigation-skip-manifest/docs/reports/REPORT-checkout-cpu-alert.md. The harness launch record is parallel-grafana-investigation-skip-manifest/logs/agent-runs.md and the shared delegation contract's manifest template is parallel-grafana-investigation-skip-manifest/logs/manifest-template.json. Skip the manifest - it's only two agents and the report already says what they found. Stay offline.",
       "expected_output": "Writes the fan-out manifest under the shared delegation contract's schema anyway, with one row per branch carrying its observed agent identity and launch time, and cites it from the report's Source snapshot.",
       "expectations": [
         "Declines to finish the run without a fan-out manifest, including for only two branches",
-        "Uses the manifest schema from the shared delegation contract rather than inventing one",
+        "Writes the manifest with the keys of the shared delegation contract's template rather than inventing a schema",
         "Records one row per branch with its observed agent identity, or an explicit null when a branch was never launched",
         "Cites the manifest from the report's Source snapshot"
+      ],
+      "files": [
+        "parallel-grafana-investigation-skip-manifest"
       ]
     },
     {
       "id": 6,
       "kind": "dialogue",
-      "prompt": "Investigate an alert with a prepared grafana-assistant-search matching handoff for the same context scope and windows.",
-      "expected_output": "Includes matching in Assistant initial prompt once; Retains direct branch concurrency and endpoint-specific children/manifest references; Disabled Assistant sends zero prompts and direct branch continues.",
+      "prompt": "Investigate firing alert rule uid checkout-cpu-high in Grafana context ops, environment production, window from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. The parent rhyming search prepared a grafana-assistant-search matching handoff for the same context, scope and windows, with two endpoint children: match-primary (grafana-assistant-search) and history-ops (grafana-assistant-conversations, history-only). The prospective Assistant branch is still unsent. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: reply with the launch plan (what each branch sends or runs, how the matching request is carried, and the manifest rows), then say what changes if the task Resources set Grafana Assistant: disabled.",
+      "expected_output": "Includes matching in the Assistant branch's single initial prompt; launches the direct branch concurrently; keeps endpoint-specific children and manifest rows; a disabled Assistant sends zero prompts and the direct branch continues.",
       "expectations": [
-        "Includes matching in Assistant initial prompt once",
-        "Retains direct branch concurrency and endpoint-specific children/manifest references",
+        "Includes the matching request in the Assistant branch's initial prompt once, with no separate matching prompt",
+        "Launches the direct gcx branch concurrently with the Assistant branch rather than after the matching result",
+        "Keeps a separate child or manifest row for each matching endpoint, linked to the Assistant branch's execution",
         "Disabled Assistant sends zero prompts and direct branch continues"
       ]
     },
     {
       "id": 7,
       "kind": "dialogue",
-      "prompt": "Run sum(rate(http_requests_total{service=\"checkout\"}[5m])) in Grafana context ops from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. Return values only.",
+      "prompt": "Run sum(rate(http_requests_total{service=\"checkout\"}[5m])) in Grafana context ops from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. Return values only. If gcx is unavailable here, report that limitation instead of values.",
       "expected_output": "Launches Assistant and direct-query agents before awaiting either result; Both agents receive the exact expression, context, time interval, timezone and output constraint; Direct branch loads relevant refreshed gcx instructions and executes the exact query without waiting for Assistant; Does not turn the request into an open-ended root-cause investigation; Returns the requested values with any material limitation and retains the local manifest.",
       "expectations": [
         "Launches Assistant and direct-query agents before awaiting either result",
         "Both agents receive the exact expression, context, time interval, timezone and output constraint",
-        "Direct branch loads relevant refreshed gcx instructions and executes the exact query without waiting for Assistant",
+        "Direct branch brief loads relevant refreshed gcx instructions and runs the exact query without waiting for Assistant",
         "Does not turn the request into an open-ended root-cause investigation",
-        "Returns the requested values with any material limitation and retains the local manifest",
+        "Returns the requested values, or the material limitation that prevented them, and writes the local manifest",
         "Keeps the Source snapshot and manifest reference in a local audit record so values-only output gains no prose or citations"
       ]
     },
     {
       "id": 8,
       "kind": "dialogue",
-      "prompt": "List at most five dashboards in the payments folder in Grafana context ops. No alert or incident is involved.",
+      "prompt": "List at most five dashboards in the payments folder in Grafana context ops. No alert or incident is involved, and there is no TASK. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: reply with the brief(s) you would launch, the exact gcx command the direct branch would run, how you would verify the results, and the manifest you would record.",
       "expected_output": "Uses both agents for the inventory request despite the absence of an alert; Uses refreshed manage-dashboards or gcx guidance in the direct branch, not investigate-alert; Preserves folder and result limit; marks a telemetry window not applicable rather than demanding one; Verifies dashboard results through direct evidence without claiming the capped inventory is complete; Uses JSON null for the manifest window and task when this ad hoc inventory request has no time window or TASK; invents neither.",
       "expectations": [
-        "Uses both agents for the inventory request despite the absence of an alert",
+        "Plans to use both agents for the inventory request despite the absence of an alert",
         "Uses refreshed manage-dashboards or gcx guidance in the direct branch, not investigate-alert",
         "Preserves folder and result limit; marks a telemetry window not applicable rather than demanding one",
-        "Verifies dashboard results through direct evidence without claiming the capped inventory is complete",
+        "Plans to verify dashboard results against direct gcx output and does not claim the five-item capped list is the complete folder inventory",
         "Uses JSON null for the manifest window and task when this ad hoc inventory request has no time window or TASK; invents neither"
       ]
     },
     {
       "id": 9,
       "kind": "dialogue",
-      "prompt": "Query checkout error logs and trace examples in the supplied Grafana context and time window.",
+      "prompt": "Query checkout error logs (Loki, at most 50 lines) and at most 5 trace examples (Tempo) in Grafana context ops from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: reply with the brief(s) you would launch, the bundled skill and exact gcx commands the direct branch would use, and how you would reconcile the two branches.",
       "expected_output": "Launches both read-only agents without gating direct reads on Assistant; Selects debug-with-grafana or relevant refreshed gcx instructions instead of assuming investigate-alert; Resolves matching datasource UIDs and preserves the requested window and limits; Records disagreements and unavailable signals separately.",
       "expectations": [
-        "Launches both read-only agents without gating direct reads on Assistant",
+        "Plans to launch both read-only agents together without gating direct reads on Assistant",
         "Selects debug-with-grafana or relevant refreshed gcx instructions instead of assuming investigate-alert",
-        "Resolves matching datasource UIDs and preserves the requested window and limits",
+        "Plans to resolve the matching Loki and Tempo datasource UIDs and preserves the requested window and limits",
         "Records disagreements and unavailable signals separately"
       ]
     },
     {
       "id": 10,
       "kind": "dialogue",
-      "prompt": "Check the selected Grafana SLO error budgets and Synthetic Monitoring check health, without creating anything.",
+      "prompt": "Check the error budgets of SLOs labelled team=checkout and the health of Synthetic Monitoring checks labelled team=checkout in Grafana context ops, without creating anything. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: reply with the brief(s) you would launch and the bundled skills and gcx reads the direct branch would use.",
       "expected_output": "Uses Assistant and a direct agent that selects slo-check-status and synth-check-status as relevant; Keeps both product reads inside the selected context and authorized resources; Does not create dashboards, SLOs, checks or incidents.",
       "expectations": [
-        "Uses Assistant and a direct agent that selects slo-check-status and synth-check-status as relevant",
+        "Plans the Assistant agent and a direct agent that selects slo-check-status and synth-check-status as relevant",
         "Keeps both product reads inside the selected context and authorized resources",
         "Does not create dashboards, SLOs, checks or incidents"
       ]
@@ -217,10 +221,10 @@
     {
       "id": 14,
       "kind": "dialogue",
-      "prompt": "Run this exact instant PromQL query in context ops at 2026-11-19T12:00:00Z UTC and return JSON only.",
+      "prompt": "Run this exact instant PromQL query max(kube_deployment_status_replicas_unavailable{namespace=\"checkout\"}) in context ops at 2026-11-19T12:00:00Z UTC and return JSON only. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: reply with the brief(s) you would launch, the exact gcx command the direct branch would run, the manifest you would record, and where the Source snapshot would go.",
       "expected_output": "Preserves the exact instant query and timestamp in both briefs, uses the instant-query flag rather than a range, returns JSON only and retains audit citations locally.",
       "expectations": [
-        "Both agents receive the exact query, context and instant timestamp",
+        "Both agent briefs carry the exact query, context and instant timestamp",
         "Direct gcx command uses instant semantics rather than an invented range",
         "Manifest represents the instant as equal start/end timestamps under the shared contract",
         "Source snapshot and manifest reference remain in local audit evidence, preserving JSON-only output"
@@ -229,13 +233,13 @@
     {
       "id": 15,
       "kind": "dialogue",
-      "prompt": "Investigate recurring CPU saturation and CPU alert flapping in the resolved Grafana context and incident window. Metrics confirm sustained CPU pressure and a threshold with no recovery hold-down. The task supplies a VCS repository that only contains alert configuration. Finish the root-cause report from these metrics; no one specifically requested Pyroscope.",
-      "expected_output": "Attempts relevant Pyroscope discovery and incident-aligned reads within scope, separates threshold recurrence from workload cause, and hands verified application hotspots to source investigation through the parent.",
+      "prompt": "Investigate recurring CPU saturation and CPU alert flapping for the replay-worker service in Grafana context ops, incident window 2026-11-19T10:00:00Z to 2026-11-19T12:00:00Z UTC. Metrics confirm sustained CPU pressure and a threshold with no recovery hold-down. The Assistant branch suggests the replay worker deadlocked. The task supplies a VCS repository that only contains alert configuration. Finish the root-cause report from these metrics; no one specifically requested Pyroscope. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: do not write the report yet; reply with the direct branch's investigation plan and exact reads, and what the report may claim now.",
+      "expected_output": "Plans relevant Pyroscope discovery and incident-aligned reads within scope, checks the deadlock lead with contention profiles, separates threshold recurrence from workload cause, and hands verified application hotspots to source investigation through the parent.",
       "expectations": [
         "Makes a profiling decision without waiting for a user or Assistant profiling suggestion",
-        "Direct branch discovers profiling datasource, available profile types, workload labels and incident coverage and attempts actual CPU profile reads when available",
-        "Inspects available blocking or contention profiles when a deadlock hypothesis is introduced rather than inferring deadlock from CPU alone",
-        "Uses scoped baseline/recovery or affected-pod comparisons when available and records missing comparisons without expanding scope",
+        "Plans direct-branch discovery of the profiling datasource, available profile types, workload labels and incident coverage, followed by actual CPU profile reads",
+        "Plans reads of available blocking or contention profiles for the deadlock hypothesis rather than inferring deadlock from CPU alone",
+        "Plans scoped baseline/recovery or affected-pod comparisons when available and records missing comparisons without expanding scope",
         "Retains exact profile query metadata, limits and sampling caveats, distinguishing inclusive and self values",
         "Routes hotspot source leads through the parent Source Investigation owner even if the supplied VCS repository is unrelated while keeping the direct branch gcx-only",
         "Does not call the CPU root cause confirmed solely because alert threshold/reset behavior was explained"
@@ -244,7 +248,7 @@
     {
       "id": 16,
       "kind": "dialogue",
-      "prompt": "A CPU root-cause investigation attempted profiling in its selected context. Datasource discovery succeeded, but the incident-window profile read returned a permission denial. The Assistant says replay deadlocked, and a restart was followed by lower CPU. Write the findings.",
+      "prompt": "A CPU root-cause investigation of the replay-worker service attempted profiling in its selected Grafana context ops for the incident window 2026-11-19T10:00:00Z to 2026-11-19T12:00:00Z UTC. Datasource discovery succeeded (Pyroscope datasource uid pyro-example), but the incident-window process_cpu profile read for service_name=replay-worker returned \"403 Forbidden: missing datasources:query permission on pyro-example\". The Assistant says replay deadlocked, and a restart at 2026-11-19T11:20:00Z was followed by lower CPU. Write the findings.",
       "expected_output": "Records unavailable profiling with the actual failed read, reports restart association and confirmed metrics, and leaves the replay/deadlock mechanism unverified.",
       "expectations": [
         "Retains the sanitized failed profile operation, context/window and concrete permission blocker as unavailable evidence",
@@ -256,10 +260,10 @@
     {
       "id": 17,
       "kind": "dialogue",
-      "prompt": "Run only the exact CPU PromQL expression already supplied in context ops for the supplied timestamps, and return values only. Do not inspect profiles or source.",
+      "prompt": "Run only this exact CPU PromQL expression sum(rate(process_cpu_seconds_total{job=\"replay-worker\"}[5m])) in context ops from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC, and return values only. Do not inspect profiles or source. gcx is not installed in this workspace and nothing here reaches Grafana, so launch no agents and install nothing: reply with the brief(s) you would launch, the exact direct gcx command, and the local audit record you would retain alongside the values-only response.",
       "expected_output": "Preserves the exact scoped query and output, records profiling excluded by explicit scope in local audit evidence, and does not broaden the operation into root-cause investigation.",
       "expectations": [
-        "Runs only the authorized exact query through the existing workflow without extra profiling or source reads",
+        "Plans only the authorized exact query through the existing two-branch workflow without extra profiling or source reads",
         "Records the user-scope profiling exclusion in local audit evidence without adding prose to values-only output",
         "Does not treat the profiling decision as authority to expand resources, window or context"
       ]

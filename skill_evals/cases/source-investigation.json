@@ -45,11 +45,11 @@
   {
    "id": 2,
    "kind": "dialogue",
-   "prompt": "The Resources section repeats Repo bullets for GitHub app-a and Bitbucket shared-b. Follow every repository, retain user overrides from composed profiles, and report what is inspected versus deployed.",
+   "prompt": "The Resources section repeats Repo bullets for GitHub app-a and Bitbucket shared-b. Follow every repository, retain user overrides from composed profiles, and report what is inspected versus deployed. Neither repository nor the Per-Store Fan-Out skill is reachable from this workspace, so give the plan and the ledger rather than launching anything.",
    "expected_output": "Collects all repository entries and resolves each provider and scope; routes parent-owned scheduling through Per-Store Fan-Out, verifies source claims and preserves access/deployment gaps.",
    "expectations": [
     "Does not truncate repeated Repo bullets or assume the same provider for every entry",
-    "Routes multiple configured repositories to Per-Store Fan-Out in the parent and avoids recursive delegation",
+    "States that the parent session schedules both repositories through Per-Store Fan-Out (one inspection unit each) and that an assigned unit does not re-invoke scheduling",
     "Preserves explicit user configuration above profile values",
     "Reports access failures per repository and pins material source claims to inspected commits",
     "Separates inspected revisions from unavailable deployed-revision provenance"
@@ -58,11 +58,11 @@
   {
    "id": 3,
    "kind": "dialogue",
-   "prompt": "A task supplies an alert-configuration repository in a verified Bitbucket workspace. Its rules explain repeated CPU alert transitions, but profiling identifies an archived-file loader and parser. The supplied repository does not own that application. Investigate whether historical replay explains the CPU behavior; no application repository URL was supplied.",
+   "prompt": "A task supplies an alert-configuration repository in a verified Bitbucket workspace. Its rules explain repeated CPU alert transitions, but profiling identifies an archived-file loader and parser. The supplied repository does not own that application. Investigate whether historical replay explains the CPU behavior; no application repository URL was supplied. Bitbucket tooling is not configured in this workspace; state the discovery and inspection you would run, in order.",
    "expected_output": "Uses the supplied repository to resolve the authorized Bitbucket scope, discovers relevant application/dependency repositories, inspects the profiled execution path and retains explicit incident/deployment gaps without requiring another repository URL.",
    "expectations": [
-    "Searches for relevant repositories within the verified provider host and account/workspace using approved read-only tooling without asking for a second repository URL or approval already covered by policy",
-    "Uses service/profile symbols to select and inspect candidate implementation and consumers instead of stopping at the unrelated seed repository",
+    "Plans the search for relevant repositories within the verified provider host and account/workspace using approved read-only tooling, without asking for a second repository URL or approval already covered by policy",
+    "Names the service/profile symbols it would use to select candidate implementation and consumer repositories, and plans to inspect them instead of stopping at the unrelated seed repository",
     "Records search scope, queries, bounds, candidates, source revisions and any concrete access or discovery gaps",
     "Routes discovered dependencies through the existing parent inspection ownership without duplicate repository units or automatically editing task Resources",
     "Separates a candidate replay amplification mechanism from confirmed incident execution, traffic cutover or deadlock and verifies or discloses deployed revision provenance",

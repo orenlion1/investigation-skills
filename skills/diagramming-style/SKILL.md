@@ -43,6 +43,10 @@ Core rules, detailed in the guide:
   canonical source per diagram with the second theme produced by a committed script or shared
   theme configuration; when separate per-theme sources must exist, compare their structure
   ignoring palette lines before delivery.
+- A user-supplied reference style (shapes, shaded groups, palette) applies only to the diagram
+  it was requested for; inspect both the reference render and its source. After any label or
+  edge change, regenerate every delivered variant from the one source (light, dark and any
+  adaptive SVG), update captions and alt text, and recheck theme parity and overlaps.
 - Keep the complete diagram inventory consistent across the requested formats. Use native
   inline diagrams as the primary presentation only when their theme behavior is verified on
   the delivery host; otherwise use paired light/dark images in a primary `picture` element,

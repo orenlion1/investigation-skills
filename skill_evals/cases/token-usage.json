@@ -35,7 +35,7 @@
       "expectations": [
         "Uses only local conversation files, not billing or remote telemetry",
         "Verifies task and turn boundaries before accounting",
-        "Sanitizes the evidence included in the report"
+        "States that only sanitized accounting evidence reaches the report, without prompts, tool payloads or credentials"
       ]
     },
     {
@@ -46,7 +46,7 @@
       "expectations": [
         "Validates Markdown accounting without requiring a PDF companion or PDF-only checks",
         "Keeps accounting cutoff separate from verified handoff and total delivery duration",
-        "Reports only observed waits; leaves processing and unsupported phase timings unavailable"
+        "Reports only the observed (partial) editor wait and leaves non-wait processing time and unsupported phase timings unavailable rather than deriving them"
       ]
     },
     {

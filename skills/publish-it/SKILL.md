@@ -113,6 +113,9 @@ destination's outcome in the publication manifest and return one result per dest
    Reject invalid values and reconcile task/report conflicts before writes. An HTML-only report
    needs no Markdown/PDF companion. Follow [HTML generation](references/html-generation.md) and
    [HTML-only Confluence](references/confluence-html-only.md) for its format/theme overrides.
+   `HTML theme` is `light`, `dark` or `system` (default `system`), set through Profile Manager
+   separately from Generate HTML; reject other values before writes. Fixed light/dark sets both
+   page colors and picture sources whatever the host browser theme.
    Build a bounded inventory: parent TASK, selected original reports and matching generated companions,
    every report diagram and caption, theme variants, editable diagram sources, and actually cited
    local evidence. Follow links only within verified authorized roots. Do not upload whole task/log
@@ -157,16 +160,31 @@ For a page, verify the destination and duplicates, compose the report as the pag
 original report and parent task as supporting evidence with clearly labeled download cards, and
 include inventoried diagrams/evidence and each selected report format.
 
+For HTML to Confluence:
+
+- Package the download with its selected theme and both picture variants embedded; packager
+  success is not preflight, so map remaining local links and rerun the reference checks.
+- Put figures in as native media from the owning page's collection with the caption adjacent;
+  never assume CSS, `picture` sources or data URIs survive conversion.
+- `HTML_THEME` governs the download only; the native page follows each viewer's Confluence
+  theme. Without native automatic switching, use Dark/Light graph tabs (Dark first) or two
+  labeled visible figures, and record automatic switching as incomplete.
+- Check the source HTML, each derivative and the published page, compare exact download
+  SHA-256 hashes, and report an unavailable preview as incomplete. Install no apps and change no
+  site or user theme settings.
+
 Completion requires the intended published page and hierarchy, all selected file downloads,
 the full diagram/caption/evidence inventory, working anchors and native media, and the requested
 download/hash checks. Use the browser for visual acceptance where needed. Record partial delivery
-and the exact remaining operation if a capability is unavailable; retain the existing page identity
-for resumption instead of creating duplicates. Update an owned local task or publication record
+and the exact remaining operation or unmet requirement if a capability is unavailable; retain the
+existing page identity for resumption instead of creating duplicates. Update an owned local task or publication record
 only within scope. After a task changes, update its attachment and reverify its hash, or explicitly
 identify the attached saved snapshot. Do not silently invalidate a verified download.
 
 Return, for each destination, the page URL or the pull request URL with its branch and commit,
-what was published and attached, verification results, and any gaps.
+what was published and attached, verification results, and any gaps. In every plan or result,
+state that the investigation is not rerun and its evidence window and token-accounting cutoff
+stay unchanged.
 
 ## Common Rationalizations
 

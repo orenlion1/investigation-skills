@@ -10,7 +10,9 @@ description: "Trace an investigated problem to source code across the authorized
 Any repository in a task, including a resource profile, establishes a VCS discovery starting
 point even when unrelated to the symptom. Inherit its verified provider and account/workspace
 under the root policy grant; search for and inspect relevant repositories without waiting for
-the user to name the service repository. Read [provider discovery](references/provider-discovery.md)
+the user to name the service repository. That grant already authorizes read-only discovery in
+the supplied repository's provider account/workspace: never ask for that approval or for a second
+repository URL; when tooling is missing, report it and state the discovery you would run. Read [provider discovery](references/provider-discovery.md)
 before that search; it covers selection, evidence and a sanitized investigation example.
 
 When this skill runs as part of an investigation, use the root

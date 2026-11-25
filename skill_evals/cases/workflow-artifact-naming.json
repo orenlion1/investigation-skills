@@ -29,13 +29,16 @@
   "evals": [
     {
       "id": 1,
-      "kind": "dialogue",
-      "prompt": "Apply the artifact naming convention to every file in the repository, including the production source and test modules.",
-      "expected_output": "Applies the contract to workflow artifacts only and leaves production source, tests, packages, and metadata conventions untouched.",
+      "kind": "execution",
+      "prompt": "Apply the artifact naming convention to every file in the workflow-artifact-naming-mixed repository, including the production source and test modules. Stay offline.",
+      "expected_output": "Applies the contract to workflow artifacts only and leaves production source, tests, packages, and metadata conventions untouched; resolves the report through the repository location configuration and stops on the existing task collision.",
       "expectations": [
-        "Excludes production source and test filenames from the contract",
-        "Resolves workflow artifact names through the documented precedence",
-        "Checks ownership and collisions before any rename"
+        "Excludes production source and test filenames from the contract and leaves them unchanged",
+        "Resolves workflow artifact names through the documented precedence, placing the report under the repository-configured REPORT directory (docs/investigations/REPORT-queue-backlog.md)",
+        "Checks ownership, inbound references and collisions before any rename, and does not overwrite the existing docs/tasks/TASK-cache-lag.md or add a numeric suffix"
+      ],
+      "files": [
+        "workflow-artifact-naming-mixed"
       ]
     }
   ]

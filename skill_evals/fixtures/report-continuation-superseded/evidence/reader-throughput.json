@@ -1,0 +1,2 @@
+{"synthetic": true, "window": {"start": "2026-11-03T07:30:00Z", "end": "2026-11-03T09:30:00Z"},
+ "throughput_files_per_min": [{"at": "2026-11-03T08:00:00Z", "value": 120, "replay_active": false}, {"at": "2026-11-03T08:20:00Z", "value": 0, "replay_active": true}, {"at": "2026-11-03T08:50:00Z", "value": 115, "replay_active": false}]}
