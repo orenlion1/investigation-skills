@@ -1,0 +1,1 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="160" role="img" aria-label="Synthetic queue lag"><rect width="480" height="160" fill="#fff"/><polyline fill="none" stroke="#1d4ed8" stroke-width="2" points="20,140 120,138 200,60 300,30 380,34 400,138 460,140"/><text x="20" y="18" font-size="12">Queue lag, seconds (synthetic)</text></svg>

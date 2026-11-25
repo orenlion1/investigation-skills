@@ -52,36 +52,44 @@
     },
     {
       "id": 2,
-      "kind": "dialogue",
-      "prompt": "A prior incident ID and six cross-report E identifiers are plain text in the reconciliation and evidence index, but each target already has a working link elsewhere. All attachment hashes match. Can this report pass?",
-      "expected_output": "Fails occurrence completeness and inventories each material occurrence before delivery.",
+      "kind": "execution",
+      "prompt": "Check report-authoring-references/docs/reports/REPORT-cache-evictions.md before delivery. Incident IDs and the prior report's E identifiers are plain text in the reconciliation and the evidence index, but most targets already have a working link under Related work, and all attachment hashes match. Can this report pass? Stay offline and do not edit the report.",
+      "expected_output": "Fails occurrence completeness, lists each plain-text occurrence with its location and source-derived destination, and reports the incident without an inspectable record as unavailable provenance.",
       "expectations": [
-        "Rejects a working link elsewhere as coverage for a plain-text occurrence",
-        "Inventories every affected section and occurrence with source-derived destinations",
-        "Distinguishes unavailable provenance, authored-link matching and browser acceptance"
+        "Rejects a working link elsewhere as coverage for a plain-text occurrence and says the report does not pass",
+        "Lists each plain-text occurrence of incident 1042, the prior report's E2 and E4, and incident 1077 with where it appears (section or line)",
+        "Gives destinations for incident 1042, E2 and E4 taken from the report's own links or the prior report, and invents none for incident 1077",
+        "Reports incident 1077 as unavailable or unverified provenance, and separates a matching authored link from proof that the destination opens"
+      ],
+      "files": [
+        "report-authoring-references"
       ]
     },
     {
       "id": 3,
       "kind": "dialogue",
-      "prompt": "Generate PDF is disabled; verify the Markdown and composed HTML evidence while a stale PDF remains on disk.",
-      "expected_output": "Runs reference completeness for the selected Markdown and HTML using Markdown-only dependencies; Does not install or require PyMuPDF, render PDF or check the stale PDF; Retains evidence index, canonical Source, citations and required data-pattern graphs.",
+      "prompt": "Generate PDF is disabled for this report, and a stale PDF from an earlier run remains on disk. Before you start, tell me exactly which checks you will run on the Markdown and composed HTML, which dependencies you will install, and what you will do about the PDF.",
+      "expected_output": "Plans reference completeness for the selected Markdown and HTML with Markdown-only dependencies, leaves the stale PDF unchecked, and keeps the evidence, citation and graph checks in scope.",
       "expectations": [
-        "Runs reference completeness for the selected Markdown and HTML using Markdown-only dependencies",
-        "Does not install or require PyMuPDF, render PDF or check the stale PDF",
-        "Retains evidence index, canonical Source, citations and required data-pattern graphs"
+        "Plans reference completeness for the selected Markdown and HTML using the Markdown-only dependencies",
+        "Does not install or require PyMuPDF, render a PDF or check the stale PDF",
+        "Keeps the evidence checks (Evidence index and Source snapshot, citations, data-pattern graphs) in scope for the selected Markdown and HTML"
       ]
     },
     {
       "id": 4,
-      "kind": "dialogue",
-      "prompt": "The report starts with fifteen question-and-answer entries and a handoff inventory; the cause, the proposed fix and the graphs are two thirds of the way down. A reader will only read the first fifth. Restructure it.",
-      "expected_output": "Opens with the title, a bottom line, a proposed-remediation table, an evidence-status table, the headline graphs and a validation gate, then the supporting detail, moving existing text without changing findings.",
+      "kind": "execution",
+      "prompt": "report-authoring-restructure/docs/reports/REPORT-queue-lag.md starts with question-and-answer entries and a handoff inventory; the cause, the proposed fix and the graphs are far down. A reader will only read the first fifth. Restructure it. Markdown is the only selected format; stay offline.",
+      "expected_output": "Edits the report so it opens with the title, a bottom line, a proposed-remediation table, an evidence-status table, the headline graphs and a validation gate, then the supporting detail, without changing findings.",
       "expectations": [
-        "Places the bottom line, proposed-remediation table, evidence-status table and headline graphs ahead of the continuation record and other detail",
-        "Moves existing analysis verbatim and leaves a cross-reference where a graph moved, renumbering figures in order of appearance",
-        "Measures where the opening ends in each selected format and records it rather than dropping a required graph or caption",
-        "Regenerates every selected format from the reordered source and records the restructure in the continuation record"
+        "The edited report places the bottom line, proposed-remediation table, evidence-status table and both graphs ahead of the continuation record and handoff inventory",
+        "The cause stays a candidate and the fix stays proposed and not implemented, with the same evidence identifiers as the detail",
+        "Each detail section whose graph moved links to its figure, and figures are numbered in order of appearance",
+        "Records the restructure in the continuation record, including the old-to-new figure numbering when it changed",
+        "Measures and reports where the opening ends in the Markdown file instead of dropping a graph or caption"
+      ],
+      "files": [
+        "report-authoring-restructure"
       ]
     },
     {
@@ -91,7 +99,7 @@
       "expected_output": "Keeps the opening as strong as the detail and no stronger: the cause stays a candidate and the fix stays proposed, with the gate that would confirm it.",
       "expectations": [
         "Refuses to state a candidate as the root cause in the bottom line or tables",
-        "Labels the remediation row as proposed and not implemented or validated, naming what gates it",
+        "Keeps the fix labelled as proposed, never as an implemented or validated fix",
         "Keeps the same evidence identifiers in the opening as in the detail"
       ]
     },
@@ -103,7 +111,7 @@
       "expectations": [
         "Does not place a publication note, revision note or navigation preamble above the report title",
         "Records what changed in the continuation record",
-        "Routes page composition and version-message wording to Publish It"
+        "Names Publish It as the owner of page composition or the version message instead of composing the published page itself"
       ]
     }
   ]
