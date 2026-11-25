@@ -37,6 +37,8 @@ the reference's skeleton for a new report and its checklist before delivery.
 
 - Each remediation row says whether it is proposed, implemented or validated, and names the
   gate that would confirm it.
+- Every opening claim, however short, carries the same evidence identifiers as the detail it
+  restates.
 - To restructure an existing report, edit it: move text verbatim, link each detail section to
   a graph that moved, renumber figures in order of appearance, measure where the opening ends
   in every selected format, regenerate those formats, and record the restructure in the
@@ -65,7 +67,9 @@ Resolve selected report formats through the [delivery contract](../open-edit-clo
 Inventory every material incident, investigation, backing chat, conversation and cross-report
 evidence reference at its point of use: reconciliation prose, coverage tables and evidence-index
 entries all count. A working link elsewhere, attachment hash or report-title link never satisfies
-an unlinked occurrence. Register source-derived identities and visible aliases, review the full
+an unlinked occurrence. For each unlinked occurrence, report its location and the
+destination derived from its source, or say the provenance is unavailable; a matching authored
+link is not proof the destination opens. Register source-derived identities and visible aliases, review the full
 source for omitted references, and retain occurrence-level diagnostics and separate unique-target
 counts. Unavailable provenance and unverified navigation remain explicit incomplete results.
 
@@ -76,8 +80,8 @@ counts. Unavailable provenance and unverified navigation remain explicit incompl
   configuration, active execution, customer behavior, or a production defect.
 - Trace the relevant paths and consumers before drawing behavioral conclusions; do not
   generalize from one field, filename, screen, or legacy artifact.
-- Bound negative findings by the scope examined; an empty search is not proof of universal
-  absence. Record unresolved questions and the evidence needed to answer them.
+- Bound negative findings by the scope examined, stated as the concrete scope actually
+  searched rather than a template; an empty search is not proof of universal absence. Record unresolved questions and the evidence needed to answer them.
 - Keep connectivity evidence separate from behavioral evidence: a successful sample proves
   access to that object only.
 - Tie diagram captions to the same evidence identifiers; mark current versus proposed
