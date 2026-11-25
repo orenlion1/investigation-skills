@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+"""Stand-in for `claude` on the eval harness PATH: meters each call and enforces the budget."""
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import live_eval_spend  # noqa: E402
+
+real = os.environ.get('LIVE_EVAL_REAL_CLAUDE')
+ledger = os.environ.get('LIVE_EVAL_LEDGER')
+if not real or not ledger:
+    sys.exit('LIVE_EVAL_REAL_CLAUDE and LIVE_EVAL_LEDGER must be set')
+budget = os.environ.get('LIVE_EVAL_JOB_BUDGET_USD')
+projects = Path(os.environ.get('LIVE_EVAL_PROJECTS', Path.home() / '.claude' / 'projects'))
+sys.exit(live_eval_spend.run_metered(sys.argv[1:], real, Path(ledger), projects,
+                                     float(budget) if budget else None))
