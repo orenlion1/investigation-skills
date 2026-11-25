@@ -77,7 +77,7 @@
       "expected_output": "Plans a rendering that preserves stack weights and topology, explicitly records subtree normalization, and checks readable themes and selected formats once the stack is supplied.",
       "expectations": [
         "Clearly identifies subtree focus and whether percentages use the subtree or whole-profile denominator",
-        "Plans to preserve caller/callee nesting, inclusive widths and self samples without summing overlapping shares",
+        "Plans a saved-stack rendering that retains parent/child structure and inclusive/self weights, either by explicit preservation steps or by using the bundled renderer and describing its parent/self validation checks. Does not propose summing overlapping ancestor/descendant shares",
         "Plans to use supplied stack data and a reproducible renderer, then check matching light/dark geometry and readability in selected outputs; does not invent or claim a completed render without the stack"
       ]
     }
