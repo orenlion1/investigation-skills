@@ -54,7 +54,7 @@ jobs:
           grep -q '<svg' "$RUNNER_TEMP/graphviz-smoke.svg"
           echo "$RUNNER_TEMP/graphviz-bin" >> "$GITHUB_PATH"
       - name: Install reference validation dependencies
-        run: python3 -m pip install -r skills/report-evidence/scripts/requirements.txt
+        run: python3 -m pip install -r skills/report-authoring/scripts/requirements.txt
       - name: Verify the profile-manager chain end to end
         run: python3 -m unittest tests.test_profile_manager_e2e -v
       - name: Validate metadata and run all repository and skill checks

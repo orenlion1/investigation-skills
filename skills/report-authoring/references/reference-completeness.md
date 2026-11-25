@@ -1,8 +1,10 @@
 # Material reference completeness
 
-This contract belongs to Report Evidence and is reused by Publish It. It checks required
+This contract belongs to Report Authoring and is reused by Publish It. It checks required
 relationships that existing-link validation cannot see. It does not rerun an investigation,
 change evidence windows, revise incident causality or refresh historical token cutoffs.
+
+Contents: [Build and review the source inventory](#build-and-review-the-source-inventory) · [Attachment preparation and hosted-page gates](#attachment-preparation-and-hosted-page-gates) · [Run before delivery and before publication writes](#run-before-delivery-and-before-publication-writes) · [Publication and read-back](#publication-and-read-back) · [Retained regressions and diagnosis](#retained-regressions-and-diagnosis)
 
 ## Build and review the source inventory
 
@@ -94,8 +96,8 @@ or host installer is required.
 
 ```sh
 python3 -m venv .venv
-.venv/bin/python -m pip install -r skills/report-evidence/scripts/requirements.txt
-.venv/bin/python skills/report-evidence/scripts/check_reference_links.py --manifest references.json --artifact report.md --artifact report.pdf --artifact report.html --output coverage.json
+.venv/bin/python -m pip install -r skills/report-authoring/scripts/requirements.txt
+.venv/bin/python skills/report-authoring/scripts/check_reference_links.py --manifest references.json --artifact report.md --artifact report.pdf --artifact report.html --output coverage.json
 ```
 
 Resolve actual private manifest/receipt paths through Workflow Artifact Naming before writing.

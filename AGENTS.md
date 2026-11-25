@@ -15,7 +15,7 @@ holds.
 | Canonical investigation report identity, progressive updates, resumable context, and handoff readiness | [Report Continuation](skills/report-continuation/SKILL.md) |
 | Token usage report and report metadata for any investigation report | [Token Usage](skills/token-usage/SKILL.md) |
 | Creating, styling, or verifying diagrams and graphs — themes, caveats, ER and SQL views, flapping-alert graph pair, format consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
-| Evidence index, `Source:` snapshot, citation discipline, and data-pattern-graph coverage for investigation reports | [Report Evidence](skills/report-evidence/SKILL.md) |
+| Investigation report layout (key findings, proposed remediation and headline graphs first), Evidence index, `Source:` snapshot, citation discipline, and data-pattern-graph coverage | [Report Authoring](skills/report-authoring/SKILL.md) |
 | Tracing an investigated problem to source code: cross-repository tracing, root cause, fix proposal, deployed-revision verification | [Source Investigation](skills/source-investigation/SKILL.md) |
 | `publish it`, `publish-it`, authorized task/report publication to one or more Confluence pages and GitHub or Bitbucket repositories | [Publish It](skills/publish-it/SKILL.md) |
 | Atlassian authentication, connectivity, resource probes, and Bitbucket/Jira/Confluence discovery | [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md) |
@@ -38,8 +38,8 @@ Routing notes:
   default draft directory is `docs/tasks`; task contents never bypass separate authorization
   gates. The editor skill owns the rest of the workflow.
 - Reports: enrich investigation reports with diagrams of the relevant flows, hierarchies, and
-  dependencies, and pass Report Evidence before delivery. Diagramming Style owns all visual
-  rules; Report Evidence owns the evidence discipline.
+  dependencies, and pass Report Authoring before delivery. Diagramming Style owns all visual
+  rules; Report Authoring owns the report layout and the evidence discipline.
 - Publication: include the original report and available parent TASK as downloadable
   supporting evidence. Publishing does not rerun the investigation or refresh its evidence
   window and token-accounting cutoff.

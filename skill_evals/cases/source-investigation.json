@@ -22,7 +22,7 @@
   "negative": [
    {
     "prompt": "Build the Evidence index and Source snapshot for this investigation report before delivery",
-    "owner": "report-evidence"
+    "owner": "report-authoring"
    },
    {
     "prompt": "Authenticate to Bitbucket through Rovo MCP and verify repository access with a bounded read",

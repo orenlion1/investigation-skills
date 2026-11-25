@@ -117,7 +117,7 @@ Delegated output is leads. It becomes a finding only when the orchestrating sess
 the material claim against retrievable evidence and records that reference and the time it was
 read. Relate returned evidence on the shared timeline, report disagreements between branches
 explicitly rather than smoothing them over, and write the report under the repository's
-[Report Evidence](../../report-evidence/SKILL.md) rules.
+[Report Authoring](../../report-authoring/SKILL.md) rules.
 
 Keep these outcomes distinct and never promote one to another silently: verified relationship,
 hypothesis, no matches within the searched scope, and unavailable. A common symptom or similar

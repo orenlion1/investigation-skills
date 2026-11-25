@@ -58,7 +58,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     try:
-        checker_path = Path(__file__).resolve().parents[2] / 'report-evidence/scripts/check_reference_links.py'
+        checker_path = Path(__file__).resolve().parents[2] / 'report-authoring/scripts/check_reference_links.py'
         spec = importlib.util.spec_from_file_location('publication_reference_checker', checker_path)
         checker = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(checker)

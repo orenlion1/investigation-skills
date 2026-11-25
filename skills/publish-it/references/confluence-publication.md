@@ -31,7 +31,10 @@ For HTML-only selection, first read [HTML-only Confluence publication](confluenc
 it owns report-format overrides, portable downloads and native versus downloaded theme behavior.
 
 Present the selected report's findings, evidence index, diagrams, adjacent captions and limitations
-as readable page content, preserving the canonical meaning. The page's hierarchy comes from the
+as readable page content, preserving the canonical meaning and the report's
+[opening layout](../../report-authoring/references/report-layout.md). The page body opens with the
+report itself: put revision, theme and download caveats in the version message and the download
+sections, never in a publication-note or navigation preamble above the title. The page's hierarchy comes from the
 verified destination; its title comes from the selected artifacts or caller, not a generic test
 placeholder. For task-only input, present the task's actual requirements and recorded status;
 the page identifies its actual scope and includes its task download. For an HTML-only report, inspect its readable content and references, attach the original HTML
@@ -54,7 +57,7 @@ and their qualifications beside them, including when a different page layout is 
 ## Reference gate before the first write
 
 Before attachment preparation, upload, create/update or any other publication write, run the
-[shared reference-completeness gate](../../report-evidence/references/reference-completeness.md)
+[shared reference-completeness gate](../../report-authoring/references/reference-completeness.md)
 on each selected source report/download format and composed page HTML.
 HTML-only publication checks HTML directly; absent disabled Markdown/PDF inputs are not gaps. Review every material
 occurrence across prose, tables and evidence entries. A missing occurrence fails even when the

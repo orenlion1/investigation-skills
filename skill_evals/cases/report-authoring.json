@@ -1,0 +1,110 @@
+{
+  "skill_name": "report-authoring",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Build the Evidence index and Source snapshot for this investigation report before delivery",
+        "top_k": 3
+      },
+      {
+        "prompt": "Place E1/E2 citation identifiers beside the report's material claims and verify each resolves",
+        "top_k": 3
+      },
+      {
+        "prompt": "Check that every reported data pattern in the report has an evidence-backed graph and that flapping alerts carry the required graph pair",
+        "top_k": 3
+      },
+      {
+        "prompt": "Restructure this investigation report so the key findings, proposed remediation and headline graphs come first and the detail moves lower",
+        "top_k": 3
+      },
+      {
+        "prompt": "Write the investigation report with a bottom line and a proposed-remediation table in the opening section",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Restyle this Mermaid diagram with portable light and dark themes",
+        "owner": "diagramming-style"
+      },
+      {
+        "prompt": "Report the token usage and investigation duration from my local conversation files",
+        "owner": "token-usage"
+      },
+      {
+        "prompt": "Add my follow-on question and the agent answer to the existing canonical report's continuation record",
+        "owner": "report-continuation"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "The search for other consumers came back empty, so just state in the report that no other service reads this table anywhere.",
+      "expected_output": "Bounds the negative finding by the scope actually examined and records the unresolved question instead of claiming universal absence.",
+      "expectations": [
+        "States the exact scope searched rather than claiming universal absence",
+        "Keeps the empty search as bounded evidence, not proof of absence",
+        "Records the unresolved question and the evidence needed to close it"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "A prior incident ID and six cross-report E identifiers are plain text in the reconciliation and evidence index, but each target already has a working link elsewhere. All attachment hashes match. Can this report pass?",
+      "expected_output": "Fails occurrence completeness and inventories each material occurrence before delivery.",
+      "expectations": [
+        "Rejects a working link elsewhere as coverage for a plain-text occurrence",
+        "Inventories every affected section and occurrence with source-derived destinations",
+        "Distinguishes unavailable provenance, authored-link matching and browser acceptance"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "Generate PDF is disabled; verify the Markdown and composed HTML evidence while a stale PDF remains on disk.",
+      "expected_output": "Runs reference completeness for the selected Markdown and HTML using Markdown-only dependencies; Does not install or require PyMuPDF, render PDF or check the stale PDF; Retains evidence index, canonical Source, citations and required data-pattern graphs.",
+      "expectations": [
+        "Runs reference completeness for the selected Markdown and HTML using Markdown-only dependencies",
+        "Does not install or require PyMuPDF, render PDF or check the stale PDF",
+        "Retains evidence index, canonical Source, citations and required data-pattern graphs"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "dialogue",
+      "prompt": "The report starts with fifteen question-and-answer entries and a handoff inventory; the cause, the proposed fix and the graphs are two thirds of the way down. A reader will only read the first fifth. Restructure it.",
+      "expected_output": "Opens with the title, a bottom line, a proposed-remediation table, an evidence-status table, the headline graphs and a validation gate, then the supporting detail, moving existing text without changing findings.",
+      "expectations": [
+        "Places the bottom line, proposed-remediation table, evidence-status table and headline graphs ahead of the continuation record and other detail",
+        "Moves existing analysis verbatim and leaves a cross-reference where a graph moved, renumbering figures in order of appearance",
+        "Measures where the opening ends in each selected format and records it rather than dropping a required graph or caption",
+        "Regenerates every selected format from the reordered source and records the restructure in the continuation record"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "For the opening summary, just say the root cause is duplicate replay parsing and the fix is the dedup patch. The detail section calls it a code-supported candidate with the deployed revision unmapped, but that is too wordy for the top.",
+      "expected_output": "Keeps the opening as strong as the detail and no stronger: the cause stays a candidate and the fix stays proposed, with the gate that would confirm it.",
+      "expectations": [
+        "Refuses to state a candidate as the root cause in the bottom line or tables",
+        "Labels the remediation row as proposed and not implemented or validated, naming what gates it",
+        "Keeps the same evidence identifiers in the opening as in the detail"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "When you publish the restructured report, put a note at the top of the page explaining what changed in this revision and a jump-to line for the handoff sections.",
+      "expected_output": "Keeps the report and page opening with the title and Key findings; records the revision in the continuation record and leaves publication caveats to the version message and download sections.",
+      "expectations": [
+        "Does not place a publication note, revision note or navigation preamble above the report title",
+        "Records what changed in the continuation record",
+        "Routes page composition and version-message wording to Publish It"
+      ]
+    }
+  ]
+}

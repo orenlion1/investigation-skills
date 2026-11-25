@@ -134,7 +134,7 @@ destination's outcome in the publication manifest and return one result per dest
 
 Before **any publication write** to any destination, including attachment preparation/uploads,
 draft creation, branch pushes and pull requests,
-apply [Report Evidence reference completeness](../report-evidence/references/reference-completeness.md).
+apply [Report Authoring reference completeness](../report-authoring/references/reference-completeness.md).
 Apply its attachment-only source check before uploads, then its strict hosted-reference check
 before page writes; require zero unresolved occurrences and reviewed targets. Link lists, inventories, hashes or conversion dry runs cannot substitute.
 Stop publication on a missing, wrong-target, broken-fragment, ambiguous, unavailable or unverified

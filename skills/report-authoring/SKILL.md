@@ -1,19 +1,21 @@
 ---
-name: report-evidence
-description: "Build and verify an investigation report's evidence record before delivery, covering the Evidence index and its Source snapshot, E1/E2 citations beside material claims, verified-versus-inferred labels, bounded negative findings, and evidence-backed data pattern graphs. Use when assembling, citing, or checking report evidence."
+name: report-authoring
+description: "Structures and verifies an investigation report before delivery: a key-findings-first layout with a proposed-remediation table and headline graphs, the Evidence index and Source snapshot, E1/E2 citations, verified-versus-inferred labels, bounded negative findings, and evidence-backed data pattern graphs. Use when writing, restructuring, citing, or checking an investigation report."
 ---
 
-# Report Evidence
+# Report Authoring
 
 ## Overview
 
-Every investigation report and its supporting diagrams pass this evidence discipline before
-delivery. This skill owns the Evidence index, the canonical `Source:` snapshot, citation
+Every investigation report and its supporting diagrams pass this skill before delivery. It
+owns how the report is laid out and what its evidence record must contain: the
+key-findings-first layout, the Evidence index, the canonical `Source:` snapshot, citation
 identifiers, the verified/inferred distinction, negative-finding bounds, and the requirement
-that every reported data pattern is supported by an evidence-backed graph. Visual styling,
-theming, captions, and rendering checks for those graphs belong to
-[Diagramming Style](../diagramming-style/SKILL.md); this skill owns that the graphs exist and
-match the evidence.
+that every reported data pattern is supported by an evidence-backed graph.
+
+[Diagramming Style](../diagramming-style/SKILL.md) owns visual styling, theming, captions and
+rendering checks; this skill owns that the graphs exist, match the evidence and sit where the
+layout puts them.
 
 ## When to Use
 
@@ -21,6 +23,17 @@ match the evidence.
 - Placing or verifying `E1`/`E2` citation identifiers beside report claims.
 - Checking a report's evidence discipline, citations, or graph coverage before delivery.
 - Deciding whether a finding is verified, observed, inferred, assumed, or proposed.
+- Writing a new investigation report, or restructuring one so its key findings, proposed
+  remediation and graphs come first.
+
+## Report Layout
+
+Follow [the report layout](references/report-layout.md) for every investigation report. Assume
+the reader stops after the first fifth: open with the title, then Key findings holding the
+bottom line, a proposed-remediation table, an evidence-status table, the headline graphs and
+the validation gate, in that order, with supporting detail below. Nothing in the opening is
+new: each claim restates the detail with the same citation and the same qualification. Use
+the reference's skeleton for a new report and its checklist before delivery.
 
 ## Evidence Index
 
@@ -68,8 +81,9 @@ counts. Unavailable provenance and unverified navigation remain explicit incompl
   correlations. One graph may support several claims when each pattern is clearly visible.
   Tables, prose, links to dashboards, and architecture or code-flow diagrams do not replace
   data graphs.
-- Place each graph in the same report section as the claims it supports, immediately beside
-  the relevant explanation, in every delivered format.
+- Place each graph beside the claims it supports, in every delivered format: in that
+  claim's section, or as a headline graph in the opening with a linked cross-reference from
+  that section, as the report layout sets out.
 - Choose views that expose the claimed pattern: time series for trends and spikes, event
   or state timelines for recurrence and flapping, and suitable distribution or comparison
   plots for variation across resources. Add a focused view when a full-window graph hides
@@ -100,6 +114,9 @@ counts. Unavailable provenance and unverified navigation remain explicit incompl
 
 ## Red Flags
 
+- Findings, remediation or the graphs that prove them buried below process history, or a
+  preamble above the report title.
+- An opening that states a candidate or a correlation more strongly than the detail does.
 - A material claim without a linked evidence identifier, or an identifier whose index entry
   does not resolve to the cited revision.
 - A `Source:` snapshot missing the inspected revision, data window, or untested remainder.
@@ -109,6 +126,8 @@ counts. Unavailable provenance and unverified navigation remain explicit incompl
 
 ## Verification
 
+- [ ] The opening follows [the report layout](references/report-layout.md) and passes its
+      checklist in every delivered format.
 - [ ] The Evidence index opens with a complete `Source:` snapshot and pinned revision.
 - [ ] Each identifier resolves to its intended entry; paths and line ranges match the pinned
       revision; citations support their adjacent claims, consistently in every delivered

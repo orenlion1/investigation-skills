@@ -1,7 +1,7 @@
 // Independent skill routes; peer placement is not an execution-order edge.
 // Coverage manifest, checked by the carried docs-contract check against the root routing table:
 // workflow-artifact-naming, open-edit-close-execute, profile-manager, token-usage,
-// report-continuation, diagramming-style, report-evidence, source-investigation, publish-it, rovo-dev-mcp,
+// report-continuation, diagramming-style, report-authoring, source-investigation, publish-it, rovo-dev-mcp,
 // aws-mcp, aws-architecture-diagrams, gcx-cli, slack-mcp, rhyming-incident-search,
 // per-store-fan-out, parallel-grafana-investigation, release-it, skill-ownership.
 // skill-ownership governs this repository rather than an investigation step, so it has no node.
@@ -20,7 +20,7 @@ digraph InvestigationSkillRouting {
   setup_skills [label="Skills\nWorkflow Artifact Naming\nOpen/Edit/Close/Execute\nProfile Manager"];
   orchestration_skills [label="Orchestration skills\nPer-Store Fan-Out\nParallel Grafana Investigation\nRhyming Incident Search"];
   resource_skills [label="Resource skills\nRovo Dev MCP / Grafana CLI\nSlack MCP / AWS MCP\nSource Investigation"];
-  report_skills [label="Report skills\nReport Continuation\nWorkflow Artifact Naming\nToken Usage / Report Evidence\nDiagramming Style\nAWS Architecture Diagrams"];
+  report_skills [label="Report skills\nReport Continuation\nWorkflow Artifact Naming\nToken Usage / Report Authoring\nDiagramming Style\nAWS Architecture Diagrams"];
   publish_skills [label="Publish skills\nPublish It / Release It\nRovo Dev MCP"];
   destination [label="Repository or content system\nNext lifecycle step picks it up"];
 

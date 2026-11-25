@@ -181,7 +181,7 @@ risk or one error string alone does not establish root cause.
 Return observed facts, the supported cause or ranked hypotheses, evidence, gaps,
 and the next discriminating check. State when root cause remains unconfirmed.
 Recommendations do not authorize restarts, deployments, security changes, writes,
-or remediation. For saved investigations, follow repository Report Evidence,
+or remediation. For saved investigations, follow repository Report Authoring,
 Workflow Artifact Naming, Token Usage, and required Markdown/PDF report contracts.
 
 ## Verification

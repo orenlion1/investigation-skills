@@ -50,7 +50,7 @@ jobs:
           grep -q '<svg' "$RUNNER_TEMP/graphviz-smoke.svg"
           echo "$RUNNER_TEMP/graphviz-bin" >> "$GITHUB_PATH"
       - name: Install reference validation dependencies
-        run: python3 -m pip install -r skills/report-evidence/scripts/requirements.txt
+        run: python3 -m pip install -r skills/report-authoring/scripts/requirements.txt
       - name: Validate tag and run all checks
         run: |
           python3 scripts/release.py --tag "$GITHUB_REF_NAME"
