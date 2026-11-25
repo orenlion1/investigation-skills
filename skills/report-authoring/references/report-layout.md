@@ -34,8 +34,8 @@ Keep this order after the opening: the finding statement in full; mechanism and 
 each data-pattern section with its remaining graphs and tables; source analysis; next checks
 and remediation detail; scope and timing; coverage and limitations; the continuation record,
 resume checkpoint and dependency inventory, whose contents
-[Report Continuation](../../report-continuation/SKILL.md) owns; the Evidence index; delivery
-and accounting; token usage details.
+[Report Continuation](../../report-continuation/SKILL.md) owns; the Evidence index; appendices;
+delivery and accounting; token usage details.
 
 ## Rules
 
@@ -49,6 +49,12 @@ and accounting; token usage details.
   to its figure in the opening. A flapping-alert pair moves as one unit with its caption;
   [Diagramming Style](../../diagramming-style/references/flapping-alert-graphs.md) owns its
   pairing and placement.
+- **Raw listings go in an appendix.** A table that lists one row per alert, pod, request or
+  similar record, and runs past about eight rows, moves unchanged to an `## Appendix: <subject>`
+  section after the Evidence index. The section that cites it keeps a one-sentence summary of
+  what the rows show and a link to the appendix. Use an appendix link, not a Markdown footnote:
+  the HTML generator and Confluence do not render footnotes. Tables that carry the argument
+  (the remediation and evidence tables, short comparisons) stay where they are.
 - **Captions stay complete.** To save space, display a headline graph at a smaller width.
   Never shorten its caption or change the image file.
 - **Number figures in order of appearance.** When restructuring an existing report, record
@@ -113,4 +119,5 @@ Everything below is supporting detail: [<section>](#…), …
 - [ ] Every opening claim and table row matches the detail in wording strength and citation.
 - [ ] Each moved graph has a cross-reference in its detail section; figures are numbered in
       order of appearance.
+- [ ] Raw row listings sit in an appendix, each with a summary and link where it is cited.
 - [ ] The opening's end position is measured and recorded for each selected format.
