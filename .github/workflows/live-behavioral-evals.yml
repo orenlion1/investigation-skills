@@ -4,6 +4,11 @@ name: Live Behavioral Evals
 # it. It never runs on pull requests, merge queues or pushes, because each run spends model
 # usage. It needs the ANTHROPIC_API_KEY Actions secret
 # (scripts/set-anthropic-api-key-secret.sh).
+#
+# Spend is metered and capped: every model call goes through scripts/live-evals-runner/claude,
+# which records its cost, and runs pause once the month's spend reaches the
+# LIVE_EVALS_MONTHLY_BUDGET_USD repository variable (default $10). See
+# scripts/live_eval_spend.py.
 on:
   workflow_dispatch:
     inputs:
@@ -21,20 +26,28 @@ on:
           - claude-sonnet-5-5
           - claude-fable-5-2
 
+# One run at a time, queued, so each run's budget check sees every earlier run's spend.
 concurrency:
-  group: live-behavioral-evals-${{ github.ref }}-${{ inputs.skill }}
-  cancel-in-progress: true
+  group: live-behavioral-evals
+  cancel-in-progress: false
+
+env:
+  MONTHLY_BUDGET_USD: ${{ vars.LIVE_EVALS_MONTHLY_BUDGET_USD || '10' }}
 
 permissions:
   contents: read
 
 jobs:
   skills:
-    name: List skills
+    name: List skills and check the monthly budget
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
     outputs:
       skills: ${{ steps.list.outputs.skills }}
+      per_job: ${{ steps.budget.outputs.per_job }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -60,6 +73,17 @@ jobs:
           PY
           )
           printf 'skills=%s\n' "$skills" >>"$GITHUB_OUTPUT"
+          printf 'count=%s\n' "$(python3 -c 'import json, sys; print(len(json.loads(sys.argv[1])))' "$skills")" >>"$GITHUB_OUTPUT"
+
+      - name: Check this month's spend
+        id: budget
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          JOBS: ${{ steps.list.outputs.count }}
+        run: |
+          set -euo pipefail
+          python3 scripts/live_eval_spend.py month --budget "$MONTHLY_BUDGET_USD" --jobs "$JOBS" \
+            --repository "$GITHUB_REPOSITORY" --workflow live-behavioral-evals.yml --run-id "$GITHUB_RUN_ID"
 
   live-evals:
     name: Live evals (${{ matrix.skill }}, ${{ inputs.model }})
@@ -97,18 +121,52 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_MODEL: ${{ inputs.model }}
           SKILL: ${{ matrix.skill }}
+          LIVE_EVAL_JOB_BUDGET_USD: ${{ needs.skills.outputs.per_job }}
         run: |
           set -o pipefail
           results="$RUNNER_TEMP/live-eval-results"
           mkdir -p "$results"
+          LIVE_EVAL_REAL_CLAUDE=$(command -v claude)
+          LIVE_EVAL_LEDGER="$RUNNER_TEMP/live-eval-ledger.jsonl"
+          export LIVE_EVAL_REAL_CLAUDE LIVE_EVAL_LEDGER
+          echo "This job may spend up to \$$LIVE_EVAL_JOB_BUDGET_USD."
           scripts/run-skill-quality-gate.sh --execute-behavioral --skill "$SKILL" \
+            --runner-dir scripts/live-evals-runner \
             --output-dir "$results" 2>&1 | tee "$results/runner.log"
 
-      - name: Upload grading files
+      - name: Record this job's spend
+        if: always()
+        env:
+          SKILL: ${{ matrix.skill }}
+          MODEL: ${{ inputs.model }}
+        run: |
+          set -euo pipefail
+          ledger="$RUNNER_TEMP/live-eval-ledger.jsonl"
+          touch "$ledger"
+          python3 scripts/live_eval_spend.py summary --ledger "$ledger" \
+            --output "$RUNNER_TEMP/live-eval-spend/spend.json" \
+            --skill "$SKILL" --model "$MODEL" --run-id "$GITHUB_RUN_ID"
+          cp "$ledger" "$RUNNER_TEMP/live-eval-results/ledger.jsonl"
+          if [ -d "$HOME/.claude/projects" ]; then
+            cp -R "$HOME/.claude/projects" "$RUNNER_TEMP/live-eval-results/sessions"
+          fi
+
+      - name: Upload the spend record
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: live-evals-${{ matrix.skill }}-${{ github.run_id }}
+          # The budget check reads these back, so keep them past the end of the month.
+          name: live-evals-spend-${{ matrix.skill }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/live-eval-spend
+          if-no-files-found: error
+          retention-days: 40
+
+      - name: Upload grading files, model calls and ledger
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: live-evals-${{ matrix.skill }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/live-eval-results
           if-no-files-found: warn
+          include-hidden-files: true
           retention-days: 7
