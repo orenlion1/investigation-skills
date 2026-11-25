@@ -18,7 +18,7 @@ on:
         default: all
         type: string
       model:
-        description: Model that performs and grades the evals (Sonnet for routine runs, Fable to confirm a failure)
+        description: Model that performs and grades the evals (Sonnet for routine runs, Fable to check behavior under stress)
         required: true
         default: claude-sonnet-5-5
         type: choice
@@ -39,14 +39,11 @@ permissions:
 
 jobs:
   skills:
-    name: List skills and check the monthly budget
+    name: Resolve requested skills and calculate spend
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      actions: read
     outputs:
       skills: ${{ steps.list.outputs.skills }}
+      evals: ${{ steps.list.outputs.evals }}
       shares: ${{ steps.budget.outputs.shares }}
     steps:
       - name: Check out the repository
@@ -91,11 +88,14 @@ jobs:
     needs: skills
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       max-parallel: 6
-      matrix:
-        skill: ${{ fromJSON(needs.skills.outputs.skills) }}
+    matrix:
+      skill: ${{ fromJSON(needs.skills.outputs.skills) }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -104,10 +104,11 @@ jobs:
 
       - name: Require the model credential
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+          ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
         run: |
-          if [ -z "$ANTHROPIC_API_KEY" ]; then
-            echo '::error::The ANTHROPIC_API_KEY secret is not set; run scripts/set-anthropic-api-key-secret.sh.'
+          if [ -z "$ANTHROPIC_FEDERATION_RULE_ID" ] || [ -z "$ANTHROPIC_ORGANIZATION_ID" ]; then
+            echo '::error::ANTHROPIC_FEDERATION_RULE_ID or ANTHROPIC_ORGANIZATION_ID variable is not set.'
             exit 1
           fi
 
@@ -119,7 +120,10 @@ jobs:
 
       - name: Execute the skill's behavioral evals
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+          ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+          ANTHROPIC_SERVICE_ACCOUNT_ID: svac_011STeYdkVGepjQBALKrB8CM
+          ANTHROPIC_WORKSPACE_ID: wrkspc_01L6vCTR95hgQx5JNzE7thNs
           ANTHROPIC_MODEL: ${{ inputs.model }}
           SKILL: ${{ matrix.skill }}
           LIVE_EVAL_JOB_BUDGET_USD: ${{ fromJSON(needs.skills.outputs.shares)[matrix.skill] }}
