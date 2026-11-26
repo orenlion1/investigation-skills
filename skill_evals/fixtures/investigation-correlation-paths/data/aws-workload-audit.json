@@ -1,0 +1,51 @@
+{
+  "evidence_id": "E4",
+  "collector": "synthetic provider fixture, representing AWS API MCP call_aws CloudWatch Logs query",
+  "profile": "fixture-eu",
+  "region": "eu-central-1",
+  "query_status": "Complete",
+  "cap": 100,
+  "returned": 4,
+  "next_token": null,
+  "events": [
+    {
+      "id": "restart-template",
+      "time": "2026-06-14T11:30:00Z",
+      "api": "Kubernetes",
+      "verb": "patch",
+      "kind": "StatefulSet",
+      "resource": "demo/worker",
+      "http_status": 200,
+      "changed_field": "spec.template.metadata.annotations.kubectl.kubernetes.io/restartedAt",
+      "new_value": "2026-06-14T07:30:00-04:00",
+      "image_before": "example/worker:v1.2.3",
+      "image_after": "example/worker:v1.2.3"
+    },
+    {
+      "id": "pod-delete",
+      "time": "2026-06-14T11:31:00Z",
+      "api": "Kubernetes",
+      "verb": "delete",
+      "kind": "Pod",
+      "resource": "demo/worker-0",
+      "http_status": 200
+    },
+    {
+      "id": "pod-create",
+      "time": "2026-06-14T11:31:01Z",
+      "api": "Kubernetes",
+      "verb": "create",
+      "kind": "Pod",
+      "resource": "demo/worker-0",
+      "http_status": 201
+    },
+    {
+      "id": "process-start",
+      "time": "2026-06-14T11:31:05Z",
+      "api": "runtime metric",
+      "verb": "start",
+      "kind": "Process",
+      "resource": "demo/worker-0"
+    }
+  ]
+}

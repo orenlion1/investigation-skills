@@ -1,0 +1,23 @@
+{
+  "evidence_id": "E6",
+  "collector": "synthetic provider fixture, representing AWS API MCP call_aws Kubernetes audit read",
+  "profile": "fixture-eu",
+  "region": "eu-central-1",
+  "query_status": "Complete",
+  "cap": 100,
+  "returned": 1,
+  "events": [
+    {
+      "id": "service-patch",
+      "time": "2026-06-14T10:25:00Z",
+      "api": "Kubernetes",
+      "verb": "patch",
+      "kind": "Service",
+      "resource": "demo/worker",
+      "http_status": 200,
+      "changed_field": "spec.externalName",
+      "old_value": "old.example.com",
+      "new_value": "new.example.com"
+    }
+  ]
+}

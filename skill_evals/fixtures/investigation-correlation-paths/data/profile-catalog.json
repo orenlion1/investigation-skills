@@ -1,0 +1,22 @@
+{
+  "scope": {
+    "profile": "fixture-eu",
+    "region": "eu-central-1",
+    "context": "fixture-eu",
+    "window": {
+      "start": "2026-06-14T09:00:00Z",
+      "end": "2026-06-14T12:00:00Z"
+    }
+  },
+  "selector": "{service_name=\"worker\",pod=\"worker-0\"}",
+  "available": [
+    "prior-profile-early",
+    "prior-profile-low",
+    "prior-profile-gap",
+    "prior-profile-high",
+    "incident-profile",
+    "recovery-profile"
+  ],
+  "limit": 20,
+  "next_cursor": null
+}

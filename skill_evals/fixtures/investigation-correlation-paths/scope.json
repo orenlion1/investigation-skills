@@ -1,0 +1,9 @@
+{
+  "profile": "fixture-eu",
+  "region": "eu-central-1",
+  "context": "fixture-eu",
+  "window": {
+    "start": "2026-06-14T09:00:00Z",
+    "end": "2026-06-14T12:00:00Z"
+  }
+}
