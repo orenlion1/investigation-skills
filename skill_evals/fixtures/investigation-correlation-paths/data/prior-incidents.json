@@ -1,0 +1,14 @@
+{
+  "evidence_id": "E8",
+  "collector": "synthetic configured historical-endpoint read",
+  "scope": "fixture-history, preceding14days",
+  "candidates": [
+    {
+      "id": "memory-analogy",
+      "symptom": "daily memory threshold crossings in another service",
+      "shared_cause_verified": false
+    }
+  ],
+  "cap": 20,
+  "next_cursor": null
+}

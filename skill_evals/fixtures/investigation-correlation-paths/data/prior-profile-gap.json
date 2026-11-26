@@ -1,0 +1,10 @@
+{
+  "evidence_id": "E2c",
+  "collector": "synthetic provider fixture",
+  "window": {
+    "start": "2026-06-14T10:15:00Z",
+    "end": "2026-06-14T10:30:00Z"
+  },
+  "status": "no profile data",
+  "flamegraph": null
+}

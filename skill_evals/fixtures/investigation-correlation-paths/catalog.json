@@ -1,0 +1,15 @@
+{
+  "alert": "scoped evidence",
+  "profile-catalog": "saved profile",
+  "prior-profile-early": "saved profile",
+  "prior-profile-low": "saved profile",
+  "prior-profile-gap": "saved profile",
+  "prior-profile-high": "saved profile",
+  "incident-profile": "saved profile",
+  "aws-workload-audit": "AWS audit",
+  "aws-service-audit": "AWS audit",
+  "source": "scoped evidence",
+  "slack-history": "scoped evidence",
+  "prior-incidents": "scoped evidence",
+  "recovery-profile": "saved profile"
+}

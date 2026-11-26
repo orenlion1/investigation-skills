@@ -1,0 +1,56 @@
+{
+  "id": "E1",
+  "collector": "synthetic provider fixture, representing direct gcx alert/metrics read",
+  "resource": "demo/worker-0",
+  "rule": {
+    "expression": "system_cpu_usage >= 0.99",
+    "for": "10m",
+    "keep_firing_for": null
+  },
+  "samples_end": "2026-06-14T11:20:00Z",
+  "cpu": [
+    {
+      "time": "2026-06-14T11:00:00Z",
+      "value": 100
+    },
+    {
+      "time": "2026-06-14T11:05:00Z",
+      "value": 99.8
+    },
+    {
+      "time": "2026-06-14T11:10:00Z",
+      "value": 80
+    },
+    {
+      "time": "2026-06-14T11:15:00Z",
+      "value": 100
+    },
+    {
+      "time": "2026-06-14T11:20:00Z",
+      "value": 99.9
+    }
+  ],
+  "states": [
+    {
+      "time": "2026-06-14T10:55:00Z",
+      "value": 1
+    },
+    {
+      "time": "2026-06-14T11:05:00Z",
+      "value": 2
+    },
+    {
+      "time": "2026-06-14T11:10:00Z",
+      "value": 0
+    },
+    {
+      "time": "2026-06-14T11:15:00Z",
+      "value": 1
+    }
+  ],
+  "state_encoding": {
+    "0": "Normal",
+    "1": "Pending",
+    "2": "Alerting"
+  }
+}

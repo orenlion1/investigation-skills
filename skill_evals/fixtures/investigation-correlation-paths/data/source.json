@@ -1,0 +1,23 @@
+{
+  "evidence_id": "E5",
+  "collector": "synthetic pinned source fixture",
+  "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "version_tag": "v1.2.3",
+  "digest_to_commit": null,
+  "queue_behavior": "queued jobs only are deduplicated; a polled active job is no longer in the queue; runtime duplication not observed",
+  "events": [
+    {
+      "id": "git-externalname",
+      "time": "2026-06-14T10:05:00Z",
+      "api": "Git",
+      "verb": "merge",
+      "kind": "source configuration",
+      "resource": "demo/worker",
+      "changed_field": "Service spec.externalName",
+      "old_value": "old.example.com",
+      "new_value": "new.example.com"
+    }
+  ],
+  "inspected_file": "source/loader.py",
+  "lines": "7\u201313"
+}

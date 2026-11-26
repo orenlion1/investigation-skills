@@ -1,0 +1,3 @@
+# Provision before model isolation; the agent needs no package-network access.
+-r ../skills/report-authoring/scripts/requirements.txt
+-r fixtures/investigation-correlation-paths/requirements.txt

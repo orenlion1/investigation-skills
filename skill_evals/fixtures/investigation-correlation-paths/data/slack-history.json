@@ -1,0 +1,9 @@
+{
+  "evidence_id": "E7",
+  "collector": "synthetic configured-channel read",
+  "scope": "fixture-channel, exact09:00\u201312:00UTC",
+  "matching_messages": [],
+  "cap": 100,
+  "next_cursor": null,
+  "limitation": "no matching messages in returned scope; thread coverage unexamined"
+}

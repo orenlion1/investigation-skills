@@ -1,0 +1,66 @@
+{
+  "evidence_id": "E2a",
+  "collector": "synthetic provider fixture, representing gcx profiles query",
+  "context": "fixture-eu",
+  "datasource": "fixture-profiles",
+  "selector": "{service_name=\"worker\",pod=\"worker-0\"}",
+  "profile_type": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+  "window": {
+    "start": "2026-06-14T09:00:00Z",
+    "end": "2026-06-14T09:15:00Z"
+  },
+  "max_nodes": 1000,
+  "labels": {
+    "service_name": "worker",
+    "pod": "worker-0"
+  },
+  "flamegraph": {
+    "names": [
+      "total",
+      "Thread.run",
+      "FileLoader.processJobs",
+      "EventParser.parse",
+      "HTTP.handle"
+    ],
+    "levels": [
+      {
+        "values": [
+          0,
+          100,
+          0,
+          0
+        ]
+      },
+      {
+        "values": [
+          0,
+          100,
+          0,
+          1
+        ]
+      },
+      {
+        "values": [
+          0,
+          10,
+          0,
+          2,
+          0,
+          90,
+          90,
+          4
+        ]
+      },
+      {
+        "values": [
+          0,
+          10,
+          1,
+          3
+        ]
+      }
+    ],
+    "total": 100,
+    "maxSelf": 90
+  }
+}
