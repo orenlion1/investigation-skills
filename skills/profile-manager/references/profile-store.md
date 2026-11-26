@@ -236,13 +236,15 @@ python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . sho
 
 ### Report formats
 
+Read the authoritative declared defaults with `python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . schema`; its field metadata contains `default`. For a selected profile, `show --profile NAME` returns the `effective_*` settings. Resolve current user instructions and saved task values under this contract's [precedence](#precedence) rules, validating the task separately with the helper when needed. Consumers read these results instead of copying format defaults into their own instructions.
+
 `GENERATE_MARKDOWN`, `GENERATE_PDF` and `GENERATE_HTML` select independent outputs.
 Each can be the only enabled format. Defaults select HTML alone, with Markdown and PDF disabled. Disabling Markdown never suppresses HTML or PDF. Resolve settings before dependencies;
 only selected formats require renderers and format-specific checks. All outputs retain the same
 findings, evidence, graphs and accounting cutoff. The
-[delivery contract](../../open-edit-close-execute/references/investigation-delivery.md#report-formats)
-owns source identity and validation; [Publish It](../../publish-it/references/html-generation.md)
-owns HTML generation and packaging. Settings do not authorize publication.
+[delivery contract](../../investigation-delivery/references/delivery-contract.md#report-formats)
+owns source identity, generation and validation; [Publish It](../../publish-it/references/html-packaging.md)
+owns publication packaging. Settings do not authorize publication.
 
 ### HTML theme
 
@@ -264,8 +266,8 @@ For the standalone HTML, `system` follows the browser preference. Fixed `light` 
 and theme-aware diagram selection in that mode, even when the viewer uses the opposite theme.
 Confluence native figures follow Publish It's separate theme procedure.
 The setting does not enable HTML generation or authorize publication. Resolve it before
-rendering; generate a separate HTML variant and receipt for every selected theme. Publish It owns the
-[renderer behavior](../../publish-it/references/html-generation.md#appearance).
+rendering; generate a separate HTML variant and receipt for every selected theme. Investigation Delivery owns the
+[renderer behavior](../../investigation-delivery/references/html-generation.md#appearance).
 
 ### Generate PDF
 

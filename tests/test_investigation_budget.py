@@ -5,7 +5,7 @@ import subprocess
 import sys
 import unittest
 
-HELPER = Path(__file__).resolve().parents[1] / 'skills/open-edit-close-execute/scripts/investigation_budget.py'
+HELPER = Path(__file__).resolve().parents[1] / 'skills/investigation-delivery/scripts/investigation_budget.py'
 START = '2026-01-01T12:00:00Z'
 
 

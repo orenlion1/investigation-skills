@@ -1,0 +1,13 @@
+{
+  "schema": "token-removals/v1",
+  "removed": [
+    {
+      "token": "python -m pip install -r skills/publish-it/scripts/requirements.txt",
+      "reason": "Move the unchanged requirements file to Investigation Delivery, the local HTML generation owner; the command now uses skills/investigation-delivery/scripts/requirements.txt."
+    },
+    {
+      "token": "python skills/publish-it/scripts/generate_html.py --title 'Investigation title' --theme light --output /resolved/REPORT-slug-light.html",
+      "reason": "Move the unchanged renderer to Investigation Delivery. The documented command retains all flags and values and uses skills/investigation-delivery/scripts/generate_html.py."
+    }
+  ]
+}

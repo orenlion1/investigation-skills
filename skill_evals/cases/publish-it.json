@@ -35,6 +35,10 @@
       {
         "prompt": "open TASK.md for editing and execute the saved requirements after close",
         "owner": "open-edit-close-execute"
+      },
+      {
+        "prompt": "Generate a local HTML investigation report from saved canonical findings without publishing it",
+        "owner": "investigation-delivery"
       }
     ]
   },
@@ -236,6 +240,18 @@
         "Builds the Dark/Light native pair with Publish It's shared native figure composer (render_theme_pair) from both theme attachments verified in the owning page's media collection; installs no app and changes no site or user preference",
         "Verifies dark and light graphs in the main report; preserving only supporting attachment cards does not pass",
         "Does not call manual tabs automatic Confluence profile switching; preserves the fixed HTML download and historical evidence"
+      ]
+    },
+    {
+      "id": 17,
+      "kind": "dialogue",
+      "prompt": "Publish the existing canonical findings as HTML only. The required HTML derivative is missing, and no credentials are available here, so write nothing. Explain who renders it, who packages it, and which settings and evidence limits remain authoritative.",
+      "expected_output": "Publish It delegates generic rendering to Investigation Delivery and retains publication-specific packaging and verification.",
+      "expectations": [
+        "Routes missing HTML generation to Investigation Delivery and its renderer rather than a publisher-owned renderer",
+        "Resolves effective formats/themes through Profile Manager without inventing another defaults table",
+        "Keeps publication packaging, uploads and hosted read-back under Publish It",
+        "Preserves frozen evidence/accounting and disabled formats; does not rerun investigation or treat format conversion as resource-mutation authorization"
       ]
     }
   ]

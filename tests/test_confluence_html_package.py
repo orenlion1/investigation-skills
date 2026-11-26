@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-GENERATOR = ROOT / 'skills/publish-it/scripts/generate_html.py'
+GENERATOR = ROOT / 'skills/investigation-delivery/scripts/generate_html.py'
 PACKAGER = ROOT / 'skills/publish-it/scripts/package_confluence_html.py'
 PNG = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4xkAAAAASUVORK5CYII=')
 

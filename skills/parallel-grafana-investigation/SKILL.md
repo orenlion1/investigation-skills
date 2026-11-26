@@ -22,7 +22,7 @@ This skill owns the two Grafana branches, their shared inputs and their reconcil
 Delegating skills in this catalog share one delegation contract: copying any of them means copying the `per-store-fan-out` package too.
 
 When part of an investigation, inherit its original request start and
-[soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md).
+[soft delivery budget](../investigation-delivery/references/delivery-contract.md).
 Reuse verified setup and evidence while preserving coverage and gates.
 
 ## When to Use

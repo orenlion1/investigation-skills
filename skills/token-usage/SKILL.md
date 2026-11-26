@@ -174,7 +174,7 @@ subset labels remain part of the compact presentation.
 ## Validate the deliverables
 
 Update the canonical report source and regenerate each selected deliverable format under the
-[delivery contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats).
+[delivery contract](../investigation-delivery/references/delivery-contract.md#report-formats).
 Generate PDF `disabled` skips PDF-only work; preserve historical PDFs without updating or claiming them.
 Use the [shared renderer](scripts/render_token_usage.py) for the saved successful collector JSON:
 
@@ -226,7 +226,7 @@ readable labels and tables. A presentation change does not change historical acc
 - The rendered report passed the checks in [Validate the deliverables](#validate-the-deliverables).
 - Evidence identifiers resolve and contain no credentials or private payloads.
 
-Delivery elapsed time and observed waits follow the [single investigation timing contract](../open-edit-close-execute/references/investigation-delivery.md). Keep the accounting cutoff distinct from verified handoff; never infer processing time from elapsed wall time.
+Delivery elapsed time and observed waits follow the [single investigation timing contract](../investigation-delivery/references/delivery-contract.md). Keep the accounting cutoff distinct from verified handoff; never infer processing time from elapsed wall time.
 **Report processing duration** is wall time from request to accounting cutoff, not
 agent-controlled time; describe it as wall time. With partial wait coverage, report only the observed
 waits and leave non-wait (processing) time and unmeasured phase timings `unavailable`.

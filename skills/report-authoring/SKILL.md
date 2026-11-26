@@ -68,7 +68,7 @@ the reference's skeleton for a new report and its checklist before delivery.
 
 Follow [the reference-completeness contract](references/reference-completeness.md) before
 report delivery and pass its helper gate for every delivered Markdown, PDF and HTML artifact.
-Resolve selected report formats through the [delivery contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats) first. Disabled formats skip their tooling and checks; evidence and graphs pass in every selected output.
+Resolve selected report formats through the [delivery contract](../investigation-delivery/references/delivery-contract.md#report-formats) first. Disabled formats skip their tooling and checks; evidence and graphs pass in every selected output.
 Inventory every material incident, investigation, backing chat, conversation and cross-report
 evidence reference at its point of use: reconciliation prose, coverage tables and evidence-index
 entries all count. A working link elsewhere, attachment hash or report-title link never satisfies
@@ -95,6 +95,9 @@ counts. Unavailable provenance and unverified navigation remain explicit incompl
   implemented flows.
 
 ## Data Pattern Graphs
+
+Include evidence-backed diagrams of relevant flows, hierarchies and dependencies alongside
+the measured patterns. Diagramming Style owns their visual construction and checks.
 
 When Pyroscope profiles support a finding, apply the
 [profiling evidence contract](references/profiling-evidence.md) before delivery:

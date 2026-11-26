@@ -2,7 +2,7 @@
   "schema": "skill-size-baseline/v1",
   "skills": {
     "skills/aws-architecture-diagrams": 12660,
-    "skills/aws-mcp": 12444,
+    "skills/aws-mcp": 12513,
     "skills/diagramming-style": 8673,
     "skills/gcx-cli": 16370,
     "skills/open-edit-close-execute": 7331,
@@ -11,7 +11,7 @@
     "skills/profile-manager": 19879,
     "skills/publish-it": 16144,
     "skills/release-it": 3789,
-    "skills/report-authoring": 11510,
+    "skills/report-authoring": 11680,
     "skills/report-continuation": 9069,
     "skills/rhyming-incident-search": 11791,
     "skills/rovo-dev-mcp": 18503,
@@ -19,6 +19,7 @@
     "skills/slack-mcp": 11230,
     "skills/source-investigation": 6976,
     "skills/token-usage": 15577,
-    "skills/workflow-artifact-naming": 4767
+    "skills/workflow-artifact-naming": 4767,
+    "skills/investigation-delivery": 2343
   }
 }

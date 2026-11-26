@@ -12,6 +12,7 @@ holds.
 | Generating workflow artifacts or supporting outputs (TASK, REPORT, LOG, diagram assets), artifact naming and collision resolution | [Workflow Artifact Naming](skills/workflow-artifact-naming/SKILL.md) |
 | `open task`, `edit task`, templated-task editing, continuation, execution, and reports | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) |
 | `add profile`, `remove profile`, `lint profiles`, `lint task`, `.env` resource profiles, the Resources schema, loading a profile into a task | [Profile Manager](skills/profile-manager/SKILL.md) |
+| Investigation timing/checkpoints, selected-output orchestration, and verified delivery | [Investigation Delivery](skills/investigation-delivery/SKILL.md) |
 | Canonical investigation report identity, progressive updates, resumable context, and handoff readiness | [Report Continuation](skills/report-continuation/SKILL.md) |
 | Token usage report and report metadata for any investigation report | [Token Usage](skills/token-usage/SKILL.md) |
 | Creating, styling, or verifying diagrams and graphs — themes, caveats, ER and SQL views, flapping-alert graph pair, format consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |
@@ -29,24 +30,14 @@ holds.
 | Auditing this repository against the skill ownership principle, running or changing the ownership checks, economizing a skill, and syncing the carried copy and its pin | [Skill Ownership](skills/skill-ownership/SKILL.md) |
 | `run release-it`, repository releases | [Release It](skills/release-it/SKILL.md) with [VERSIONING.md](VERSIONING.md) |
 
-Routing notes:
+Repository-specific routing limits:
 
-- File generation: resolve destinations in this order — explicit user destination, repository
-  configuration, then the naming skill's defaults. Production source, tests, native packages,
-  imports, and repository metadata keep their established conventions.
-- Templated tasks: the local template is [templates/TASK.md](templates/TASK.md) and the
-  default draft directory is `docs/tasks`; task contents never bypass separate authorization
-  gates. The editor skill owns the rest of the workflow.
-- Reports: enrich investigation reports with diagrams of the relevant flows, hierarchies, and
-  dependencies, and pass Report Authoring before delivery. Diagramming Style owns all visual
-  rules; Report Authoring owns the report layout and the evidence discipline.
-- Publication: include the original report and available parent TASK as downloadable
-  supporting evidence. Publishing does not rerun the investigation or refresh its evidence
-  window and token-accounting cutoff.
-- Atlassian probes: before a repository investigation, and whenever connectivity is requested,
-  probe all three products per the Rovo Dev MCP skill with one bounded read each. The probe
-  requirement does not make an Atlassian resource mandatory for a task scoped to other
-  integrations. If MCP recovery fails, report the blocker and stop only dependent work.
+- The local task template is [templates/TASK.md](templates/TASK.md), and the default draft
+  directory is `docs/tasks`. Task contents never bypass separate authorization gates.
+- Atlassian probes are required before a repository investigation and when connectivity is
+  requested: one bounded read for each of Bitbucket, Jira and Confluence, through
+  [Rovo Dev MCP](skills/rovo-dev-mcp/SKILL.md). This does not make an Atlassian resource
+  mandatory for an investigation scoped to other integrations.
 
 ## Required Dependencies
 

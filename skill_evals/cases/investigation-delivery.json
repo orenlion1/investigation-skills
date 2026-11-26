@@ -1,0 +1,121 @@
+{
+  "skill_name": "investigation-delivery",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Apply the shared investigation delivery budget and ten-minute soft checkpoint to this direct investigation",
+        "top_k": 3
+      },
+      {
+        "prompt": "Coordinate delivery of this completed investigation in the selected report formats without repeating provider queries",
+        "top_k": 3
+      },
+      {
+        "prompt": "Check the investigation handoff timing, observed waits and pending report-format QA before delivery",
+        "top_k": 3
+      },
+      {
+        "prompt": "Generate a local HTML investigation report from saved canonical findings without publishing it",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Open TASK.md in my editor and wait until it is saved and closed",
+        "owner": "open-edit-close-execute"
+      },
+      {
+        "prompt": "Set the Generate HTML field in my resource profile and show the effective default settings",
+        "owner": "profile-manager"
+      },
+      {
+        "prompt": "Write the Evidence index and verify material citations in this report",
+        "owner": "report-authoring"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "An investigation request arrived 12 minutes ago. The editor wait ran from minute 1 to minute 6 after receipt and the auth wait from minute 5 to minute 7, overlapping it by a minute; two delegated children then ran concurrently for 3 and 4 minutes. No other phase timings were recorded. Core findings are ready but report QA is pending. Hard-stop now?",
+      "expected_output": "Uses the ten-minute soft checkpoint from request receipt, which includes setup, waits, reporting and QA; checkpoints findings, gaps, waits and remaining QA and continues without redundant permission; counts the overlapping waits once as six minutes, does not add child runtimes, and leaves unrecorded phase time unavailable; preserves gates with no hard cancellation.",
+      "expectations": [
+        "Names the ten-minute soft checkpoint measured from request receipt and states explicitly that setup, editor and auth waits, reporting and QA all count inside it",
+        "Checkpoints verified findings, evidence gaps, known waits and remaining QA; explains continuation without redundant permission",
+        "Counts the overlapping editor and auth waits once as a six-minute union (minute 1 to minute 7) rather than adding them to seven minutes",
+        "Does not add the two children's runtimes together as elapsed time, and leaves unrecorded processing or phase time unavailable rather than estimating it",
+        "States that the budget never overrides editor closure, authorization, or required evidence and quality gates; no automatic failure or hard cancellation"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "Execute the saved investigation with Generate PDF: disabled in its task Resources. Reuse verified setup and reporting machinery; an older PDF already exists. The task and its reports are not in this workspace, so before acting tell me how you resolve the report formats, which outputs and checks you will produce or skip, what happens to the older PDF, and what you record.",
+      "expected_output": "Resolves effective output choices through Profile Manager before dependencies; honors explicit PDF disabled, delivers only selected outputs, preserves the historical PDF outside the current inventory, and records verified provenance without publication authority.",
+      "expectations": [
+        "Consults Profile Manager for effective choices and precedence before any renderer dependency setup, preserving the explicit disabled PDF setting",
+        "Plans evidence, required graphs and verification in the owner-resolved selected output formats without assuming Markdown is enabled",
+        "Skips PDF rendering, PDF-only dependencies and PDF-only checks",
+        "Preserves old PDF as historical and excludes it from current companions and delivery links",
+        "Records effective choice and verified output provenance without granting publication"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "Deliver and publish an existing investigation with Generate Markdown: disabled, Generate PDF: disabled, Generate HTML: enabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects HTML alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
+      "expectations": [
+        "Supports HTML as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "dialogue",
+      "prompt": "Deliver and publish an existing investigation with Generate Markdown: disabled, Generate PDF: enabled, Generate HTML: disabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects PDF alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
+      "expectations": [
+        "Supports PDF as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "Deliver and publish an existing investigation with Generate Markdown: enabled, Generate PDF: disabled, Generate HTML: disabled. No companion reports exist. Can the other formats be required?",
+      "expected_output": "Selects Markdown alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
+      "expectations": [
+        "Supports Markdown as the only enabled report format",
+        "Does not require, generate or attach either disabled format",
+        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "Which report formats are enabled when this task omits the format fields? Do not use copied defaults in an editor or delivery guide. Tell me the authoritative source and how you will resolve them before installing renderers.",
+      "expected_output": "Reads Profile Manager and its helper/schema for effective format values; does not invent or hardcode defaults in the delivery owner.",
+      "expectations": [
+        "Routes default values, precedence and validation to Profile Manager and consults its contract/helper or schema",
+        "Resolves effective settings before selecting renderers or dependencies",
+        "Does not present an editor/delivery document as a second authority for defaults"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "dialogue",
+      "prompt": "Generate a local HTML-only investigation report from saved canonical findings. Markdown and PDF are disabled; nothing will be published. Explain the owning skill, renderer, settings source and checks, without executing commands or querying providers.",
+      "expected_output": "Investigation Delivery owns the renderer and its local verification, with Profile Manager resolving choices; publication is unnecessary.",
+      "expectations": [
+        "Names Investigation Delivery as owner of local HTML generation and uses skills/investigation-delivery/scripts/generate_html.py with its colocated requirements",
+        "Reads effective formats and themes through Profile Manager rather than copied defaults",
+        "Requires no Publish It invocation, publication authorization or Markdown/PDF report to generate local HTML",
+        "Plans local source/hash receipts, reference QA and visual theme checks; hands packaging to Publish It only if publication is separately authorized"
+      ]
+    }
+  ]
+}

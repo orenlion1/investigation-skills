@@ -13,7 +13,7 @@ paths and generation receipts to identify its source revision and theme; do not 
 same-name file. The request may select light, dark or system behavior, overriding the saved
 HTML theme for this publication. Reuse the selected export when its hashes and theme match;
 generate a missing variant only from available verified canonical content with
-[HTML generation](html-generation.md). An HTML-only input is sufficient for packaging. If its
+[Investigation Delivery's HTML generation](../../investigation-delivery/references/html-generation.md). An HTML-only input is sufficient for packaging. If its
 theme cannot be verified or changed faithfully, report that exact limitation; never require a
 new Markdown/PDF deliverable as a workaround.
 
