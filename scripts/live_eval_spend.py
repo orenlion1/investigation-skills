@@ -16,6 +16,7 @@ import io
 import json
 import os
 import shutil
+import statistics
 import subprocess
 import sys
 import tempfile
@@ -189,17 +190,35 @@ def month_start(now):
     return now.astimezone(datetime.timezone.utc).strftime('%Y-%m-01')
 
 
-def sum_spend_zips(blobs):
-    """Sum total_usd across spend artifacts (zip bytes), skipping unreadable members."""
-    total, files = 0.0, 0
+def spend_records(blobs):
+    """Read every JSON spend record from spend artifacts (zip bytes)."""
+    records = []
     for blob in blobs:
         with zipfile.ZipFile(io.BytesIO(blob)) as archive:
             for name in archive.namelist():
                 if name.endswith('.json'):
-                    data = json.loads(archive.read(name))
-                    total += float(data.get('total_usd') or 0)
-                    files += 1
-    return round(total, 6), files
+                    records.append(json.loads(archive.read(name)))
+    return records
+
+
+def sum_spend_zips(blobs):
+    """Sum total_usd across spend artifacts (zip bytes)."""
+    records = spend_records(blobs)
+    return round(sum(float(r.get('total_usd') or 0) for r in records), 6), len(records)
+
+
+def measured_costs(records, model=None):
+    """Return each skill's highest single-job cost this month, for one model when given.
+
+    The highest job is used because a job cut short by its share records less than a full run.
+    """
+    costs = {}
+    for record in records:
+        skill, cost = record.get('skill'), float(record.get('total_usd') or 0)
+        if not skill or cost <= 0 or (model and record.get('model') != model):
+            continue
+        costs[skill] = max(costs.get(skill, 0.0), cost)
+    return costs
 
 
 def github(path, token, raw=False):
@@ -240,15 +259,24 @@ def month_spend(repository, workflow, current_run, token, now):
         if len(runs['workflow_runs']) < 100:
             break
         page += 1
-    return sum_spend_zips(blobs)
+    return spend_records(blobs)
 
 
-def allot(remaining, evals):
-    """Split the remaining budget across skills in proportion to their eval counts."""
-    total = sum(max(int(n), 0) for n in evals.values())
+def allot(remaining, evals, measured=None):
+    """Split the remaining budget across skills in proportion to their expected cost.
+
+    A skill's expected cost is its measured cost this month. A skill with no measurement is
+    estimated from its eval count at the median measured cost per eval, so with no
+    measurements at all the split is by eval count.
+    """
+    counts = {skill: max(int(n), 0) for skill, n in evals.items()}
+    measured = {s: c for s, c in (measured or {}).items() if s in counts and counts[s] > 0 and c > 0}
+    per_eval = statistics.median(c / counts[s] for s, c in measured.items()) if measured else 1.0
+    weights = {s: measured.get(s, n * per_eval) for s, n in counts.items()}
+    total = sum(weights.values())
     if total <= 0:
         return {skill: 0.0 for skill in evals}
-    return {skill: round(max(remaining, 0) * max(int(n), 0) / total, 4) for skill, n in evals.items()}
+    return {skill: round(max(remaining, 0) * w / total, 4) for skill, w in weights.items()}
 
 
 def output(**values):
@@ -270,6 +298,7 @@ def main(argv=None):
     m.add_argument('--repository', required=True)
     m.add_argument('--workflow', required=True)
     m.add_argument('--run-id', required=True)
+    m.add_argument('--model', help='weight shares by earlier jobs that used this model')
     s = sub.add_parser('summary', help='write the spend artifact and a job summary from a ledger')
     s.add_argument('--ledger', type=Path, required=True)
     s.add_argument('--output', type=Path, required=True)
@@ -282,9 +311,10 @@ def main(argv=None):
         token = os.environ.get('GITHUB_TOKEN')
         if not token:
             raise SystemExit('GITHUB_TOKEN is required to read earlier spend')
-        spent, files = month_spend(args.repository, args.workflow, args.run_id, token, now)
+        records = month_spend(args.repository, args.workflow, args.run_id, token, now)
+        spent, files = round(sum(float(r.get('total_usd') or 0) for r in records), 6), len(records)
         remaining = round(args.budget - spent, 6)
-        shares = allot(remaining, json.loads(args.evals))
+        shares = allot(remaining, json.loads(args.evals), measured_costs(records, args.model))
         output(spent=f'{spent:.4f}', remaining=f'{remaining:.4f}', artifacts=files,
                shares=json.dumps(shares, separators=(',', ':')))
         if remaining <= 0:
