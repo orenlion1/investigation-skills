@@ -19,6 +19,7 @@ topic reference when the task matches:
 | Flapping or recurring alert investigations | [Flapping-alert graphs](references/flapping-alert-graphs.md) | Owns the visual specification of the required "Daily peaks and alert outcomes" and "Observed Pending and Alerting intervals" graph pair, its outcome encoding, pairing, and PDF placement rules. |
 | Relevant Grafana data available within the authorized scope | [Grafana data and interactive graphs](references/grafana-graphs.md) | Enrich diagrams and reports with evidence-backed graphs from Grafana CLI and interactive views supported by the current host, following its scoped queries, provenance, theme checks, and matching static report views. Use the graphs to explain the findings; record unavailable capabilities and continue with verified data rather than making Grafana a prerequisite for ordinary diagramming. |
 | Origin of the conventions | [Reference provenance](references/provenance.md) | Background only. |
+| Audit, deployment, restart or configuration events alongside measured data | [Evidence event overlays](references/event-overlays.md) | Align saved events with telemetry, label the actual operation and resource, and retain incomplete correlations with adjacent qualifications. |
 
 Before returning a caption-only or prose edit, inspect **both theme exports themselves**
 (read SVG text or view raster images). Name both checked files and the title/caveat result

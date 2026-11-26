@@ -151,6 +151,9 @@ authentication and identity verification; diagnostic resource queries use AWS MC
 
 ## Investigate root cause through AWS MCP
 
+For investigation plans and findings, follow [resource validation and evidence handoff](references/investigation-evidence.md).
+Include its Report Authoring and Diagramming Style handoff in the returned plan or result.
+
 Resolve symptoms, resource identifiers, account, the task's Region, and time window
 with timezone. Ask only for missing scope that changes the investigation. For an
 authentication-only request, stop after verified MCP identity and the bounded
