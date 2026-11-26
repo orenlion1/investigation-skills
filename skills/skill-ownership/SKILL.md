@@ -1,8 +1,8 @@
 ---
 name: skill-ownership
-description: "Audit a repository against the skill ownership principle and refactor it toward a routing table with one owner per rule. Use when adopting, checking, or syncing the ownership contract."
+description: "Audit a repository against skill ownership and refactor it toward a routing table with one skill per capability. Use when adopting, checking, or syncing the ownership contract."
 metadata:
-  version: "0.1.0"
+  version: "0.1.7"
 ---
 
 # Skill Ownership
@@ -34,11 +34,41 @@ python3 skills/skill-ownership/scripts/ownership.py <command> --repository .
 - Checking whether the carried copy is behind upstream, or updating it.
 - Never for releasing a repository or for the work a routed skill owns.
 
+Typical requests, in the order a new repository meets them:
+
+| Ask the agent | Runs | When |
+| --- | --- | --- |
+| "Adopt skill ownership from https://github.com/orenlion1/skill-ownership in this repository" | [Adopt](#adopt) | Once, while the repository carries no copy |
+| "Audit this repository against skill ownership" | `audit` | Before a refactor, and after root files change |
+| "Refactor the root files into a routing table" | [Refactor](#refactor) | The audit found workflow in a root file |
+| "Run the skill ownership checks" | `check` | Before every pull request, and in CI |
+| "Is our skill-ownership copy up to date?" | `sync` | Periodically, or when a release is announced |
+| "Update skill ownership to the latest release" | `sync --apply` | `sync` exited 3 |
+
+## Adopt
+
+Use once, when the repository does not carry this skill yet. The script is not in the
+target at that point, so run it from a full clone of the upstream (sync reads its release
+tags). From the target repository's root:
+
+```sh
+git clone https://github.com/orenlion1/skill-ownership.git ../skill-ownership
+python3 ../skill-ownership/skills/skill-ownership/scripts/ownership.py sync \
+  --repository . --apply --upstream ../skill-ownership \
+  --upstream-url https://github.com/orenlion1/skill-ownership
+```
+
+It copies the latest release into `skills/skill-ownership/` and writes
+`policy/skill-ownership-pin.json`; add `--to <version>` for an older release. Next, add a
+routing row for this skill to the root files so agents find it, then audit. Until a root
+file exists `audit` stops with an error, and until `policy/root-contract.json` exists
+`check` fails the root contract: both are expected before the refactor.
+
 ## Audit
 
-`audit` is read-only. It reports each root-file section's class, unrouted skills, routes
-without a skill, oversized skills and broken links (`--format json` for tools). The classes
-are a heuristic proposal: read each section before acting on its class.
+`audit` is read-only: section classes, routing gaps, size, links and naming findings
+(`--format json` for tools). Review each section's proposed class before acting.
+Read [naming](references/naming.md) to evaluate names and advisories.
 
 ## Refactor
 
