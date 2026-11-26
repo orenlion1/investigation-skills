@@ -122,18 +122,20 @@ duplicate or extra endpoint result; a malformed child output makes that endpoint
 
 ## Reconcile and report
 
-The parent alone folds in child leads and verifies load-bearing claims directly against
-retrievable sources, within the same budget or an explicit narrower follow-up allocation.
-Keep four outcomes distinct: **evidence-backed relationship**, **hypothesis**, **no matches
-within the searched scope**, and **unavailable**. Child-proposed relationships start as
-hypotheses until verified. Missing references never become verified relationships.
-A common symptom or similar words do not establish a common root cause.
+Read [relationship verification](references/endpoint-probes.md#verify-relationships) even for
+reconciliation-only replies: retain its receipt/native-request coverage and explicit next-check
+budget. Missing metadata stays unavailable.
 
-Report the endpoint coverage table, searched windows/terms/caps, matching and contradictory
-facts, evidence references and source versions, sanitized failures, and the next evidence
-needed to test hypotheses. Cite the manifest in the report's Source snapshot and apply the
-repository's Report Authoring rules. A successful connection proves access only; empty bounded
-searches prove no matches only in that scope. Do not claim live verification from skill evals.
+Only the parent promotes child hypotheses against retrievable source evidence within
+the budget or an explicit narrower follow-up allocation. Keep four outcomes distinct:
+**evidence-backed relationship**, **hypothesis**, **no matches within the searched scope**,
+and **unavailable**. Similar symptoms never establish a common root cause; missing references
+never become verified relationships.
+
+Report endpoint coverage table, windows/terms/caps, matching and contradictory facts, references,
+source versions, sanitized failures and next evidence. Cite the manifest in the Source snapshot
+and apply Report Authoring. Access proves no behavior; empty bounded reads prove only scoped
+negative results. Skill evals never prove live verification.
 
 ## Dependencies
 

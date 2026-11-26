@@ -87,6 +87,11 @@ claimed conversation or child ID. Consumers reference the same receipt; their ow
 and parent-verification counts remain separate. The parent verifies inclusion against the retained
 initial prompt, links both manifests and rejects missing, extra or duplicate endpoint results.
 
+Preparation-only delivery still states its evidence disposition: both the pending receipt and
+the returned summary say that no prompt was submitted and any future matches are unverified
+leads until parent source verification. A hypothesis instruction inside the unsent prompt alone
+does not communicate that disposition to the caller. Keep response identifiers empty until observed.
+
 An already-sent compatible branch makes initial-prompt reuse unavailable. Record that endpoint's
 limitation and send no second prompt automatically. Do not attach a follow-up and claim initial
 inclusion. A failed owner makes consumers unavailable for that execution while other endpoints

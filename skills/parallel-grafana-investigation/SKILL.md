@@ -41,9 +41,9 @@ it does not replace this orchestration or widen the user's scope.
 
 ## Workflow
 
-1. **Resolve shared inputs in the orchestrating session.** Use gcx-cli for required installation,
-   bundle refresh and [command-family context routing](../gcx-cli/SKILL.md#resolve-the-context).
-   Carry the effective ordinary/endpoint and IRM contexts in both briefs when needed.
+1. **Resolve shared inputs.** Use gcx-cli for installation, bundle refresh and
+   [context routing](../gcx-cli/SKILL.md#resolve-the-context). Carry ordinary/endpoint and
+   IRM contexts in both briefs when needed.
    Resolve the exact request/expression, targets, filters, limits, output, environment and
    read-only scope. Temporal queries need an exact range/instant and timezone; mark these
    not applicable for non-temporal inventory. Ask only for missing required inputs; never
@@ -64,8 +64,9 @@ it does not replace this orchestration or widen the user's scope.
      Assistant-generated query. Include matching in the initial prompt only when this branch
      owns the prepared compatible handoff. Retain the prompt, response/conversation identifiers,
      source references and limitations as leads. Endpoint consumers use the retained response.
-   - **Direct gcx agent:** load and execute the relevant refreshed bundled skills through the
-     active harness, then gather bounded direct evidence. Select by the requested operation:
+   - **Direct gcx agent:** every brief, including offline plans, must gate future reads on
+     gcx-cli setup/refresh verification. Missing gcx with no-install means blocked, never a
+     fallback query. Then execute refreshed skills through the harness for bounded evidence:
 
      | Request | Bundled skill guidance |
      | --- | --- |
@@ -84,8 +85,8 @@ it does not replace this orchestration or widen the user's scope.
      or wait for its result. This agent uses gcx and gcx agent skills only; it sends no
      Assistant prompt, including when the selected bundled guidance suggests one. Necessary
      independent reads can run concurrently inside this agent without new delegation pairs.
-     For root-cause investigations, apply the
-     [profiling workflow](references/profiling-coverage.md) without waiting for a suggestion.
+     Read the [profiling workflow](references/profiling-coverage.md) before profiling/onset
+     answers, including offline plans; apply its protocol without claiming unperformed reads.
      For unexplained CPU pressure or CPU-related flapping, the direct branch discovers the
      Pyroscope datasource, profile types, workload labels and incident-window coverage, then
      reads CPU profiles for the affected workload; for a deadlock hypothesis it also reads
@@ -107,7 +108,8 @@ it does not replace this orchestration or widen the user's scope.
    When the requested output excludes prose or citations (for example values-only or JSON),
    write that Source snapshot, citing the manifest by its absolute path, to a local audit file
    beside the manifest instead. The reply then holds only the requested format or the bare
-   limitation: no launch summaries, brief recap, file locations, snapshot or contract notes.
+   limitation. Before delivery, remove launch details, brief recaps, file locations, snapshots
+   and contract notes from values-only replies, including follow-ups.
    Record an explicit user exclusion of profiling or source reads there as a scope limitation.
 4. **Reconcile and verify.** Check that both agents used the same resolved inputs. Verify
    material claims against direct evidence and report disagreements, gaps and limitations.
@@ -174,5 +176,4 @@ acknowledgments, messages and publication require separate authorization.
 - Root-cause investigations record profiling evidence or a concrete exclusion/unavailability
   outcome; an alert-threshold explanation alone does not establish the CPU driver.
 
-[README.md](README.md) explains the split for human readers and holds the saved-profile form of
-the Assistant setting; it is not a required runtime read.
+[README.md](README.md) documents the split and saved Assistant setting; no runtime read required.

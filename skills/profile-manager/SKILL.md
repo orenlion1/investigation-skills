@@ -70,8 +70,9 @@ remove-env [--dry-run] [--force]
 ## Derive the schema
 
 Read `schema` before a dependent read or write. Each field reports its `label`, optional
-`sublabel`, and the field it `requires`. Report an unknown field against the template rather
-than inventing a key for it. A planned command sequence starts with `schema` and names fields
+`sublabel`, and the field it `requires`. Unknown fields fail the whole command before writing;
+never guess aliases or claim storage. Label any distinct valid correction unapplied.
+A planned command sequence starts with `schema` and names fields
 by their keys; each write is previewed with `--dry-run` and read back. For each field a plan
 touches, state what `schema` reports (legal values, default, and whether it is configuration or
 an actual resource), and that an invalid or duplicate value in a profile, the TASK or a
@@ -121,12 +122,11 @@ The store and task files are the user's, and people edit them by hand. `lint` fi
 in a legacy or non-canonical form and `lint --fix` updates them; rules and exit statuses are in
 the [lint reference](references/profile-store.md#lint).
 
-- **Never repair implicitly.** When any helper result carries `lint_notice` (or `render`
-  prints it), finish the requested operation, then tell the user their `.env` holds legacy or
-  hand-edited settings and ask them to run `lint profiles`. Do not run `lint --fix` on your
-  own initiative.
-- **`lint profiles`** is the user's request to update their `.env`: run `lint`, then
-  `lint --fix`, and report what changed by rule and field, never by value.
+- **Never repair implicitly.** Report supplied `lint_notice` findings even if an operation
+  is blocked. Offer lint unless the user already requested repair.
+- **Store repair requests** such as `lint profiles` or “fix the store” authorize `lint`,
+  `lint --fix --dry-run`, then `lint --fix`; do not seek confirmation again. Report changes
+  by rule and field, never by stored value. Honor plan-only requests without running commands.
 - **Tasks are linted separately.** When a store lint returns `task_notice`, name each listed
   task and ask the user to run `lint task <path>`; on that request run
   `lint --task <path> --fix`. A finalized task stays subject to the editor contract.
@@ -227,11 +227,11 @@ Any one output can be the only enabled format; a disabled format is never requir
 or attached. Every enabled format keeps the same findings, evidence and accounting cutoff, and
 choosing or changing formats never reruns the investigation; state both when answering about
 formats.
-The template's independent `HTML_THEME` setting accepts one or more `light`, `dark` or
-`system` themes (default `light, dark`); see [HTML theme](references/profile-store.md#html-theme)
-for list syntax and validation. A fixed theme keeps page colors and diagram sources in that
-mode under any viewer preference.
-Publish It renders and validates each variant; themes do not enable generation.
+`HTML_THEME` accepts 1–3 unique `light`, `dark` or `system` themes (default `light, dark`); see
+[HTML theme](references/profile-store.md#html-theme) for validation. Fixed themes keep page
+colors and diagrams in that mode under any viewer preference.
+[Investigation Delivery](../investigation-delivery/SKILL.md) owns variant generation/validation;
+Publish It owns packaging. Themes never enable generation.
 
 A toggle or historical-window setting alone is configuration: never an actual resource, never
 a trigger for the supplied-resource overwrite guard, never scope or authorization for an
@@ -240,7 +240,7 @@ actual resource. Differing stored settings are a composition conflict like any o
 
 ## Grafana contexts
 
-The independent `GRAFANA_CONTEXT` and `GRAFANA_IRM_CONTEXT` fields follow the
+`GRAFANA_CONTEXT` and `GRAFANA_IRM_CONTEXT` follow the
 [context contract](references/profile-store.md#grafana-contexts).
 
 ## Grafana Assistant
@@ -261,9 +261,9 @@ credential or authorization. Old profiles need no change.
 
 - `endpoints --profile NAME` returns only that profile's validated endpoint list, or an empty
   list when unset, without network queries or authentication.
-- Before storing, the helper checks unique kebab-case ids, a kind from `schema`, the target,
-  and the kind's conditional key (`context` for Grafana kinds). Read back with `endpoints`,
-  which also returns `historical_window_days`.
+- State validation rules even in plans: unique kebab-case ids, supported kinds from `schema`,
+  target and conditional key (`context` for each Grafana endpoint). Check before storage; `endpoints`
+  reads back resources and `historical_window_days`.
 - `grafana-assistant-search` (id/kind/target/context) permits a scoped Assistant matching
   request later; `grafana-assistant-conversations` keeps list/get reads of existing history.
   Profile operations do not send prompts.
