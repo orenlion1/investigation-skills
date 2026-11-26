@@ -116,6 +116,26 @@
         "Requires no Publish It invocation, publication authorization or Markdown/PDF report to generate local HTML",
         "Plans local source/hash receipts, reference QA and visual theme checks; hands packaging to Publish It only if publication is separately authorized"
       ]
+    },
+    {
+      "id": 8,
+      "kind": "execution",
+      "files": [
+        "investigation-correlation-paths"
+      ],
+      "prompt": "Deliver the existing investigation-correlation-paths/docs/reports/REPORT-correlation-paths.html using the frozen saved-handoff.json and TASK.md. HTML is enabled/light; PDF and Markdown reports are disabled. All collection is complete: do not run provider.py or query anything live. Update the same canonical HTML with findings, visible evidence-backed metric/state/profile-onset graphs, native stack evidence, source attribution and the saved state/configuration changes. Preserve and make prominent the existing Git ExternalName annotation in the other relevant graphs while adding the verified Service PATCH and later StatefulSet/pod/process events. Use the supplied generic plotting helper or standard plotting tools and the relevant bundled owners. Read back outputs and verify them; retain a delivery receipt recording actual checks and remaining gaps. No publication.",
+      "expected_output": "Produces and verifies the canonical HTML-only report with the complete correlation handoff, prominent preserved Git/source and actual Kubernetes state changes, profile onset with missing coverage and native stacks, and bounded conclusions.",
+      "expectations": [
+        "Actually updates and reads back the same canonical HTML report; no Markdown/PDF report or publication is created, and effective saved format choices are resolved through Profile Manager",
+        "Creates real saved-data graphs and paired light/dark SVG/PNG assets covering CPU/alert states and prior profile intensity/onset, plus representative native-stack flamegraphs through Diagramming Style; a plan/table/Explore link alone does not pass",
+        "Plots20% and80% prior loader shares with explicit missing10:15\u201310:30 coverage, retaining earliest inspected-window and unproven replay/true-onset limits",
+        "Preserves a prominent source Git merge10:05 annotation on at least two relevant graph views with Service demo/worker, ExternalName old.example.com\u2192new.example.com, time and E5; does not silently drop it when adding onset/profile views Uses the same descriptive [E5] ExternalName old.example.com\u2192new.example.com event name across those graphs, retaining Git merge as operation context.",
+        "Annotates actual Kubernetes Service externalName PATCH10:25 E6 separately from Git merge, and StatefulSet restartedAt PATCH11:30 E4 separately from pod delete/create/process start; conveys restart-consistent payload with exact CLI unknown, without claiming image upgrade",
+        "Keeps metric/state data ending11:20 unmeasured after cutoff while representing later lifecycle events on context or companion timelines; never adds post-cutoff Normal/recovery samples or timestamps onto a flamegraph width axis",
+        "Includes evidence owner versus actual synthetic collector, source/window/caps and causal gaps consistently in opening, captions/detail and index, preserving tag-versus-digest and empty Slack/history limits",
+        "Runs actual artifact/source/theme/reference checks and records their outcomes/gaps in a saved receipt; no claim of full completeness is accepted solely from successful rendering or file existence",
+        "Uses the operator-prepared runtime without invoking provider.py, contacting real providers, downloading packages or modifying the user environment during the offline exercise"
+      ]
     }
   ]
 }

@@ -67,7 +67,7 @@
     {
       "id": 4,
       "kind": "dialogue",
-      "prompt": "AWS MCP identity and a metadata read now work for the task-selected example-eu profile in eu-central-1. My alert report currently relies on Grafana and source-code guesses about restarts. Explain your next investigation steps; do not query a provider in this eval.",
+      "prompt": "AWS MCP identity and a metadata read now work for the task-selected example-eu profile in eu-central-1. My alert report currently relies on Grafana and source-code guesses about restarts. Explain your next investigation steps; do not query a provider in this eval. Some bounded discovery/query steps need generated exploration code; explain how that code should access AWS.",
       "expected_output": "Proposes bounded AWS resource/audit validation of material claims through MCP rather than treating access as completed investigation.",
       "expectations": [
         "Maps existing hypotheses to scoped resource reads through the verified MCP connection; STS or Grafana alone does not validate them",
@@ -79,10 +79,10 @@
     {
       "id": 5,
       "kind": "dialogue",
-      "prompt": "Saved E27 is a Kubernetes PATCH to StatefulSet utility/example-store, HTTP 200. Its requestObject.spec.template.metadata.annotations sets kubectl.kubernetes.io/restartedAt to 2026-11-22T01:11:23-05:00. userAgent is kubectl. CloudWatch stored it. What can the report say? Stay offline.",
+      "prompt": "Saved E27 is a Kubernetes PATCH to StatefulSet demo/worker, HTTP 200. Its requestObject.spec.template.metadata.annotations sets kubectl.kubernetes.io/restartedAt to 2026-06-14T07:30:00-04:00. userAgent is kubectl. CloudWatch stored it. What can the report say? Stay offline. A reader says this proves the incident source bug and exactly which state the restart cleared. Is that supported?",
       "expected_output": "Identifies a successful Kubernetes pod-template annotation PATCH with a payload consistent with rollout restart, retaining exact-command and deployed-image limits.",
       "expectations": [
-        "Calls it a Kubernetes StatefulSet pod-template PATCH, names utility/example-store and the restartedAt field",
+        "Calls it a Kubernetes StatefulSet pod-template PATCH, names demo/worker and the restartedAt field",
         "Explicitly says the payload is consistent with a rollout restart",
         "Does not claim the exact CLI command was captured or call it an AWS infrastructure patch",
         "Keeps image upgrade, deployed source revision, incident cause and what the restart cleared unproven without separate evidence"
@@ -98,6 +98,18 @@
         "Revalidates CLI identity, MCP account/principal and bounded resource access for example-eu before diagnostic queries",
         "Preserves eu-central-1 and does not silently try other accounts after an empty or denied result",
         "Keeps prior-account evidence attributed rather than relabeling it"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "dialogue",
+      "prompt": "The selected fixture-eu account and eu-central-1 Region have verified read-only MCP resource access. Source E5 is a Git merge at10:05 changing demo/worker Service spec.externalName old.example.com\u2192new.example.com. A saved Kubernetes audit E6 is HTTP200 Service PATCH at10:25 with the same request/response field change. How do you interpret, validate and hand off both, and what changes if the scoped Service audit query instead returns zero rows? Explain using bundled local guidance as needed; do not query providers or authenticate.",
+      "expected_output": "Distinguishes source merge, observed Kubernetes Service state change and bounded empty search; hands precise events and fields to report/graph owners without causal overclaim.",
+      "expectations": [
+        "Keeps Git merge10:05 and Kubernetes Service PATCH10:25 as separate source/runtime events, with actual kind/resource/field/before-after/time/evidence IDs",
+        "Uses scoped read-only AWS MCP diagnostics with explicit selected account/Region and retained audit query status/caps, not STS or Git as runtime validation",
+        "Does not infer traffic use, replay, CPU cause, rollout restart or image upgrade from the Service ExternalName mutation",
+        "For zero rows, retains Git source change but leaves actual apply time/state unverified and bounds the negative result; still hands the relevant source event to Report Authoring and Diagramming Style for accurate graph context"
       ]
     }
   ]

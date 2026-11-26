@@ -303,6 +303,18 @@
         "Does not treat missing or truncated profiles as negative samples or graph missing data as zero",
         "Distinguishes observed parser dominance from proven replay and does not widen queries"
       ]
+    },
+    {
+      "id": 21,
+      "kind": "dialogue",
+      "prompt": "A CPU alert root-cause run has only explained the99% rule. Pyroscope is available for the affected workload. A later profile shows dominant FileLoader\u2192Parser work and someone calls it replay. Within the existing14-day scope, what should the direct branch collect and compare before handoff? One prior bin has no profile data and another has pruned frames. Stay offline: read bundled local guidance as needed, but do not query providers or launch agents.",
+      "expected_output": "Attempts actual profiling and backward onset search through the existing branch, preserves sampling/identity/gaps and hands evidence to report/source owners.",
+      "expectations": [
+        "Requires workload CPU profile reads and prior/baseline/recovery or other-instance comparisons rather than stopping at the threshold mechanism",
+        "Defines an observable elevated stack/activity signature and searches earlier profiles coarsely then refines comparable adjacent windows, without equating normal parser presence with replay",
+        "Distinguishes missing/pruned profiles and earliest observed aggregate from actual start; retains window widths, denominator and self/inclusive limits",
+        "Keeps the existing paired-branch/scope/Assistant controls, sends source leads to Source Investigation and graph-ready onset evidence to Report Authoring with Diagramming Style rendering"
+      ]
     }
   ]
 }

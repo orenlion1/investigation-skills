@@ -85,8 +85,8 @@ it does not replace this orchestration or widen the user's scope.
      or wait for its result. This agent uses gcx and gcx agent skills only; it sends no
      Assistant prompt, including when the selected bundled guidance suggests one. Necessary
      independent reads can run concurrently inside this agent without new delegation pairs.
-     For root-cause investigations, make the mandatory
-     [profiling decision](references/profiling-coverage.md) without waiting for a suggestion.
+     For root-cause investigations, apply the
+     [profiling workflow](references/profiling-coverage.md) without waiting for a suggestion.
      For unexplained CPU pressure or CPU-related flapping, the direct branch discovers the
      Pyroscope datasource, profile types, workload labels and incident-window coverage, then
      reads CPU profiles for the affected workload; for a deadlock hypothesis it also reads

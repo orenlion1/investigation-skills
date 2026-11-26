@@ -1,0 +1,81 @@
+{
+  "schema": "investigation-correlation-paths/v1",
+  "scope": "Synthetic regression paths distilled from user questioning; no real incident identifiers or provider credentials. Skill ownership is retained per selected case.",
+  "selected_live_evals": {
+    "investigation-reasoning": [
+      4,
+      5
+    ],
+    "investigation-delivery": [
+      8
+    ],
+    "parallel-grafana-investigation": [
+      20,
+      21
+    ],
+    "aws-mcp": [
+      4,
+      5,
+      7
+    ],
+    "report-authoring": [
+      14
+    ],
+    "diagramming-style": [
+      8,
+      9
+    ]
+  },
+  "paths": {
+    "alert-versus-workload": [
+      "investigation-reasoning:4",
+      "parallel-grafana-investigation:21"
+    ],
+    "prior-profile-search-and-onset": [
+      "investigation-reasoning:4",
+      "parallel-grafana-investigation:20",
+      "parallel-grafana-investigation:21",
+      "investigation-delivery:8"
+    ],
+    "aws-resource-validation-through-mcp": [
+      "aws-mcp:4",
+      "investigation-reasoning:4"
+    ],
+    "statefulset-restart-patch-pod-process-correlation": [
+      "aws-mcp:5",
+      "investigation-delivery:8"
+    ],
+    "externalname-git-versus-observed-service-patch": [
+      "aws-mcp:7",
+      "investigation-delivery:8",
+      "report-authoring:14"
+    ],
+    "source-applicability-and-competing-hypotheses": [
+      "investigation-reasoning:4",
+      "investigation-reasoning:5"
+    ],
+    "slack-and-historical-negative-or-analogy": [
+      "investigation-reasoning:4",
+      "investigation-delivery:8"
+    ],
+    "prominent-annotation-retention-across-graphs": [
+      "diagramming-style:8",
+      "report-authoring:14",
+      "investigation-delivery:8"
+    ],
+    "evidence-provenance-and-causal-limits": [
+      "investigation-reasoning:4",
+      "investigation-delivery:8"
+    ],
+    "canonical-html-disabled-formats-and-actual-qa": [
+      "investigation-delivery:8"
+    ],
+    "offline-delivery-with-prepared-tools": [
+      "investigation-delivery:8"
+    ],
+    "consistent-descriptive-event-names": [
+      "diagramming-style:9",
+      "investigation-delivery:8"
+    ]
+  }
+}
