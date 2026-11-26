@@ -118,7 +118,7 @@
       "expected_output": "match-a is unavailable for initial-prompt reuse with no duplicate prompt; ops and staging never share a prompt or receipt; match-b's timeout is uncertain and not resubmitted, match-c becomes unavailable for that execution; hist-conv continues; missing references stay hypotheses or unavailable.",
       "expectations": [
         "Records match-a as unavailable for initial-prompt reuse because the compatible ops branch already sent its prompt, and sends no second or follow-up prompt for match-a automatically",
-        "Never shares the ops branch's prompt or receipt with the staging endpoints match-b and match-c, or theirs with ops",
+        "Keeps the ops and staging prompt/receipt groups isolated. Sharing match-b's staging receipt with its same-context consumer match-c is permitted; no ops prompt/receipt is reused by staging and no staging prompt/receipt is reused by ops",
         "Treats match-b's timeout as an uncertain outcome that is not blindly resubmitted, and records consumer match-c as unavailable for that execution",
         "Keeps hist-conv's history list/get reads running independently of match-b's failure",
         "Keeps any relationship lacking a retrievable conversation reference as a hypothesis or unavailable, never a verified relationship"

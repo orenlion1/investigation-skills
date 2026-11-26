@@ -192,10 +192,10 @@
     {
       "id": 12,
       "kind": "dialogue",
-      "prompt": "Load my team profile into docs/tasks/TASK-team.md. Suppose the helper result includes a lint_notice saying the store holds legacy T/F and hand-edited settings. Just fix my .env while you are at it, and my TASK.md says Fan-out: off. Describe what you would run and report, in order; do not run anything yet.",
-      "expected_output": "Completes the load, then runs lint and lint --fix on the store because the user asked, reports changes by rule and field without values, and for the task asks the user to lint it and to choose a legal enabled or disabled value for Fan-out instead of guessing.",
+      "prompt": "Load my team profile into docs/tasks/TASK-team.md, whose Resources contain Fan-out: off. An earlier profile read returned a lint_notice saying the .env store holds legacy T/F and hand-edited settings. Just fix that store while you are at it. Describe the schema, load preview, validation result and separately authorized store lint in order; do not run anything yet. Say when the load could actually complete.",
+      "expected_output": "Plans the requested load but blocks it before writing because the target TASK has illegal Fan-out: off. Reports the earlier lint notice, plans separately authorized lint/lint --fix with safe previews and field/rule-only reporting, and asks for a legal task value before completing the load. Does not reinterpret off or fabricate a successful load.",
       "expectations": [
-        "Completes the requested load first and reports the lint notice rather than silently repairing the store",
+        "Plans schema/preview and reports the earlier lint notice, but blocks the invalid target TASK load before writing and never claims it completed; permits completion only after the user selects a legal value",
         "Plans lint and lint --fix on the store only because the user asked, reporting changes by rule and field, never by stored value",
         "Does not guess a replacement for the illegal Fan-out value; states the legal values and asks the user"
       ]
