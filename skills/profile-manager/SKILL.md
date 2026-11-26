@@ -218,22 +218,22 @@ Outputs (`GENERATE_MARKDOWN`, `GENERATE_PDF`, `GENERATE_HTML`), `GRAFANA_ASSISTA
 and `FAN_OUT` derive from the template and share the
 [settings contract](references/profile-store.md#settings-contract): `enabled` or `disabled`,
 case-insensitive on input and stored lowercase; any other value (such as `off`), stored or
-supplied, and a duplicate setting in a TASK or override fail before writing. HTML defaults `disabled`; other toggles
-default `enabled`. `GENERATE_PDF` also accepts legacy `T`/`F`; reads resolve them without rewriting
+supplied, and a duplicate setting in a TASK or override fail before writing. Markdown and PDF
+default `disabled`; HTML, Grafana Assistant and Fan-out default `enabled`.
+`GENERATE_PDF` also accepts legacy `T`/`F`; reads resolve them without rewriting
 the store, and only an update, a load or `lint --fix` writes the canonical value, leaving
 unrelated values unchanged.
 Set with `set --profile team --field GENERATE_HTML=enabled`, then confirm the stored and
 `effective_*` values with `show`. Render/load include effective settings alongside resources.
-The contract owns persistence, defaults, task forms, validation and disabled behavior.
 Any one output can be the only enabled format; a disabled format is never required, generated
 or attached. Every enabled format keeps the same findings, evidence and accounting cutoff, and
 choosing or changing formats never reruns the investigation; state both when answering about
 formats.
-For HTML appearance, use the independent `HTML_THEME`
-([HTML theme](references/profile-store.md#html-theme)) setting from the template: `light`,
-`dark` or `system` (default); other values fail before writing. A fixed theme
-keeps page colors and diagram picture sources in that mode under any viewer preference. It does
-not enable generation; Publish It renders and validates the HTML.
+The template's independent `HTML_THEME` setting accepts one or more `light`, `dark` or
+`system` themes (default `light, dark`); see [HTML theme](references/profile-store.md#html-theme)
+for list syntax and validation. A fixed theme keeps page colors and diagram sources in that
+mode under any viewer preference.
+Publish It renders and validates each variant; themes do not enable generation.
 
 A toggle or historical-window setting alone is configuration: never an actual resource, never
 a trigger for the supplied-resource overwrite guard, never scope or authorization for an

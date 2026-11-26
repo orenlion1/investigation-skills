@@ -200,9 +200,9 @@ Template bullets are either **resources** (what to investigate, where to publish
 
 | Field | Task bullet | Default | Legacy values | `show` reports | `disabled` means |
 | --- | --- | --- | --- | --- | --- |
-| `GENERATE_MARKDOWN` | `Generate Markdown` | `enabled` | none | `effective_generate_markdown` | No Markdown report artifact |
-| `GENERATE_HTML` | `Generate HTML` | `disabled` | none | `effective_generate_html` | No standalone HTML artifact |
-| `GENERATE_PDF` | `Generate PDF` | `enabled` | `T` = `enabled`, `F` = `disabled` | `effective_generate_pdf` | No PDF artifact |
+| `GENERATE_MARKDOWN` | `Generate Markdown` | `disabled` | none | `effective_generate_markdown` | No Markdown report artifact |
+| `GENERATE_HTML` | `Generate HTML` | `enabled` | none | `effective_generate_html` | No standalone HTML artifact |
+| `GENERATE_PDF` | `Generate PDF` | `disabled` | `T` = `enabled`, `F` = `disabled` | `effective_generate_pdf` | No PDF artifact |
 | `GRAFANA_ASSISTANT` | `Grafana Assistant` | `enabled` | none | `effective_grafana_assistant` | No Assistant prompts |
 | `FAN_OUT` | `Fan-out` | `enabled` | none | `effective_fan_out` | Inline investigation |
 
@@ -237,8 +237,7 @@ python3 -B skills/profile-manager/scripts/profile_env.py --repository-root . sho
 ### Report formats
 
 `GENERATE_MARKDOWN`, `GENERATE_PDF` and `GENERATE_HTML` select independent outputs.
-Each can be the only enabled format. Defaults preserve Markdown and PDF delivery, with HTML
-opt-in. Disabling Markdown never suppresses HTML or PDF. Resolve settings before dependencies;
+Each can be the only enabled format. Defaults select HTML alone, with Markdown and PDF disabled. Disabling Markdown never suppresses HTML or PDF. Resolve settings before dependencies;
 only selected formats require renderers and format-specific checks. All outputs retain the same
 findings, evidence, graphs and accounting cutoff. The
 [delivery contract](../../open-edit-close-execute/references/investigation-delivery.md#report-formats)
@@ -247,9 +246,17 @@ owns HTML generation and packaging. Settings do not authorize publication.
 
 ### HTML theme
 
-`HTML_THEME` comes from the `HTML theme` template bullet. It is a non-resource enum:
-`light`, `dark` or `system`, default `system`, with no legacy aliases. Input is case-insensitive
-and stored lowercase. `show` reports `effective_html_theme`. Its default, persistence, clearing,
+`HTML_THEME` comes from the `HTML theme` template bullet. It is a non-resource theme selection:
+`light`, `dark` or `system`, default `light, dark`, with no legacy aliases. Accept a single
+theme, comma-separated themes (`HTML theme: light, dark`), or a JSON array
+(`HTML_THEME=["light","dark"]`). One to three unique themes are allowed. Input is
+case-insensitive, trimmed and stored/rendered as lowercase comma-separated text in selection
+order, in one TASK bullet. Empty entries, unknown themes, duplicates (including case variants),
+non-string array entries and values over 512 characters fail before writing.
+Schema reports `type: enum-or-array`, the legal `enum`, `max_items: 3` and `resource: false`.
+Existing scalars remain valid. Composition requires matching stored theme selections, including
+order; it never unions themes. An explicit TASK or command selection replaces the inherited
+selection whole. `show` reports `effective_html_theme`. Its default, persistence, clearing,
 composition, task precedence, bare/quoted task values and lint rules follow the other settings.
 A custom template without the bullet gains neither the field nor its default.
 
@@ -257,7 +264,7 @@ For the standalone HTML, `system` follows the browser preference. Fixed `light` 
 and theme-aware diagram selection in that mode, even when the viewer uses the opposite theme.
 Confluence native figures follow Publish It's separate theme procedure.
 The setting does not enable HTML generation or authorize publication. Resolve it before
-rendering and record it in the HTML generation receipt. Publish It owns the
+rendering; generate a separate HTML variant and receipt for every selected theme. Publish It owns the
 [renderer behavior](../../publish-it/references/html-generation.md#appearance).
 
 ### Generate PDF

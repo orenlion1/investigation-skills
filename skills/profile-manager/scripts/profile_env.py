@@ -38,9 +38,9 @@ ENABLED = 'enabled'
 DISABLED = 'disabled'
 TOGGLE_VALUES = (ENABLED, DISABLED)
 TOGGLE_ERROR = '; expected ' + ENABLED + ' or ' + DISABLED
-DEFAULT_GENERATE_MARKDOWN = ENABLED
-DEFAULT_GENERATE_HTML = DISABLED
-DEFAULT_GENERATE_PDF = ENABLED
+DEFAULT_GENERATE_MARKDOWN = DISABLED
+DEFAULT_GENERATE_HTML = ENABLED
+DEFAULT_GENERATE_PDF = DISABLED
 DEFAULT_GRAFANA_ASSISTANT = ENABLED
 FAN_OUT = 'FAN_OUT'
 DEFAULT_FAN_OUT = ENABLED
@@ -51,7 +51,7 @@ CONTROL_DEFAULTS = {GENERATE_MARKDOWN: DEFAULT_GENERATE_MARKDOWN,
                     FAN_OUT: DEFAULT_FAN_OUT}
 HTML_THEME = 'HTML_THEME'
 HTML_THEMES = ('light', 'dark', 'system')
-DEFAULT_HTML_THEME = 'system'
+DEFAULT_HTML_THEME = 'light, dark'
 SETTING_DEFAULTS = {**CONTROL_DEFAULTS, HTML_THEME: DEFAULT_HTML_THEME}
 
 
@@ -231,6 +231,9 @@ def parse_template(text):
         if key in fields:
             fields[key].update(type='enum', enum=list(HTML_THEMES if key == HTML_THEME else TOGGLE_VALUES), default=default,
                                resource=False)
+            if key == HTML_THEME:
+                fields[key].update(type='enum-or-array', max_items=len(HTML_THEMES),
+                                   unique_items=True, input_forms=['scalar', 'comma-separated', 'json-array'])
             if key in LEGACY_TOGGLE_VALUES:
                 fields[key].update(legacy_values=dict(LEGACY_TOGGLE_VALUES[key]))
     return {'schema': SCHEMA, 'fields': fields, 'bullets': bullets}
@@ -361,10 +364,18 @@ def check_field(field, value):
     if field in CONTROL_DEFAULTS:
         return toggle_value(field, value)
     if field == HTML_THEME:
-        spelling = value.strip().casefold() if isinstance(value, str) else None
-        if spelling not in HTML_THEMES:
-            raise ProfileError('invalid HTML_THEME; expected light, dark or system')
-        return spelling
+        try:
+            if not isinstance(value, str) or len(value) > MAX_VALUE_LENGTH:
+                raise ValueError()
+            entries = json.loads(value) if value.lstrip().startswith('[') else value.split(',')
+            if not isinstance(entries, list) or not 1 <= len(entries) <= len(HTML_THEMES):
+                raise ValueError()
+            themes = [entry.strip().casefold() for entry in entries]
+            if any(theme not in HTML_THEMES for theme in themes) or len(set(themes)) != len(themes):
+                raise ValueError()
+        except (ValueError, TypeError, AttributeError, RecursionError):
+            raise ProfileError('invalid HTML_THEME; expected unique light, dark or system themes')
+        return ', '.join(themes)
     if field in LIST_FIELDS:
         if isinstance(value, str) and not value.startswith('['):
             check_value(value)
@@ -935,9 +946,8 @@ def task_fields(lines, schema):
             for key in bullet['keys'][1:])
         parsed = re.fullmatch(pattern, match.group('rest')) if match else None
         if parsed is None and primary in SETTING_DEFAULTS and match:
-            # Enum settings also permit unquoted canonical values.
-            parsed = re.fullmatch('(' + '|'.join(schema['fields'][primary]['enum']) + ')',
-                                  match.group('rest').strip(), re.IGNORECASE)
+            # Settings also permit bare values; check_field validates them below.
+            parsed = re.fullmatch(r'(.+)', match.group('rest').strip())
         if not parsed:
             if primary in SETTING_DEFAULTS:
                 check_field(primary, '')

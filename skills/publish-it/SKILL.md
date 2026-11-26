@@ -108,13 +108,13 @@ destination's outcome in the publication manifest and return one result per dest
    it does not execute them or invent a completed investigation report.
 3. Resolve the saved report's independent Markdown/PDF/HTML choices and same-source metadata under the
    [format contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats).
-   Defaults: Markdown/PDF `enabled`, HTML `disabled`; legacy PDF `T`/`F` remain valid.
+   Defaults: Markdown/PDF `disabled`, HTML `enabled`; legacy PDF `T`/`F` remain valid.
    Disabled formats need no artifacts or tooling; preserve historical files outside the package.
    Reject invalid values and reconcile task/report conflicts before writes. An HTML-only report
    needs no Markdown/PDF companion. Follow [HTML generation](references/html-generation.md) and
    [HTML-only Confluence](references/confluence-html-only.md) for its format/theme overrides.
-   `HTML theme` is `light`, `dark` or `system` (default `system`), set through Profile Manager
-   separately from Generate HTML; reject other values before writes. Fixed light/dark sets both
+   `HTML theme` selects `light`, `dark` and/or `system` (default `light, dark`) through Profile
+   Manager, independently of Generate HTML; validate before writes. Fixed light/dark sets both
    page colors and picture sources whatever the host browser theme.
    Build a bounded inventory: parent TASK, selected original reports and matching generated companions,
    every report diagram and caption, theme variants, editable diagram sources, and actually cited

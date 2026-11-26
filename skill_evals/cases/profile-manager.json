@@ -156,7 +156,7 @@
       "prompt": "Plan this without running anything: my app-alpha profile stores the scalar Slack channel #ops-alpha; store #ops-alpha and #app-alpha there, compose it with prod-us (channel #prod-ops), then load docs/tasks/TASK-alpha.md with my explicit channel list #my-a and #my-b instead of the injected channels. Show what is stored and rendered at each step.",
       "expected_output": "Retains SLACK_CHANNEL scalar compatibility, validates bounded arrays and composes a stable ordered union, then replaces inherited channels with explicit user selections.",
       "expectations": [
-        "Accepts the existing scalar and stores a validated SLACK_CHANNEL array within the 1–16-entry, per-entry and per-field limits",
+        "Accepts the existing scalar and stores a validated SLACK_CHANNEL array within the 1\u201316-entry, per-entry and per-field limits",
         "Shows the stored JSON-array representation and renders/loads one bullet per channel, without migrating stored scalars on read",
         "Forms a stable first-seen channel union across profiles and revalidates limits",
         "Explicit command or saved user TASK channel lists replace inherited channels rather than appending",
@@ -240,10 +240,21 @@
       "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode. Plan the profile change and the hand-off; do not run anything yet.",
       "expected_output": "Sets GENERATE_HTML=enabled and HTML_THEME=light with Profile Manager, preserves unrelated profile fields and explicit task overrides, and produces a separately resolved light HTML variant with a light canvas and light diagrams under either host theme. Existing exports and historical accounting remain unchanged.",
       "expectations": [
-        "States that the template-derived HTML_THEME accepts light, dark or system with system as its default, and that any other value fails before any write",
+        "States that template-derived HTML_THEME accepts one or more unique light, dark or system themes with light, dark as the default, and invalid or duplicate themes fail before any write",
         "Preserves task resources and keeps the HTML generation toggle independent of appearance",
         "States that fixed light keeps both page colors and diagram picture sources light despite the dark browser",
         "Leaves HTML generation and its validation to Publish It without refreshing the investigation or existing exports"
+      ]
+    },
+    {
+      "id": 17,
+      "kind": "dialogue",
+      "prompt": "Update profile manager defaults: PDF disabled, Markdown disabled, HTML enabled, HTML theme light, dark. Support theme lists and preserve my explicit task theme system.",
+      "expected_output": "Selects HTML alone with light and dark variants by default, supports theme lists and preserves explicit task settings.",
+      "expectations": [
+        "Defaults PDF and Markdown to disabled and HTML to enabled",
+        "Accepts comma-separated or JSON-array unique themes, defaults to light, dark and rejects invalid or duplicate entries before writing",
+        "Preserves the explicit task system selection over profile defaults and hands individual selected themes to Publish It for separate exports"
       ]
     }
   ]
