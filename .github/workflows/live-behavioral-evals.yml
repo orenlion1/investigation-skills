@@ -135,6 +135,15 @@ jobs:
             @anthropic-ai/claude-code@2.1.332
           /opt/claude-code/bin/claude --version
 
+      - name: Prepare offline report and plotting tools
+        run: |
+          set -euo pipefail
+          # Shared read-only runtime outside the private checkout and runner home.
+          sudo python3 -m venv /opt/live-eval-python
+          sudo /opt/live-eval-python/bin/python -m pip install --disable-pip-version-check \
+            -r skill_evals/requirements.txt
+          /opt/live-eval-python/bin/python -c 'import matplotlib, markdown_it, fitz; print(matplotlib.__version__, markdown_it.__version__, fitz.VersionBind)'
+
       # Every model call runs as an unprivileged user that cannot read the runner's checkout or
       # home, and whose only network path is a proxy that tunnels to the Anthropic API alone.
       - name: Isolate the agent under test
@@ -164,6 +173,7 @@ jobs:
           LIVE_EVAL_OIDC_AUDIENCE: https://api.anthropic.com
           SKILL: ${{ matrix.skill }}
           LIVE_EVAL_SKILLS_DIR: ${{ github.workspace }}/skills
+          LIVE_EVAL_TOOLS_BIN: /opt/live-eval-python/bin
           LIVE_EVAL_JOB_BUDGET_USD: ${{ fromJSON(needs.skills.outputs.shares)[matrix.skill] }}
         run: |
           set -o pipefail

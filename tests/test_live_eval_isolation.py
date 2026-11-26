@@ -1,4 +1,8 @@
 import os
+import contextlib
+import hashlib
+import io
+import json
 import socket
 import subprocess
 import sys
@@ -17,7 +21,57 @@ import live_eval_sandbox as sandbox  # noqa: E402
 SHIM = ROOT / 'scripts' / 'live-evals-runner' / 'claude'
 
 
+class ExecutorTraceTests(unittest.TestCase):
+    def test_large_image_payload_is_referenced_without_losing_text_or_mutating_raw(self):
+        data = 'a' * 11000000
+        raw = {'content': [{'type': 'image', 'source': {'type': 'base64',
+                'media_type': 'image/png', 'data': data}}, {'type': 'text', 'text': 'actual check'}],
+               'tool_use_result': {'type': 'image', 'file': {'base64': data, 'type': 'image/png',
+                                   'dimensions': {'originalWidth': 900}}},
+               'is_error': False}
+        compact = sandbox.compact_image_payloads(raw)
+        self.assertLess(len(json.dumps(compact)), 2000)
+        self.assertIn(hashlib.sha256(data.encode()).hexdigest(), json.dumps(compact))
+        self.assertEqual(compact['content'][1], raw['content'][1])
+        self.assertFalse(compact['is_error'])
+        self.assertEqual(raw['content'][0]['source']['data'], data)
+        self.assertEqual(compact['tool_use_result']['file']['dimensions'], {'originalWidth': 900})
+        self.assertEqual(raw['tool_use_result']['file']['base64'], data)
+
+    def test_executor_retains_raw_stream_and_exit_status(self):
+        row = {'type': 'image', 'source': {'type': 'base64', 'media_type': 'image/png', 'data': 'AAAA'}}
+        script = f'import sys; print({json.dumps(json.dumps(row))}); print("plain diagnostic"); sys.exit(7)'
+        with tempfile.TemporaryDirectory() as directory, contextlib.redirect_stdout(io.StringIO()) as output:
+            raw = Path(directory) / 'raw.jsonl'
+            code = sandbox.run_executor([sys.executable, '-c', script], raw_path=raw)
+            self.assertEqual(code, 7)
+            self.assertEqual(json.loads(raw.read_text().splitlines()[0]), row)
+            self.assertIn('plain diagnostic', output.getvalue())
+            self.assertNotIn('AAAA', output.getvalue())
+
+
 class IsolationFlagTests(unittest.TestCase):
+    def test_prepared_tools_are_available_without_inheriting_ambient_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tools = Path(directory) / 'bin'
+            tools.mkdir()
+            python = tools / 'python3'
+            python.write_text('#!/bin/sh\nprintf prepared-runtime')
+            python.chmod(0o755)
+            child = sandbox.isolated_environment(
+                {'PATH': '/untrusted/ambient', 'LIVE_EVAL_TOOLS_BIN': str(tools)},
+                directory, 'http://localhost:3128', '/opt/claude/bin/claude')
+            result = subprocess.run(['python3'], env=child, capture_output=True, text=True, check=True)
+            self.assertEqual(result.stdout, 'prepared-runtime')
+            self.assertNotIn('/untrusted/ambient', child['PATH'])
+            self.assertNotIn('LIVE_EVAL_TOOLS_BIN', child)
+
+    def test_prepared_tools_refuse_relative_or_missing_directory(self):
+        for directory in ('relative/bin', '/missing-eval-runtime/bin'):
+            with self.subTest(directory=directory), self.assertRaises(ValueError):
+                sandbox.isolated_environment({'LIVE_EVAL_TOOLS_BIN': directory},
+                                             '/tmp/home', 'http://localhost:3128', '/opt/bin/claude')
+
     def test_executor_loses_web_tools_and_mcp_servers(self):
         flags = sandbox.isolation_flags(['-p', '--output-format', 'stream-json'])
         self.assertEqual(flags, ['--strict-mcp-config', '--disallowedTools', 'WebFetch', 'WebSearch'])
@@ -111,6 +165,7 @@ class SkillPackageTests(unittest.TestCase):
 
         with patch.object(sandbox.os, 'getcwd', return_value=str(self.work)), \
                 patch.object(sandbox.tempfile, 'mkdtemp', return_value=str(home)), \
+                patch.object(sandbox, 'run_executor', side_effect=lambda command, **kw: run(command).returncode), \
                 patch.object(sandbox.subprocess, 'run', side_effect=run):
             code = sandbox.run_isolated('eval', 'http://localhost:3128', '/bin/claude',
                                         ['-p', '--output-format', 'stream-json',

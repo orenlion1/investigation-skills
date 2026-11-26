@@ -8,6 +8,9 @@ metering, and returns the workspace to the runner. `selftest` proves the isolati
 before any model call is made.
 """
 import argparse
+import contextlib
+import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -32,7 +35,14 @@ def isolation_flags(argv):
 def isolated_environment(env, home, proxy, real, token_file=None):
     child = {k: env[k] for k in PASSTHROUGH if env.get(k)}
     node = shutil.which('node', path=env.get('PATH'))
-    path = [str(Path(real).parent)] + ([str(Path(node).parent)] if node else []) + ['/usr/local/bin', '/usr/bin', '/bin']
+    path = [str(Path(real).parent)] + ([str(Path(node).parent)] if node else [])
+    tools = env.get('LIVE_EVAL_TOOLS_BIN')
+    if tools:
+        directory = Path(tools)
+        if not directory.is_absolute() or not directory.is_dir() or os.pathsep in tools:
+            raise ValueError('LIVE_EVAL_TOOLS_BIN must name one existing absolute directory')
+        path.append(str(directory))
+    path += ['/usr/local/bin', '/usr/bin', '/bin']
     child.update(QUIET, HOME=str(home), PATH=':'.join(dict.fromkeys(path)), HTTPS_PROXY=proxy, HTTP_PROXY=proxy,
                  https_proxy=proxy, http_proxy=proxy, NO_PROXY='', no_proxy='')
     if token_file is not None:
@@ -49,6 +59,46 @@ def isolated_command(user, child_env, real, argv, workdir):
 
 def sudo(*args):
     subprocess.run(['sudo', '-n', *args], check=True)
+
+
+def compact_image_payloads(value):
+    """Keep image inspection records, not base64 megabytes, in the textual grader trace."""
+    if isinstance(value, list):
+        return [compact_image_payloads(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    file = value.get('file')
+    if value.get('type') == 'image' and isinstance(file, dict) and isinstance(file.get('base64'), str):
+        data = file['base64']
+        metadata = {key: item for key, item in file.items() if key != 'base64'}
+        metadata['omitted_binary'] = {'base64_chars': len(data),
+                                      'base64_sha256': hashlib.sha256(data.encode()).hexdigest()}
+        return {**value, 'file': metadata}
+    source = value.get('source')
+    if (value.get('type') == 'image' and isinstance(source, dict)
+            and source.get('type') == 'base64' and isinstance(source.get('data'), str)):
+        data = source['data']
+        reference = {'media_type': source.get('media_type'), 'base64_chars': len(data),
+                     'base64_sha256': hashlib.sha256(data.encode()).hexdigest()}
+        return {'type': 'text', 'text': 'Image inspection; binary omitted from textual grading trace; '
+                'original retained in raw executor stream. ' + json.dumps(reference, sort_keys=True)}
+    return {key: compact_image_payloads(item) for key, item in value.items()}
+
+
+def run_executor(command, stdin=None, raw_path=None):
+    """Relay execution records without exceeding the grader's stdin limit; retain raw bytes."""
+    raw = Path(raw_path).open('x', encoding='utf-8') if raw_path else contextlib.nullcontext()
+    with raw as saved, subprocess.Popen(command, stdin=stdin, stdout=subprocess.PIPE, text=True) as process:
+        for line in process.stdout:
+            if saved is not None:
+                saved.write(line)
+            try:
+                record = compact_image_payloads(json.loads(line))
+            except json.JSONDecodeError:
+                print(line, end='', flush=True)
+            else:
+                print(json.dumps(record), flush=True)
+        return process.wait()
 
 
 def stage_skill_catalog(catalog, work, argv):
@@ -108,6 +158,9 @@ def run_isolated(user, proxy, real, argv, env, projects, token=None, stdin=None)
             argv = stage_skill_catalog(env['LIVE_EVAL_SKILLS_DIR'], work, argv)
         sudo('chown', '-R', user, str(home), str(work))
         command = isolated_command(user, isolated_environment(env, home, proxy, real, token_file), real, argv, work)
+        if executor:
+            projects.mkdir(parents=True, exist_ok=True)
+            return run_executor(command, stdin=stdin, raw_path=projects / f'raw-{home.name}.jsonl')
         return subprocess.run(command, stdin=stdin, check=False).returncode
     finally:
         subprocess.run(['sudo', '-n', 'pkill', '-KILL', '-u', user], check=False)
