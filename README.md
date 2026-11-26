@@ -362,6 +362,13 @@ bash scripts/render-workflow-diagram.sh  # regenerate diagrams after editing a .
 bash scripts/check-disclosure.sh         # credential and institutional-data scan before a first upload
 ```
 
+The opt-in Live Behavioral Evals workflow accepts optional `case_ids` for one selected skill,
+for example `gh workflow run live-behavioral-evals.yml --ref <branch> -f skill=profile-manager
+-f case_ids=12`. Leave it blank for the full suite. Unknown or duplicate IDs fail before model
+calls. Selection preserves case content, records the selected IDs and source hashes, and keeps
+the catalog private from the executor; sandboxing and spend enforcement remain active.
+
+
 - [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) are byte-identical; change
   policy in both.
 - Changes land through a protected squash pull request with the required

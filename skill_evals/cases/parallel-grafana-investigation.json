@@ -139,11 +139,11 @@
       "id": 7,
       "kind": "dialogue",
       "prompt": "Run sum(rate(http_requests_total{service=\"checkout\"}[5m])) in Grafana context ops from 2026-11-19T10:00:00Z to 2026-11-19T11:00:00Z UTC. Return values only. gcx is not installed here and nothing reaches Grafana, so install nothing; launch both branches anyway with their full briefs so each records its own outcome, then report that limitation instead of values.",
-      "expected_output": "Launches Assistant and direct-query agents before awaiting either result; Both agents receive the exact expression, context, time interval, timezone and output constraint; Direct branch loads relevant refreshed gcx instructions and executes the exact query without waiting for Assistant; Does not turn the request into an open-ended root-cause investigation; Returns the requested values with any material limitation and retains the local manifest.",
+      "expected_output": "Launches both full-scope branches before awaiting either. The direct branch preserves the exact query and records the explicit offline/missing-gcx limitation without installing, inventing query results or waiting for Assistant. Retains the manifest and values-only audit evidence.",
       "expectations": [
         "Launches Assistant and direct-query agents before awaiting either result",
         "Both agents receive the exact expression, context, time interval, timezone and output constraint",
-        "Direct branch brief loads relevant refreshed gcx instructions and runs the exact query without waiting for Assistant",
+        "Direct brief keeps the exact query and remains independent of Assistant; under the explicit missing-gcx/no-install/offline constraint it records that blocker rather than loading nonexistent refreshed skills or claiming a query ran. Requires setup/refresh before operational reads if capability later becomes available",
         "Does not turn the request into an open-ended root-cause investigation",
         "Returns the requested values, or the material limitation that prevented them, and writes the local manifest",
         "Writes the Source snapshot to a local audit file beside the manifest, citing the manifest by its absolute path",

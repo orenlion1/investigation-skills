@@ -18,6 +18,11 @@ on:
         required: true
         default: all
         type: string
+      case_ids:
+        description: Optional comma-separated case IDs for one skill; blank runs its full suite
+        required: false
+        default: ''
+        type: string
       model:
         description: Model that performs and grades the evals (Sonnet for routine runs, Fable to check behavior under stress)
         required: true
@@ -61,23 +66,20 @@ jobs:
         id: list
         env:
           SKILL: ${{ inputs.skill }}
+          CASE_IDS: ${{ inputs.case_ids }}
         run: |
           set -euo pipefail
-          skills=$(python3 - <<'PY'
-          import json, os, pathlib, sys
-          known = sorted(p.stem for p in pathlib.Path("skill_evals/cases").glob("*.json"))
-          wanted = os.environ["SKILL"].strip()
-          if wanted == "all":
-              print(json.dumps(known))
-          elif wanted in known:
-              print(json.dumps([wanted]))
-          else:
-              sys.exit("Unknown skill; use all or one of: " + ", ".join(known))
-          PY
-          )
-          printf 'skills=%s\n' "$skills" >>"$GITHUB_OUTPUT"
-          evals=$(python3 -c 'import json, sys; print(json.dumps({s: len(json.load(open(f"skill_evals/cases/{s}.json"))["evals"]) for s in json.loads(sys.argv[1])}, separators=(",", ":")))' "$skills")
-          printf 'evals=%s\n' "$evals" >>"$GITHUB_OUTPUT"
+          python3 scripts/select_live_eval_cases.py --cases-dir skill_evals/cases \
+            --output-dir "$RUNNER_TEMP/budget-cases" --skill "$SKILL" --case-ids "$CASE_IDS" \
+            >"$RUNNER_TEMP/selection.json"
+          python3 - <<'PYCODE'
+          import json, os, pathlib
+          data = json.loads((pathlib.Path(os.environ["RUNNER_TEMP"]) / "selection.json").read_text())
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              for key in ("skills", "evals"):
+                  print(key + "=" + json.dumps(data[key], separators=(",", ":")), file=output)
+          print("Selected case IDs: " + json.dumps(data["selected_ids"]))
+          PYCODE
 
       - name: Check this month's spend
         id: budget
@@ -172,6 +174,7 @@ jobs:
           # The runner shim mints one GitHub OIDC token per model call for this audience.
           LIVE_EVAL_OIDC_AUDIENCE: https://api.anthropic.com
           SKILL: ${{ matrix.skill }}
+          CASE_IDS: ${{ inputs.case_ids }}
           LIVE_EVAL_SKILLS_DIR: ${{ github.workspace }}/skills
           LIVE_EVAL_TOOLS_BIN: /opt/live-eval-python/bin
           LIVE_EVAL_JOB_BUDGET_USD: ${{ fromJSON(needs.skills.outputs.shares)[matrix.skill] }}
@@ -179,6 +182,9 @@ jobs:
           set -o pipefail
           results="$RUNNER_TEMP/live-eval-results"
           mkdir -p "$results"
+          python3 scripts/select_live_eval_cases.py --cases-dir skill_evals/cases \
+            --output-dir "$RUNNER_TEMP/live-eval-cases" --skill "$SKILL" --case-ids "$CASE_IDS" \
+            >"$results/selection.json"
           LIVE_EVAL_REAL_CLAUDE=/opt/claude-code/bin/claude
           LIVE_EVAL_ISOLATION_USER=live-eval
           LIVE_EVAL_PROXY=http://localhost:3128
@@ -187,6 +193,7 @@ jobs:
           export LIVE_EVAL_REAL_CLAUDE LIVE_EVAL_LEDGER
           echo "This job may spend up to \$$LIVE_EVAL_JOB_BUDGET_USD."
           scripts/run-skill-quality-gate.sh --execute-behavioral --skill "$SKILL" \
+            --cases-dir "$RUNNER_TEMP/live-eval-cases" \
             --runner-dir scripts/live-evals-runner \
             --output-dir "$results" 2>&1 | tee "$results/runner.log"
 
