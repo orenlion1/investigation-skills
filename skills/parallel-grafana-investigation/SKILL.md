@@ -41,9 +41,10 @@ it does not replace this orchestration or widen the user's scope.
 
 ## Workflow
 
-1. **Resolve shared inputs in the orchestrating session.** Use gcx-cli for required installation,
-   bundle refresh and [command-family context routing](../gcx-cli/SKILL.md#resolve-the-context).
-   Carry the effective ordinary/endpoint and IRM contexts in both briefs when needed.
+1. **Resolve shared inputs.** Use gcx-cli for installation, bundle refresh and
+   [context routing](../gcx-cli/SKILL.md#resolve-the-context). Every brief, including offline
+   plans, gates any future read on verified setup and refresh. Carry ordinary/endpoint and
+   IRM contexts in both briefs when needed.
    Resolve the exact request/expression, targets, filters, limits, output, environment and
    read-only scope. Temporal queries need an exact range/instant and timezone; mark these
    not applicable for non-temporal inventory. Ask only for missing required inputs; never
