@@ -69,7 +69,7 @@ class EndToEndChainTests(unittest.TestCase):
         with self.subTest('schema comes from the task template'):
             fields = {field['field'] for field in self.ok('schema')['fields']}
             self.assertEqual(fields, {'REPO', 'SLACK_CHANNEL', 'AWS_ACCOUNT', 'AWS_REGION',
-                                      'GRAFANA_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH', 'RHYMING_ENDPOINTS', 'RHYMING_HISTORICAL_WINDOW_DAYS', 'GENERATE_HTML', 'GENERATE_MARKDOWN', 'GENERATE_PDF', 'GRAFANA_ASSISTANT', 'FAN_OUT', 'HTML_THEME'})
+                                      'GRAFANA_CONTEXT', 'GRAFANA_IRM_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH', 'RHYMING_ENDPOINTS', 'RHYMING_HISTORICAL_WINDOW_DAYS', 'GENERATE_HTML', 'GENERATE_MARKDOWN', 'GENERATE_PDF', 'GRAFANA_ASSISTANT', 'FAN_OUT', 'HTML_THEME'})
 
         with self.subTest('no store is written while Git does not ignore it'):
             self.assertIn('not ignored by Git',

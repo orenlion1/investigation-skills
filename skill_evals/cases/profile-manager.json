@@ -256,6 +256,18 @@
         "Accepts comma-separated or JSON-array unique themes, defaults to light, dark and rejects invalid or duplicate entries before writing",
         "Preserves the explicit task system selection over profile defaults and hands individual selected themes to Publish It for separate exports"
       ]
+    },
+    {
+      "id": 18,
+      "kind": "dialogue",
+      "prompt": "Plan only: my ops profile holds GRAFANA_CONTEXT=metrics-lab. Add Grafana IRM context: incident-lab, preserving other fields, then load a TASK whose explicit Grafana IRM context is incident-task-lab. Show schema, dry run and read-back. Which context should gcx irm incidents list and gcx metrics query use?",
+      "expected_output": "Stores independent GRAFANA_IRM_CONTEXT through the template-derived helper and preserves the ordinary context. Explicit TASK IRM context wins on load.",
+      "expectations": [
+        "Derives GRAFANA_IRM_CONTEXT from the TASK template and previews set with --dry-run before writing, without --replace",
+        "Reads back the profile and preserves GRAFANA_CONTEXT=metrics-lab and omitted fields",
+        "Preserves explicit TASK Grafana IRM context incident-task-lab over profile incident-lab",
+        "Routes gcx irm incidents list to incident-task-lab and metrics query to metrics-lab; profile management sends no live query"
+      ]
     }
   ]
 }

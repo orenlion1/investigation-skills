@@ -30,7 +30,7 @@ Reuse verified setup and shared evidence; preserve this skill's required coverag
 ## When to Use
 
 - Find rhyming incidents or similar prior investigations in the selected profile's endpoints.
-- Search historical gcx investigations and prior Grafana Assistant conversations.
+- Search prior IRM incidents, gcx investigations and Assistant conversations.
 - Look for incident relationships in configured Confluence, Slack or repository endpoints.
 - Invoke once from the parent of a per-store fan-out when rhyming endpoints are configured.
 
@@ -169,6 +169,6 @@ searches prove no matches only in that scope. Do not claim live verification fro
 - All configured endpoints have a unique manifest/result row and actual agent evidence or failure.
 - Independent reads launched concurrently within recorded capacity waves; degradation is explicit.
 - Shared windows, provider boundaries and budgets match the briefs and observed queries.
-- All six supported kinds use their owning integration; only the explicit prompt kind uses its
+- All supported kinds use their owning integration; only the explicit prompt kind uses its
   scoped exception, with one owner receipt and endpoint-specific child/result accounting.
 - Every material relationship is parent-verified and retrievable; hypotheses and gaps stay explicit.

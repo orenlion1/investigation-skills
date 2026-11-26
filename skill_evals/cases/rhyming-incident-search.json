@@ -13,6 +13,10 @@
       {
         "prompt": "Run rhyming incident search with one read-only sub-agent per configured Confluence Slack and repository endpoint in parallel",
         "top_k": 3
+      },
+      {
+        "prompt": "Find rhyming prior IRM incidents using my configured historical endpoint and Grafana IRM context",
+        "top_k": 3
       }
     ],
     "negative": [
@@ -118,6 +122,44 @@
         "Treats match-b's timeout as an uncertain outcome that is not blindly resubmitted, and records consumer match-c as unavailable for that execution",
         "Keeps hist-conv's history list/get reads running independently of match-b's failure",
         "Keeps any relationship lacking a retrievable conversation reference as a hypothesis or unavailable, never a verified relationship"
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "dialogue",
+      "prompt": "Plan only. Validated endpoints: inv (grafana-investigations, context metrics-lab, target service-a), conv (grafana-assistant-conversations, context metrics-lab, target service-a), irm (grafana-irm-incidents, context incident-lab, target service-a). TASK Grafana context is metrics-lab and Grafana IRM context is incident-lab. Incident current-a starts 2026-04-18T10:00:00Z; historical_window_days is 14. Give exact bounded list/get command forms, contexts and temporal limits. No live reads or prompts.",
+      "expected_output": "Plans separate configured endpoint children using existing history only, the fixed prior window, separate IRM context and correct list/get forms.",
+      "expectations": [
+        "Uses shared historical window 2026-04-04T10:00:00Z through 2026-04-18T10:00:00Z UTC and retains one child/manifest row per endpoint",
+        "Uses gcx assistant investigations list/get with metrics-lab, --q service-a, bounded --limit and --from/--to; notes creation time/v2 limits",
+        "Uses gcx assistant conversation list/get in metrics-lab with local metadata filtering and no invented text/time flags",
+        "Uses gcx irm incidents list/get with --context incident-lab, explicit window and cap, locally filters service-a without inventing a free-text flag",
+        "Reserves parent verification within the three-read/twenty-candidate endpoint budget and submits no live query or Assistant prompt"
+      ]
+    },
+    {
+      "id": 10,
+      "kind": "dialogue",
+      "prompt": "Plan only: an IRM history endpoint targets service-a with context incident-lab. Ordinary Grafana context is metrics-lab. What if Grafana IRM context is missing, or the TASK overrides it to incident-other-lab? Another configured Confluence endpoint is accessible. Can you use metrics-lab, silently rewrite the endpoint context, or search all OnCall groups instead?",
+      "expected_output": "Records only the incompatible IRM endpoint unavailable and continues independent valid configured history without changing context or scope.",
+      "expectations": [
+        "Missing effective Grafana IRM context or disagreement with endpoint incident-lab makes that endpoint unavailable; never falls back to metrics-lab/current-context or silently rewrites the endpoint",
+        "Continues the independently configured Confluence endpoint under its existing scope",
+        "Distinguishes IRM incidents from OnCall groups and does not automatically broaden to alert-group enumeration",
+        "No Assistant prompt, creation, acknowledgement, publication or other mutation"
+      ]
+    },
+    {
+      "id": 11,
+      "kind": "dialogue",
+      "prompt": "Your bounded historical searches returned 20 IRM incidents (the CLI internally paged, count unknown) and an exact service-a CPU/replay match: the current investigation copied into a prior-looking publication and Assistant chat. Another candidate only has similar symptoms and a restart recommendation, with no retrieved source body. The investigation API filtered creation dates, while conversation metadata has no reliable event date. Report the result and next check without more reads.",
+      "expected_output": "Excludes self-corroboration and treats other similarities as hypotheses, recording capped and incomplete temporal/native request coverage.",
+      "expectations": [
+        "Excludes the current investigation, its copied publication and Assistant chat as independent corroboration and deduplicates copies",
+        "Keeps symptom/restart similarity without verified body/mechanism as a hypothesis rather than shared root cause",
+        "Discloses twenty-result cap, unknown native page count and that CLI read count does not bound underlying API requests",
+        "Distinguishes creation/update dates from event dates and does not claim exhaustive temporal coverage or no prior matches",
+        "Retains commands/context/references/limits and proposes a budgeted source-body verification as the next check without executing it"
       ]
     }
   ]

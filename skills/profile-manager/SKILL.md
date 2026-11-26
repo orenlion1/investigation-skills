@@ -7,10 +7,8 @@ description: "Maintain the local, untracked .env store of named resource profile
 
 ## Overview
 
-A resource profile is a named set of the values a task's Resources section takes: repositories,
-Slack channels, an AWS profile, a Grafana context, an alert identity, publish destinations,
-typed endpoints, and Markdown/PDF/HTML settings. This skill owns the store, its schema, and
-the ignore rules that keep it out of Git. The
+A resource profile holds named TASK Resources, including Grafana and Grafana IRM contexts.
+This skill owns the store, schema and ignore rules. The
 [store and schema contract](references/profile-store.md) holds the file format, value rules,
 limits and per-command behavior; read the linked section before a dependent operation. A tested
 end-to-end run is in [profile-composition-example.md](references/profile-composition-example.md).
@@ -239,6 +237,11 @@ A toggle or historical-window setting alone is configuration: never an actual re
 a trigger for the supplied-resource overwrite guard, never scope or authorization for an
 investigation, query or publication. The profile must already contain or be supplied with an
 actual resource. Differing stored settings are a composition conflict like any other field.
+
+## Grafana contexts
+
+The independent `GRAFANA_CONTEXT` and `GRAFANA_IRM_CONTEXT` fields follow the
+[context contract](references/profile-store.md#grafana-contexts).
 
 ## Grafana Assistant
 

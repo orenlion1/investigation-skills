@@ -69,6 +69,16 @@ level-2 heading. Each `- ` line must match:
 Rendering reverses this: bullets in template order, label verbatim, values backticked. A
 bullet whose primary field is unset is omitted.
 
+## Grafana contexts
+
+The template declares independent scalar resource fields `GRAFANA_CONTEXT` and
+`GRAFANA_IRM_CONTEXT`, labeled `Grafana context` and `Grafana IRM context`. Both use the
+standard value rules and precedence, have no default, and do not inherit from each other.
+Set either without `--replace` to preserve omitted fields. Render/load keep separate bullets;
+explicit TASK values and command overrides apply independently. Old profiles remain valid.
+The IRM field selects the context for every `gcx irm` command; missing IRM context blocks
+only IRM operations, never silently falling back to `GRAFANA_CONTEXT` or current-context.
+
 ## Commands
 
 All take `--repository-root`, optionally `--env` (default `.env`) and `--template` (default
@@ -336,6 +346,7 @@ or kinds are errors. `schema` exposes type, kinds, limits, required and conditio
 
 | kind | target | Conditional key |
 | --- | --- | --- |
+| grafana-irm-incidents | Explicit prior-incident service scope or search phrase | context: must match effective Grafana IRM context at execution |
 | grafana-investigations | Explicit prior-investigation scope or search phrase | context: configured gcx context |
 | grafana-assistant-conversations | Explicit historical conversation scope or phrase | context: configured gcx context |
 | grafana-assistant-search | Explicit historical resource scope or search phrase for an Assistant matching request | context: configured gcx context |
@@ -359,6 +370,11 @@ or kinds are errors. `schema` exposes type, kinds, limits, required and conditio
 - `endpoints` additionally requires ignored, untracked storage, rejects unknown fields, and
   returns `{ "profile": "NAME", "endpoints": [...], "historical_window_days": 7 }`. No
   authentication, query or delegation occurs there.
+- `grafana-irm-incidents` reads existing IRM incidents only. Its target supplies local matching
+  terms, not a raw API query. At execution the endpoint context must agree with the effective
+  `GRAFANA_IRM_CONTEXT` after TASK/user overrides; missing or conflicting context makes that
+  endpoint unavailable. Profile storage validates structure; it never authenticates or asserts
+  runtime applicability. Old profiles and endpoint lists stay unchanged.
 - `grafana-assistant-search` permits a scoped billable Assistant prompt through
   [Rhyming Incident Search](../../rhyming-incident-search/SKILL.md);
   `grafana-assistant-conversations` reads existing history only. Profile commands never

@@ -62,6 +62,28 @@ class ProfileStoreTests(unittest.TestCase):
         self.ok('ignore')
         self.ok('init')
 
+    def test_grafana_irm_context_roundtrip_and_task_precedence(self):
+        schema = {entry['field']: entry for entry in self.ok('schema')['fields']}
+        self.assertEqual(schema['GRAFANA_IRM_CONTEXT']['label'], 'Grafana IRM context')
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'ops', '--field', 'GRAFANA_CONTEXT=metrics-lab',
+                '--field', 'Grafana IRM context: incident-lab')
+        self.ok('set', '--profile', 'ops', '--field', 'AWS_REGION=us-west-2')
+        shown = self.ok('show', '--profile', 'ops')['fields']
+        self.assertEqual(shown['GRAFANA_CONTEXT'], 'metrics-lab')
+        self.assertEqual(shown['GRAFANA_IRM_CONTEXT'], 'incident-lab')
+        self.assertIn('- Grafana IRM context: `incident-lab`',
+                      self.ok('render', '--profile', 'ops'))
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n- Grafana IRM context: `incident-task-lab`\n')
+        self.ok('load', '--profile', 'ops', '--task', str(task), '--replace')
+        self.assertIn('- Grafana context: `metrics-lab`', task.read_text())
+        self.assertIn('- Grafana IRM context: `incident-task-lab`', task.read_text())
+        self.ok('load', '--profile', 'ops', '--task', str(task), '--replace',
+                '--field', 'GRAFANA_IRM_CONTEXT=incident-override-lab')
+        self.assertIn('- Grafana IRM context: `incident-override-lab`', task.read_text())
+        self.assertEqual(self.ok('show', '--profile', 'ops')['fields'], shown)
+
     def test_html_theme_schema_defaults_precedence_and_validation(self):
         schema = {entry['field']: entry for entry in self.ok('schema')['fields']}
         self.assertEqual(schema['HTML_THEME']['enum'], ['light', 'dark', 'system'])
@@ -595,7 +617,7 @@ class ProfileStoreTests(unittest.TestCase):
         fields = {field['field']: field for field in schema['fields']}
         self.assertEqual(schema['template'], 'templates/TASK.md')
         self.assertEqual(set(fields), {'REPO', 'SLACK_CHANNEL', 'AWS_ACCOUNT', 'AWS_REGION',
-                                       'GRAFANA_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH', 'RHYMING_ENDPOINTS', 'RHYMING_HISTORICAL_WINDOW_DAYS', 'GENERATE_HTML', 'GENERATE_MARKDOWN', 'GENERATE_PDF', 'GRAFANA_ASSISTANT', 'FAN_OUT', 'HTML_THEME'})
+                                       'GRAFANA_CONTEXT', 'GRAFANA_IRM_CONTEXT', 'ALERT', 'ALERT_UID', 'PUBLISH', 'RHYMING_ENDPOINTS', 'RHYMING_HISTORICAL_WINDOW_DAYS', 'GENERATE_HTML', 'GENERATE_MARKDOWN', 'GENERATE_PDF', 'GRAFANA_ASSISTANT', 'FAN_OUT', 'HTML_THEME'})
         self.assertEqual(fields['REPO']['label'], 'Repo (Bitbucket/Github)')
         self.assertEqual(fields['ALERT_UID']['requires'], 'ALERT')
         self.assertIsNone(fields['ALERT']['requires'])

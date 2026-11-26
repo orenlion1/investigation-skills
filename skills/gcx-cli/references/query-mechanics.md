@@ -5,6 +5,34 @@ Command mechanics for the direct reads that
 command passes the resolved `--context`; refresh, context and authentication rules are in
 [SKILL.md](../SKILL.md).
 
+## IRM context routing
+
+Select context by command family before authentication, discovery or execution:
+
+- Every `gcx irm ...` command, including incidents and OnCall alert groups, passes
+  `--context` from the effective `Grafana IRM context` / `GRAFANA_IRM_CONTEXT` resource.
+- Other command families use the effective `Grafana context` / `GRAFANA_CONTEXT`, or the
+  explicit context of their configured historical endpoint.
+
+These settings are independent: never substitute the ordinary Grafana context, an endpoint
+context or current-context for a missing IRM context. Resolve missing IRM context with the user
+before dependent reads; other authorized work may continue. Explicit user instructions override
+TASK values, which override profile values. Verify/authenticate each selected context separately;
+IRM setup probes such as `config check` and `login` target that same IRM context. Keep the
+context mapping in delegated briefs and execution receipts. Assistant prompts remain on their
+ordinary/endpoint context; IRM commands suggested by Assistant or bundled skills still use the
+IRM setting. Do not share an Assistant execution across different contexts.
+
+For example, a bounded prior-incident search is:
+
+```sh
+gcx irm incidents list --context "$GCX_IRM_CONTEXT" \
+  --from "$HISTORY_START" --to "$HISTORY_END" --limit 20 -o json
+```
+
+Filter returned candidates for the incident's terms and verify relevant detail within the
+read budget. Check installed help for filtering semantics and disclose truncation.
+
 ## Procedure
 
 1. Resolve the signal, selected context, requested service/resource, and time range. Ask only for

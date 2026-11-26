@@ -42,13 +42,12 @@ it does not replace this orchestration or widen the user's scope.
 ## Workflow
 
 1. **Resolve shared inputs in the orchestrating session.** Use gcx-cli for required installation,
-   bundle refresh, context resolution and authentication. Resolve one explicit context, the exact
-   request/expression, target resources/datasources, filters, limits and output requirements,
-   environment and read-only scope. Resolve an exact range or instant timestamp and timezone for temporal
-   queries; for non-temporal inventory mark them not applicable rather than inventing a window
-   or demanding alert/incident details. Ask only for missing inputs needed for this request;
-   never guess the context through live discovery. The query request authorizes the read-only
-   workflow without a separate plan-approval pause.
+   bundle refresh and [command-family context routing](../gcx-cli/SKILL.md#resolve-the-context).
+   Carry the effective ordinary/endpoint and IRM contexts in both briefs when needed.
+   Resolve the exact request/expression, targets, filters, limits, output, environment and
+   read-only scope. Temporal queries need an exact range/instant and timezone; mark these
+   not applicable for non-temporal inventory. Ask only for missing required inputs; never
+   guess context through live discovery. The request authorizes this read-only workflow.
    Before launch, accept a parent-prepared `grafana-assistant-search` handoff under
    [Assistant matching](../rhyming-incident-search/references/assistant-search.md). Register the
    prospective branch with its original request, exact context/scope/shared block and unsent
