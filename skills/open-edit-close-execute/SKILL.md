@@ -62,6 +62,8 @@ This skill owns the workflow for this repository's templated tasks (template
 - Before planning or querying for an existing investigation, including a direct task-path run,
   load its saved context through [Report Continuation](../report-continuation/SKILL.md).
   That skill also owns progressive report updates and handoff readiness.
+- For root-cause execution, apply [Investigation Reasoning](../investigation-reasoning/SKILL.md)
+  to choose evidence questions; the provider owners run the reads.
 - Run the finalized task from its resolved path, then generate the matching reports from
   observed results in the selected formats: Markdown, PDF or HTML, with `REPORT` paths via
   Workflow Artifact Naming. Validate evidence and required graphs in every selected output. Resolve formats before tooling using the [delivery contract](../investigation-delivery/references/delivery-contract.md). Report completion from verified outcomes, never from readiness or a filename's

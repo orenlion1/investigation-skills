@@ -13,6 +13,7 @@ holds.
 | `open task`, `edit task`, templated-task editing, continuation, execution, and reports | [Open/Edit/Close/Execute](skills/open-edit-close-execute/SKILL.md) |
 | `add profile`, `remove profile`, `lint profiles`, `lint task`, `.env` resource profiles, the Resources schema, loading a profile into a task | [Profile Manager](skills/profile-manager/SKILL.md) |
 | Investigation timing/checkpoints, selected-output orchestration, and verified delivery | [Investigation Delivery](skills/investigation-delivery/SKILL.md) |
+| Choosing and revising evidence questions, competing explanations, and the next bounded check during investigation execution | [Investigation Reasoning](skills/investigation-reasoning/SKILL.md) |
 | Canonical investigation report identity, progressive updates, resumable context, and handoff readiness | [Report Continuation](skills/report-continuation/SKILL.md) |
 | Token usage report and report metadata for any investigation report | [Token Usage](skills/token-usage/SKILL.md) |
 | Creating, styling, or verifying diagrams and graphs — themes, caveats, ER and SQL views, flapping-alert graph pair, format consistency | [Diagramming Style](skills/diagramming-style/SKILL.md) |

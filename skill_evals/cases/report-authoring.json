@@ -189,6 +189,18 @@
         "Keeps summary, captions and detail no stronger than saved evidence; restart does not establish incident cause or an image upgrade",
         "Regenerates affected graph variants through Diagramming Style and records continuation without changing report identity"
       ]
+    },
+    {
+      "id": 13,
+      "kind": "dialogue",
+      "prompt": "Saved profiles show a material loader/parser behavior in an incident report. Earlier comparable bins at 10:00\u201310:15 have loader share20%, at 10:15\u201310:30 have no data, and at 10:30\u201310:45 have80%. We define a majority-loader signature above50%. We have actual stacks for the two measured bins. HTML is the only enabled format. Describe the report and graphs; stay offline.",
+      "expected_output": "Renders an onset/intensity timeline beside real stack evidence, marks the bounded observed change and missing interval without asserting an exact replay start.",
+      "expectations": [
+        "Requires an evidence-backed timeline showing20% and80%, an explicit missing interval and the stated operational threshold, alongside representative actual flamegraphs",
+        "Reports the onset bracket from inspected nonmatching to matching windows, with bucket widths/coverage limits, rather than10:30 as proven actual start",
+        "Uses Diagramming Style for visual construction and Parallel Grafana Investigation for onset collection semantics instead of duplicating them",
+        "Keeps replay causality unproven, cites evidence and updates selected HTML only without fresh provider reads or disabled-format work"
+      ]
     }
   ]
 }

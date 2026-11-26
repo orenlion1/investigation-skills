@@ -23,3 +23,11 @@ Before delivery, map each material profiling finding to a visible, evidence-matc
 graph and verify scope, values, stack relationships, confidence and selected-format coverage.
 A flame graph alone does not validate a root-cause claim, and a query-only request does not
 become a report task through this contract.
+
+When a behavior is identified, apply Parallel Grafana Investigation's
+[behavior-onset search](../../parallel-grafana-investigation/references/profiling-coverage.md#locate-behavior-onset).
+Graph its measured occurrence or intensity across the inspected profile windows, alongside
+representative flame graphs, through Diagramming Style. Annotate the observed change and
+onset bracket or coverage-boundary limit with evidence IDs; keep missing coverage distinct
+from observed nonmatching behavior. Reconcile the earliest-observation claim, sampling limits
+and unproven causal interpretation in the opening, detail and caption.

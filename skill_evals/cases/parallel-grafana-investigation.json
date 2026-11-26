@@ -279,6 +279,30 @@
         "Names Diagramming Style as rendering/presentation owner without duplicating rendering rules into the query workflow",
         "Preserves the hotspot-versus-defect distinction, makes no new provider query and launches no agent; describing a reporting handoff is not a new agent launch"
       ]
+    },
+    {
+      "id": 19,
+      "kind": "dialogue",
+      "prompt": "A CPU profile shows a loader/parser stack consuming most sampled work. The incident report calls this event replay. Earlier profiles are available inside the already authorized fourteen-day window. Is identifying the hot stack enough? Explain the next read-only investigation and the start-time claim it could support; do not run tools.",
+      "expected_output": "Attempts a bounded backward profile comparison and refines an observed onset bracket, without treating parser presence or sampled dominance as proof of replay.",
+      "expectations": [
+        "Attempts earlier comparable profile reads within the existing context/resources/window and reuses saved evidence",
+        "Defines a measurable stack/activity signature and keeps normal frame presence separate from abnormal dominance and replay causality",
+        "Uses coarse-to-fine comparison without assuming behavior only starts once or remains monotonic",
+        "Reports earliest matching and nearest inspected nonmatching windows with resolution/gaps; missing data and long-window dilution do not establish absence",
+        "Hands graph-ready onset evidence to Report Authoring and retains source/identity and sample-denominator limits"
+      ]
+    },
+    {
+      "id": 20,
+      "kind": "dialogue",
+      "prompt": "An onset search finds matching parser-dominant CPU profiles in the first available historical bucket. Two earlier buckets have no profile data and one later bucket has only a truncated symbol list. Tell the reader the exact time replay started and graph the empty buckets as zero. No new queries are authorized.",
+      "expected_output": "Declines the unsupported exact start and zero fill, reports the left-boundary/coverage limitation and keeps the replay interpretation unproven.",
+      "expectations": [
+        "Reports onset unresolved or earlier than available coverage, not the first bucket timestamp as actual start",
+        "Does not treat missing or truncated profiles as negative samples or graph missing data as zero",
+        "Distinguishes observed parser dominance from proven replay and does not widen queries"
+      ]
     }
   ]
 }
