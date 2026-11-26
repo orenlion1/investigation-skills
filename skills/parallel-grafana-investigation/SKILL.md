@@ -42,8 +42,7 @@ it does not replace this orchestration or widen the user's scope.
 ## Workflow
 
 1. **Resolve shared inputs.** Use gcx-cli for installation, bundle refresh and
-   [context routing](../gcx-cli/SKILL.md#resolve-the-context). Every brief, including offline
-   plans, gates any future read on verified setup and refresh. Carry ordinary/endpoint and
+   [context routing](../gcx-cli/SKILL.md#resolve-the-context). Carry ordinary/endpoint and
    IRM contexts in both briefs when needed.
    Resolve the exact request/expression, targets, filters, limits, output, environment and
    read-only scope. Temporal queries need an exact range/instant and timezone; mark these
@@ -65,8 +64,9 @@ it does not replace this orchestration or widen the user's scope.
      Assistant-generated query. Include matching in the initial prompt only when this branch
      owns the prepared compatible handoff. Retain the prompt, response/conversation identifiers,
      source references and limitations as leads. Endpoint consumers use the retained response.
-   - **Direct gcx agent:** load and execute the relevant refreshed bundled skills through the
-     active harness, then gather bounded direct evidence. Select by the requested operation:
+   - **Direct gcx agent:** every brief, including offline plans, must gate future reads on
+     gcx-cli setup/refresh verification. Missing gcx with no-install means blocked, never a
+     fallback query. Then execute refreshed skills through the harness for bounded evidence:
 
      | Request | Bundled skill guidance |
      | --- | --- |
@@ -108,7 +108,8 @@ it does not replace this orchestration or widen the user's scope.
    When the requested output excludes prose or citations (for example values-only or JSON),
    write that Source snapshot, citing the manifest by its absolute path, to a local audit file
    beside the manifest instead. The reply then holds only the requested format or the bare
-   limitation: no launch summaries, brief recap, file locations, snapshot or contract notes.
+   limitation. Before delivery, remove launch details, brief recaps, file locations, snapshots
+   and contract notes from values-only replies, including follow-ups.
    Record an explicit user exclusion of profiling or source reads there as a scope limitation.
 4. **Reconcile and verify.** Check that both agents used the same resolved inputs. Verify
    material claims against direct evidence and report disagreements, gaps and limitations.
@@ -175,5 +176,4 @@ acknowledgments, messages and publication require separate authorization.
 - Root-cause investigations record profiling evidence or a concrete exclusion/unavailability
   outcome; an alert-threshold explanation alone does not establish the CPU driver.
 
-[README.md](README.md) explains the split for human readers and holds the saved-profile form of
-the Assistant setting; it is not a required runtime read.
+[README.md](README.md) documents the split and saved Assistant setting; no runtime read required.
