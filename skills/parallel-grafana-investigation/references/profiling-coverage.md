@@ -32,6 +32,31 @@ Active CPU frames do not prove nonprogress or deadlock, and absent/short sampled
 does not exclude unfinished waits. A restart followed by improvement establishes
 temporal association; it does not establish the triggering defect or state that was cleared.
 
+## Locate behavior onset
+
+When a profile identifies a material behavior, attempt to locate its beginning in earlier
+profiles within the authorized window. Define an observable signature from the inspected
+stack and its measured activity before searching: ordinary frame presence is not evidence
+that an abnormal workload began. Keep the behavior's name or causal interpretation separate
+from that signature; parsing activity alone does not prove event replay.
+
+Reuse saved profiles and inspect comparable earlier windows, coarsely first and then more
+finely around a change. Retain the actual returned resolution, workload/pod identity,
+profile type, sample totals, self/inclusive shares and limits. Explain any activity threshold
+and retain continuous measurements rather than presenting the threshold as a defect test.
+Do not assume behavior is monotonic: earlier episodes may disappear and recur. Long merged
+windows can dilute short episodes, and a changed sample share can reflect a changed denominator.
+
+Report the earliest observed matching window and the nearest inspected nonmatching window,
+with their widths and gaps, as an onset bracket rather than an exact start. A bracket does
+not exclude an earlier transient episode outside the inspected coverage. If the earliest
+available window already matches, report onset unresolved at that coverage boundary; the
+bucket's start is not the behavior's start. Say it predates the window only with separate
+evidence supporting that bound. Empty, missing, truncated or incomparable profiles are not negative samples.
+Record unavailable history or capability instead of silently widening scope or inventing a
+start time. Hand these measurements and limits to Report Authoring for a timeline beside the
+representative stack evidence.
+
 ## Hand off source leads
 
 The handoff to [Source Investigation](../../source-investigation/SKILL.md) carries the
