@@ -84,9 +84,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           EVALS: ${{ steps.list.outputs.evals }}
+          MODEL: ${{ inputs.model }}
         run: |
           set -euo pipefail
+          # Shares follow each skill's measured cost with this model this month, else its eval count.
           python3 scripts/live_eval_spend.py month --budget "$MONTHLY_BUDGET_USD" --evals "$EVALS" \
+            --model "$MODEL" \
             --repository "$GITHUB_REPOSITORY" --workflow live-behavioral-evals.yml --run-id "$GITHUB_RUN_ID"
 
   live-evals:

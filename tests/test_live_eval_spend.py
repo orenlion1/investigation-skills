@@ -95,6 +95,18 @@ class LiveEvalSpendTests(unittest.TestCase):
         self.assertEqual(spend.allot(50, {'a': 17, 'b': 1, 'c': 2}), {'a': 42.5, 'b': 2.5, 'c': 5.0})
         self.assertEqual(spend.allot(-1, {'a': 3}), {'a': 0.0})
 
+    def test_budget_follows_measured_cost_and_estimates_unmeasured_skills(self):
+        records = [{'skill': 'a', 'model': 'm', 'total_usd': 1.0},
+                   {'skill': 'a', 'model': 'm', 'total_usd': 3.0},  # the full run; the 1.0 job was cut short
+                   {'skill': 'b', 'model': 'm', 'total_usd': 1.0},
+                   {'skill': 'b', 'model': 'other', 'total_usd': 9.0},
+                   {'skill': 'c', 'model': 'm', 'total_usd': 0}]
+        measured = spend.measured_costs(records, 'm')
+        self.assertEqual(measured, {'a': 3.0, 'b': 1.0})
+        # a: $1/eval, b: $0.5/eval, so c (unmeasured, 2 evals) is estimated at the median $0.75/eval.
+        self.assertEqual(spend.allot(11, {'a': 3, 'b': 2, 'c': 2}, measured), {'a': 6.0, 'b': 2.0, 'c': 3.0})
+        self.assertEqual(spend.allot(10, {'a': 3, 'b': 2}, {}), {'a': 6.0, 'b': 4.0})
+
     def test_oidc_token_is_minted_per_call_and_minting_variables_are_withheld(self):
         import http.server, threading
         seen = []
