@@ -122,8 +122,8 @@ The store and task files are the user's, and people edit them by hand. `lint` fi
 in a legacy or non-canonical form and `lint --fix` updates them; rules and exit statuses are in
 the [lint reference](references/profile-store.md#lint).
 
-- **Never repair implicitly.** A `lint_notice` reports store findings, not permission.
-  Finish the requested operation and offer lint unless the user already requested repair.
+- **Never repair implicitly.** Report supplied `lint_notice` findings even if an operation
+  is blocked. Offer lint unless the user already requested repair.
 - **Store repair requests** such as `lint profiles` or “fix the store” authorize `lint`,
   `lint --fix --dry-run`, then `lint --fix`; do not seek confirmation again. Report changes
   by rule and field, never by stored value. Honor plan-only requests without running commands.
@@ -261,9 +261,9 @@ credential or authorization. Old profiles need no change.
 
 - `endpoints --profile NAME` returns only that profile's validated endpoint list, or an empty
   list when unset, without network queries or authentication.
-- Before storing, the helper checks unique kebab-case ids, a kind from `schema`, the target,
-  and the kind's conditional key (`context` for Grafana kinds). Read back with `endpoints`,
-  which also returns `historical_window_days`.
+- State validation rules even in plans: unique kebab-case ids, supported kinds from `schema`,
+  target and conditional key (`context` for each Grafana endpoint). Check before storage; `endpoints`
+  reads back resources and `historical_window_days`.
 - `grafana-assistant-search` (id/kind/target/context) permits a scoped Assistant matching
   request later; `grafana-assistant-conversations` keeps list/get reads of existing history.
   Profile operations do not send prompts.
