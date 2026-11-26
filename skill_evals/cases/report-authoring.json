@@ -152,6 +152,43 @@
         "Marks the missing stack data and visualization as incomplete beside the finding, while retaining verified aggregate evidence",
         "Does not broaden queries or permissions just to fill the missing graph"
       ]
+    },
+    {
+      "id": 10,
+      "kind": "dialogue",
+      "prompt": "Add provenance to an Evidence index: E1 came from AWS API MCP call_aws via a generated Python driver after CLI SSO login; E2 is a historical saved Grafana response whose collector was not recorded. Explain the exact attribution fields, without inventing history.",
+      "expected_output": "Separates workflow ownership from actual collector and links the saved evidence and driver.",
+      "expectations": [
+        "Identifies a linked workflow owner separately from the actual collecting tool/server/operation",
+        "Attributes E1 diagnostic data to MCP via the linked driver, not to CLI authentication",
+        "Marks E2 historical collector unknown rather than claiming the owning skill ran",
+        "Retains account/Region, query/window/timezone, observation and limit provenance without credentials"
+      ]
+    },
+    {
+      "id": 11,
+      "kind": "dialogue",
+      "prompt": "An HTML-only report has CPU and alert-state data ending 05:00 UTC. Saved AWS audit E27 shows a StatefulSet restart-annotation PATCH at 06:11 and E28 a pod replacement at 06:12. Causality is incomplete. Must these remain prose-only until we prove they fixed the alert? Stay offline; PDF and Markdown generation are disabled.",
+      "expected_output": "Requires relevant event coverage in the graphs despite incomplete causality and preserves format selection.",
+      "expectations": [
+        "Requires relevant saved E27/E28 events on graph context or companion timeline even though causality is incomplete",
+        "Maps material events to graphs or an explicit representation/relevance reason for exclusion, with evidence IDs",
+        "Routes exact operation labels, alignment and zoom presentation to Diagramming Style",
+        "Keeps post-05:00 data unmeasured and cause unconfirmed; does not invent recovery or refresh providers",
+        "Updates selected HTML only and skips PDF/Markdown generation and checks"
+      ]
+    },
+    {
+      "id": 12,
+      "kind": "dialogue",
+      "prompt": "The report calls a CloudWatch record an AWS patch. It is a successful Kubernetes StatefulSet pod-template PATCH setting kubectl.kubernetes.io/restartedAt. Convey that the payload is consistent with a rollout restart, but we did not capture the CLI. How should the report and figures change?",
+      "expected_output": "Uses specific operation labels and explicit bounded rollout interpretation across report and figure coverage.",
+      "expectations": [
+        "States that the payload is consistent with a rollout restart while keeping exact CLI command uncaptured",
+        "Replaces generic provider labeling with the Kubernetes kind/operation, resource and changed annotation, citing the same evidence",
+        "Keeps summary, captions and detail no stronger than saved evidence; restart does not establish incident cause or an image upgrade",
+        "Regenerates affected graph variants through Diagramming Style and records continuation without changing report identity"
+      ]
     }
   ]
 }

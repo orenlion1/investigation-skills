@@ -44,7 +44,7 @@
     {
       "id": 2,
       "kind": "execution",
-      "prompt": "Make the investigation workflow in diagramming-style-task-flow/diagrams/investigation-workflow.dot closely resemble my supplied task-flow dark SVG (diagramming-style-task-flow/reference/, with its source): oval steps in a shaded lifecycle group and boxed integrations below. Use Open and Edit → Save and close → Investigate → Report → Publish, and show Investigate invokes aws-mcp, gcx-cli, slack-mcp, rovo-dev-mcp. Keep both theme exports current. Work only inside this workspace; the delivered exports are SVG, so do not add PNG exports.",
+      "prompt": "Make the investigation workflow in diagramming-style-task-flow/diagrams/investigation-workflow.dot closely resemble my supplied task-flow dark SVG (diagramming-style-task-flow/reference/, with its source): oval steps in a shaded lifecycle group and boxed integrations below. Use Open and Edit \u2192 Save and close \u2192 Investigate \u2192 Report \u2192 Publish, and show Investigate invokes aws-mcp, gcx-cli, slack-mcp, rovo-dev-mcp. Keep both theme exports current. Work only inside this workspace; the delivered exports are SVG, so do not add PNG exports.",
       "expected_output": "Uses the explicitly requested reference style for a compact lifecycle and integration view, preserving exact labels and semantics while regenerating and verifying both themes.",
       "expectations": [
         "Inspects the supplied rendered reference and source and matches its requested shapes, grouping, placement, and palette rather than applying plain-label defaults over the request",
@@ -79,6 +79,42 @@
         "Clearly identifies subtree focus and whether percentages use the subtree or whole-profile denominator",
         "Plans a saved-stack rendering that retains parent/child structure and inclusive/self weights, either by explicit preservation steps or by using the bundled renderer and describing its parent/self validation checks. Does not propose summing overlapping ancestor/descendant shares",
         "Plans to use supplied stack data and a reproducible renderer, then check matching light/dark geometry and readability in selected outputs; does not invent or claim a completed render without the stack"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "Design an overlay from saved evidence only: CPU/state series end at 05:00 UTC; Kubernetes StatefulSet template PATCH E27 is at 06:11:23.282 UTC; pod delete/create E28 at 06:12:27.207 and 06:12:28.710; process start E15 at 06:12:37.164. We do not know whether these explain the flapping. Describe the views and checks.",
+      "expected_output": "Plans an overview and event detail from saved data, showing relevant events without manufacturing post-cutoff telemetry or causal claims.",
+      "expectations": [
+        "Includes the relevant observed events despite incomplete correlation, with distinct PATCH, pod lifecycle and process-start markers or lanes",
+        "Uses explicit timezone and evidence IDs, preserves timestamp precision and separate event identities",
+        "Keeps measured samples unchanged, leaves after-cutoff values unmeasured, and states coverage and causal limits adjacent to the graph",
+        "Uses a focused minute-scale event view when the overview hides separation and retains the broader context",
+        "Plans matching light/dark labels and geometry, regeneration, delivery-size visual checks and composed-asset verification"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "Replace AWS patch 06:11 on the graph: the saved CloudWatch record is a Kubernetes StatefulSet pod-template PATCH to utility/example-store, setting kubectl.kubernetes.io/restartedAt. Convey that its payload is consistent with a rollout restart, with exact CLI unknown. Explain the chart label and caption; do not render.",
+      "expected_output": "Gives a precise factual label and an adjacent caption with bounded rollout interpretation.",
+      "expectations": [
+        "Proposes a chart label identifying Kubernetes StatefulSet pod-template PATCH, utility/example-store, event time and evidence ID",
+        "Places the supported statement that the payload is consistent with a rollout restart in adjacent caption/prose, along with the uncaptured CLI qualification",
+        "Does not label the event an AWS infrastructure patch, observed CLI command or confirmed image upgrade",
+        "Plans regeneration and inspection of both theme exports plus caption/alt-text updates"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "dialogue",
+      "prompt": "The only figure is a Pyroscope flame graph. I also have saved deployment and Kubernetes audit timestamps. Put event markers on its x-axis so the reader can see when they occurred. There is no causal proof yet.",
+      "expected_output": "Preserves flame-graph sample semantics and proposes a companion event timeline.",
+      "expectations": [
+        "Does not use a flame graph x-axis as an event-time axis",
+        "Proposes a companion timeline or adjacent event callout linked to saved evidence",
+        "Does not omit relevant events solely because causality is incomplete or fabricate stack/time relationships"
       ]
     }
   ]

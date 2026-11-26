@@ -63,6 +63,42 @@
         "Reports authentication and MCP tool availability separately",
         "Does not claim successful identity verification or resource access"
       ]
+    },
+    {
+      "id": 4,
+      "kind": "dialogue",
+      "prompt": "AWS MCP identity and a metadata read now work for the task-selected example-eu profile in eu-central-1. My alert report currently relies on Grafana and source-code guesses about restarts. Explain your next investigation steps; do not query a provider in this eval.",
+      "expected_output": "Proposes bounded AWS resource/audit validation of material claims through MCP rather than treating access as completed investigation.",
+      "expectations": [
+        "Maps existing hypotheses to scoped resource reads through the verified MCP connection; STS or Grafana alone does not validate them",
+        "Discovers EKS audit log identifiers when relevant, distinguishes CloudTrail from Kubernetes audit, and preserves bounds and incomplete results",
+        "Can generate a reviewed reproducible MCP driver if necessary without substituting diagnostic CLI/SDK reads or weakening read-only controls",
+        "Hands selected evidence, event times and query provenance to Report Authoring and Diagramming Style"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "Saved E27 is a Kubernetes PATCH to StatefulSet utility/example-store, HTTP 200. Its requestObject.spec.template.metadata.annotations sets kubectl.kubernetes.io/restartedAt to 2026-11-22T01:11:23-05:00. userAgent is kubectl. CloudWatch stored it. What can the report say? Stay offline.",
+      "expected_output": "Identifies a successful Kubernetes pod-template annotation PATCH with a payload consistent with rollout restart, retaining exact-command and deployed-image limits.",
+      "expectations": [
+        "Calls it a Kubernetes StatefulSet pod-template PATCH, names utility/example-store and the restartedAt field",
+        "Explicitly says the payload is consistent with a rollout restart",
+        "Does not claim the exact CLI command was captured or call it an AWS infrastructure patch",
+        "Keeps image upgrade, deployed source revision, incident cause and what the restart cleared unproven without separate evidence"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "dialogue",
+      "prompt": "The saved task selects example-us but I correct AWS account to example-eu. The only authorized resource Region remains eu-central-1. Retry the investigation, preserving every other profile and format field. Describe the steps without making live calls.",
+      "expected_output": "Updates and reads back the selected account field through Profile Manager and revalidates the selected identity before resource queries.",
+      "expectations": [
+        "Uses Profile Manager for the account-field update and read-back, preserving omitted fields",
+        "Revalidates CLI identity, MCP account/principal and bounded resource access for example-eu before diagnostic queries",
+        "Preserves eu-central-1 and does not silently try other accounts after an empty or denied result",
+        "Keeps prior-account evidence attributed rather than relabeling it"
+      ]
     }
   ]
 }

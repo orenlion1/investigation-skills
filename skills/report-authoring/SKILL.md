@@ -14,8 +14,8 @@ identifiers, the verified/inferred distinction, negative-finding bounds, and the
 that every reported data pattern is supported by an evidence-backed graph.
 
 [Diagramming Style](../diagramming-style/SKILL.md) owns visual styling, theming, captions and
-rendering checks; this skill owns that the graphs exist, match the evidence and sit where the
-layout puts them.
+rendering checks. Name and apply that owner when returning a graph-change plan or result;
+this skill owns that the graphs exist, match the evidence and sit where the layout puts them.
 
 ## When to Use
 
@@ -53,6 +53,9 @@ the reference's skeleton for a new report and its checklist before delivery.
   [Publish It](../publish-it/SKILL.md), which owns both.
 
 ## Evidence Index
+
+Apply [collection provenance and event evidence](references/collection-provenance.md) to
+each evidence entry and to relevant cross-source events in report graphs.
 
 - Start the Evidence index with the canonical `Source:` snapshot: investigated repository or
   resource, requested scope, exact inspected commit or source version, observation time or
