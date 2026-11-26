@@ -201,6 +201,18 @@
         "Uses Diagramming Style for visual construction and Parallel Grafana Investigation for onset collection semantics instead of duplicating them",
         "Keeps replay causality unproven, cites evidence and updates selected HTML only without fresh provider reads or disabled-format work"
       ]
+    },
+    {
+      "id": 14,
+      "kind": "dialogue",
+      "prompt": "A report now has CPU/state charts and a new profile-onset chart. E5 proves a Git merge changing Service demo/worker externalName old.example.com\u2192new.example.com at10:05; E6 independently proves Kubernetes Service PATCH at10:25. The old source annotation disappeared from the CPU chart during regeneration, but both events are in the evidence table. E4 StatefulSet restartedAt PATCH is11:30, after samples end11:20. Correlations remain incomplete; HTML only. What must be repaired before delivery?",
+      "expected_output": "Requires cross-view event coverage and precise source-versus-runtime semantics, preserves original annotations and cutoff, and routes prominence to the visual owner.",
+      "expectations": [
+        "Requires the relevant Git/source configuration change and actual Service PATCH on all applicable graph views or documented relevance exclusions; an evidence-table mention or one surviving chart is insufficient",
+        "Carries resource, ExternalName old/new values, separate timestamps and E5/E6 through the graph handoff; does not turn the merge into an applied patch",
+        "Names and applies Diagramming Style for prominent markers/callouts/context lanes and regenerates both graph themes while keeping causality incomplete",
+        "Keeps post-cutoff StatefulSet event visible in context without invented measurements, preserves canonical HTML-only delivery and validates actual saved artifacts/citations after repair"
+      ]
     }
   ]
 }

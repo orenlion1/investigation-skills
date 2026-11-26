@@ -25,12 +25,23 @@ configuration, restart and workload-lifecycle events to the report's metric, sta
 and incident timelines. Include events even when correlation is incomplete or the event lies
 outside the measured series' coverage.
 
+Treat a relevant source configuration change as event evidence too: a Git merge changing a
+Service's ExternalName is a source-state change, not proof that Kubernetes applied it. Keep
+the merge and any independently observed Service PATCH as separate events. Carry the resource,
+changed field, before/after values and actual event time into the graph handoff.
+
 The coverage record maps each material event to its evidence ID, affected graph(s), or an
 explicit relevance/representation reason for exclusion. A prose evidence entry alone does
 not satisfy an event's graph coverage. Route visual construction, exact operation labels,
 time alignment and zooms to [Diagramming Style's event overlays](../../diagramming-style/references/event-overlays.md).
 Name that receiving owner explicitly in the returned plan or result, and apply its workflow
 rather than supplying an independent presentation procedure.
+
+Reconcile the coverage record after adding or rebuilding a graph. A significant change must
+remain visible across all relevant views, not disappear from older graphs when a profile or
+onset view is added. One mention in a caption or an evidence table does not replace its visual
+coverage. Use the visual owner for prominence and scope-appropriate context; retain explicit
+reasons for excluded views instead of implying that every event caused every signal.
 
 Carry the evidence owner's supported interpretation and its limits into the headline
 findings, captions and detail, without strengthening or omitting them. For AWS audit

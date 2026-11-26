@@ -59,6 +59,37 @@
         "Returns only the scoped inventory outcome and disclosed cap/cursor limits",
         "Does not turn inventory into profile/AWS/source investigation or additional paid prompts"
       ]
+    },
+    {
+      "id": 4,
+      "kind": "execution",
+      "files": [
+        "investigation-correlation-paths"
+      ],
+      "prompt": "Execute the read-only investigation in investigation-correlation-paths/TASK.md using its synthetic provider interface only. Read README.md. Explain the alert, the replay-associated workload and when its elevated behavior was first observed; check relevant operational/source changes and competing explanations. Retain auditable reads and a concrete question/evidence ledger in findings.json. Do not render reports yet, contact real providers, start Assistant, authenticate, publish or mutate production. Read saved source where relevant. Do the investigation rather than proposing a plan. After writing findings.json, read back its contents and verify the material measurements and actual fixture collector references.",
+      "expected_output": "Performs bounded synthetic provider reads across the correlation paths, inspects prior profiles/onset and actual configuration changes, and saves evidence-backed findings with alternatives and unresolved causal gaps.",
+      "expectations": [
+        "Actually invokes provider.py to read alert and profile-catalog plus incident, at least one earlier low profile, the missing prior profile, the first high prior profile and recovery profile; retains receipts rather than merely describing planned searches",
+        "Computes or verifies loader shares20% in10:00\u201310:15 and80% in10:30\u201310:45, keeps10:15\u201310:30 missing, and reports earliest inspected elevated window instead of a precise first-ever replay start",
+        "Actually reads both aws-workload-audit and aws-service-audit with explicit fixture-eu profile and eu-central-1 Region; distinguishes StatefulSet restartedAt PATCH, Pod delete/create, process start and Service externalName PATCH",
+        "Keeps Git merge10:05 separate from observed Service PATCH10:25 and preserves old.example.com\u2192new.example.com; neither change alone proves replay or traffic use",
+        "Inspects source/loader.py and source evidence, retaining queue-only deduplication as a candidate and digest-to-source mapping as unavailable despite matching version tag",
+        "Checks the configured Slack/history fixtures and retains bounded no-match/unrelated analogy rather than universal absence or common cause",
+        "Writes and reads back findings.json with observations, candidate and alternative, discriminating next evidence such as object overlap/progress, evidence identities and actual fixture collector attribution",
+        "Does not conflate profile share with system CPU, infer CPU recovery beyond11:20 samples, or claim production writes, live provider access, confirmed replay or validated fix"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "dialogue",
+      "prompt": "The proposed trigger is a Git ExternalName change merged June17, but newly searched profiles show the same elevated loader/parser signature onJune14. A scoped Kubernetes Service audit query returned no matching changes. What is the next reasoning step, and what belongs in the report graphs? Stay offline and keep existing scope.",
+      "expected_output": "Uses the earlier episode as a counterexample to the claimed merge-time trigger, asks for actual deployment/execution evidence, and retains accurately typed source change context.",
+      "expectations": [
+        "Recognizes the earlier profile episode prevents using the later merge as its trigger timestamp, without claiming it explains or excludes every later recurrence",
+        "Separates observed parser activity from proven replay and source merge from actual Service apply; bounded empty audit is not universal absence",
+        "Chooses a discriminating next request for actual deployment time/target or object/request progress/overlap, not more identical CPU examples",
+        "Routes relevant source/state annotations to Report Authoring/Diagramming Style with before-after identity and uncertainty, retaining prior events and the continuing question/evidence record"
+      ]
     }
   ]
 }

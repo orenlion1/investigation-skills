@@ -87,3 +87,5 @@ gap and the evidence needed to close it; do not invent certainty or withhold use
 Hand the retained profile results and metadata to
 [Report Authoring's profiling evidence contract](../../report-authoring/references/profiling-evidence.md)
 when they support a report finding; that owner decides graph coverage and placement.
+[Diagramming Style](../../diagramming-style/SKILL.md) renders the onset timeline and stack
+evidence. Name both receiving owners in the returned handoff, including a collection plan.

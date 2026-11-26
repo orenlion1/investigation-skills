@@ -116,6 +116,30 @@
         "Proposes a companion timeline or adjacent event callout linked to saved evidence",
         "Does not omit relevant events solely because causality is incomplete or fabricate stack/time relationships"
       ]
+    },
+    {
+      "id": 8,
+      "kind": "dialogue",
+      "prompt": "A fourteen-day CPU chart has only a tiny tick labelled Git merge E5, and the profile-onset chart omits it. E5 is source configuration: Service demo/worker ExternalName old.example.com\u2192new.example.com at10:05. E6 is independently observed Kubernetes Service PATCH at10:25. The existing StatefulSet restart/pod/process annotations must survive. Explain the concrete graph changes, including focused flamegraph views; causality is unknown. No providers or actual rendering now.",
+      "expected_output": "Makes the source-state change prominent and consistent across relevant views while preserving runtime changes and non-temporal graph semantics.",
+      "expectations": [
+        "Uses a visible labelled marker/callout or source lane containing Git/source identity, resource, field, before/after values, time and E5; not just an unexplained tick or caption",
+        "Repeats relevant event identity across CPU/state/onset timelines and retains the distinct observed Service PATCH E6 at its own time",
+        "Preserves existing StatefulSet/pod/process annotations and adds focused context where labels/events collide; no event silently disappears during regeneration",
+        "Uses a companion timeline or context callout for a flamegraph, never a timestamp on its stack-width axis or a claim that source history proves deployment/causation",
+        "Plans palette-only light/dark regeneration and composed-output inspection at delivery size for prominence, clearance and retained evidence IDs"
+      ]
+    },
+    {
+      "id": 9,
+      "kind": "dialogue",
+      "prompt": "One graph labels E5 Git merge, another labels it Service source change, and a third shows only E5. All refer to the same source event: Service demo/worker spec.externalName old.example.com to new.example.com at10:05. E6 is an independently observed Service PATCH at10:25. Standardize the descriptive graph labels consistently. Explain the repair using local guidance as needed, without rendering or querying providers.",
+      "expected_output": "Uses one stable evidence-ID-plus-descriptive-name label across relevant graph markers and lanes, retaining distinct source/apply events and contextual metadata.",
+      "expectations": [
+        "Chooses a consistent descriptive name such as [E5] ExternalName: old.example.com \u2192 new.example.com across relevant markers/callouts/lanes, rather than switching to generic Git merge/source change or a bare ID",
+        "Keeps Git/source operation, Service demo/worker and10:05 context, and independently observed E6 Service PATCH10:25 as separate event identities; field equality does not prove apply or causality",
+        "Uses wrapping or a visible companion for constrained/non-temporal views and checks both themes in the composed report while preserving other relevant annotations"
+      ]
     }
   ]
 }

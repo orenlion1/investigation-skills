@@ -27,6 +27,31 @@ Keep uncertainty and causal qualifications in adjacent captions/prose under the 
 guide. Render factual operation/resource labels in the chart and place the supplied
 interpretation beside it.
 
+## Make material state changes visible across views
+
+Use a clearly visible marker and labelled callout or dedicated lane for a material change;
+do not reduce it to an unexplained tick or bury it only in a caption. Show the resource,
+changed field and before/after values when supplied, with time and evidence ID. For example,
+label a source-only event as a Git merge changing a Service ExternalName from one value to
+another; label an observed Kubernetes Service PATCH separately at its own time.
+
+Use one descriptive display name for the same evidence event across graphs: evidence ID,
+changed field or operation, and identifying resource/value, such as
+`[E5] ExternalName: old.example.com → new.example.com`. Keep that name on markers, callouts
+and event lanes; wrap it or provide a visible companion rather than substituting a generic
+"Git merge", "source change" or bare ID in another view. Retain operation, resource and time
+as context. Distinct events under one evidence ID still need distinct descriptive names;
+a source merge and an observed Service PATCH never become one event because the field matches.
+
+Repeat that event identity on each relevant metric, alert-state and profile timeline. Keep
+the overview and add focused context where the label or distinct events would otherwise be
+lost. For a narrow or non-temporal view, use a visible companion timeline or context callout,
+not a timestamp on an unrelated axis. Do not widen measured coverage or imply a deployed
+state from source history. When a graph is revised, preserve earlier relevant event annotations
+and recheck their prominence at delivery size in both themes and in the assembled report,
+including whether it loads the intended regenerated assets. The caller's evidence owner
+decides relevance and causal interpretation.
+
 ## Align events without inventing coverage
 
 - Normalize event times to the plotted timezone and retain the original timestamp/offset in

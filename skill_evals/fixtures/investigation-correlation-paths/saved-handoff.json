@@ -1,0 +1,557 @@
+{
+  "scope": {
+    "profile": "fixture-eu",
+    "region": "eu-central-1",
+    "context": "fixture-eu",
+    "window": {
+      "start": "2026-06-14T09:00:00Z",
+      "end": "2026-06-14T12:00:00Z"
+    }
+  },
+  "evidence": {
+    "aws-service-audit": {
+      "evidence_id": "E6",
+      "collector": "synthetic provider fixture, representing AWS API MCP call_aws Kubernetes audit read",
+      "profile": "fixture-eu",
+      "region": "eu-central-1",
+      "query_status": "Complete",
+      "cap": 100,
+      "returned": 1,
+      "events": [
+        {
+          "id": "service-patch",
+          "time": "2026-06-14T10:25:00Z",
+          "api": "Kubernetes",
+          "verb": "patch",
+          "kind": "Service",
+          "resource": "demo/worker",
+          "http_status": 200,
+          "changed_field": "spec.externalName",
+          "old_value": "old.example.com",
+          "new_value": "new.example.com"
+        }
+      ]
+    },
+    "prior-profile-low": {
+      "evidence_id": "E2b",
+      "collector": "synthetic provider fixture, representing gcx profiles query",
+      "context": "fixture-eu",
+      "datasource": "fixture-profiles",
+      "selector": "{service_name=\"worker\",pod=\"worker-0\"}",
+      "profile_type": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+      "window": {
+        "start": "2026-06-14T10:00:00Z",
+        "end": "2026-06-14T10:15:00Z"
+      },
+      "max_nodes": 1000,
+      "labels": {
+        "service_name": "worker",
+        "pod": "worker-0"
+      },
+      "flamegraph": {
+        "names": [
+          "total",
+          "Thread.run",
+          "FileLoader.processJobs",
+          "EventParser.parse",
+          "HTTP.handle"
+        ],
+        "levels": [
+          {
+            "values": [
+              0,
+              100,
+              0,
+              0
+            ]
+          },
+          {
+            "values": [
+              0,
+              100,
+              0,
+              1
+            ]
+          },
+          {
+            "values": [
+              0,
+              20,
+              0,
+              2,
+              0,
+              80,
+              80,
+              4
+            ]
+          },
+          {
+            "values": [
+              0,
+              20,
+              2,
+              3
+            ]
+          }
+        ],
+        "total": 100,
+        "maxSelf": 80
+      }
+    },
+    "prior-profile-early": {
+      "evidence_id": "E2a",
+      "collector": "synthetic provider fixture, representing gcx profiles query",
+      "context": "fixture-eu",
+      "datasource": "fixture-profiles",
+      "selector": "{service_name=\"worker\",pod=\"worker-0\"}",
+      "profile_type": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+      "window": {
+        "start": "2026-06-14T09:00:00Z",
+        "end": "2026-06-14T09:15:00Z"
+      },
+      "max_nodes": 1000,
+      "labels": {
+        "service_name": "worker",
+        "pod": "worker-0"
+      },
+      "flamegraph": {
+        "names": [
+          "total",
+          "Thread.run",
+          "FileLoader.processJobs",
+          "EventParser.parse",
+          "HTTP.handle"
+        ],
+        "levels": [
+          {
+            "values": [
+              0,
+              100,
+              0,
+              0
+            ]
+          },
+          {
+            "values": [
+              0,
+              100,
+              0,
+              1
+            ]
+          },
+          {
+            "values": [
+              0,
+              10,
+              0,
+              2,
+              0,
+              90,
+              90,
+              4
+            ]
+          },
+          {
+            "values": [
+              0,
+              10,
+              1,
+              3
+            ]
+          }
+        ],
+        "total": 100,
+        "maxSelf": 90
+      }
+    },
+    "incident-profile": {
+      "evidence_id": "E3",
+      "collector": "synthetic provider fixture, representing gcx profiles query",
+      "context": "fixture-eu",
+      "datasource": "fixture-profiles",
+      "selector": "{service_name=\"worker\",pod=\"worker-0\"}",
+      "profile_type": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+      "window": {
+        "start": "2026-06-14T11:00:00Z",
+        "end": "2026-06-14T11:15:00Z"
+      },
+      "max_nodes": 1000,
+      "labels": {
+        "service_name": "worker",
+        "pod": "worker-0"
+      },
+      "flamegraph": {
+        "names": [
+          "total",
+          "Thread.run",
+          "FileLoader.processJobs",
+          "EventParser.parse",
+          "HTTP.handle"
+        ],
+        "levels": [
+          {
+            "values": [
+              0,
+              100,
+              0,
+              0
+            ]
+          },
+          {
+            "values": [
+              0,
+              100,
+              0,
+              1
+            ]
+          },
+          {
+            "values": [
+              0,
+              85,
+              0,
+              2,
+              0,
+              15,
+              15,
+              4
+            ]
+          },
+          {
+            "values": [
+              0,
+              85,
+              35,
+              3
+            ]
+          }
+        ],
+        "total": 100,
+        "maxSelf": 35
+      }
+    },
+    "source": {
+      "evidence_id": "E5",
+      "collector": "synthetic pinned source fixture",
+      "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "version_tag": "v1.2.3",
+      "digest_to_commit": null,
+      "queue_behavior": "queued jobs only are deduplicated; a polled active job is no longer in the queue; runtime duplication not observed",
+      "events": [
+        {
+          "id": "git-externalname",
+          "time": "2026-06-14T10:05:00Z",
+          "api": "Git",
+          "verb": "merge",
+          "kind": "source configuration",
+          "resource": "demo/worker",
+          "changed_field": "Service spec.externalName",
+          "old_value": "old.example.com",
+          "new_value": "new.example.com"
+        }
+      ],
+      "inspected_file": "source/loader.py",
+      "lines": "7\u201313"
+    },
+    "prior-profile-gap": {
+      "evidence_id": "E2c",
+      "collector": "synthetic provider fixture",
+      "window": {
+        "start": "2026-06-14T10:15:00Z",
+        "end": "2026-06-14T10:30:00Z"
+      },
+      "status": "no profile data",
+      "flamegraph": null
+    },
+    "prior-incidents": {
+      "evidence_id": "E8",
+      "collector": "synthetic configured historical-endpoint read",
+      "scope": "fixture-history, preceding14days",
+      "candidates": [
+        {
+          "id": "memory-analogy",
+          "symptom": "daily memory threshold crossings in another service",
+          "shared_cause_verified": false
+        }
+      ],
+      "cap": 20,
+      "next_cursor": null
+    },
+    "alert": {
+      "id": "E1",
+      "collector": "synthetic provider fixture, representing direct gcx alert/metrics read",
+      "resource": "demo/worker-0",
+      "rule": {
+        "expression": "system_cpu_usage >= 0.99",
+        "for": "10m",
+        "keep_firing_for": null
+      },
+      "samples_end": "2026-06-14T11:20:00Z",
+      "cpu": [
+        {
+          "time": "2026-06-14T11:00:00Z",
+          "value": 100
+        },
+        {
+          "time": "2026-06-14T11:05:00Z",
+          "value": 99.8
+        },
+        {
+          "time": "2026-06-14T11:10:00Z",
+          "value": 80
+        },
+        {
+          "time": "2026-06-14T11:15:00Z",
+          "value": 100
+        },
+        {
+          "time": "2026-06-14T11:20:00Z",
+          "value": 99.9
+        }
+      ],
+      "states": [
+        {
+          "time": "2026-06-14T10:55:00Z",
+          "value": 1
+        },
+        {
+          "time": "2026-06-14T11:05:00Z",
+          "value": 2
+        },
+        {
+          "time": "2026-06-14T11:10:00Z",
+          "value": 0
+        },
+        {
+          "time": "2026-06-14T11:15:00Z",
+          "value": 1
+        }
+      ],
+      "state_encoding": {
+        "0": "Normal",
+        "1": "Pending",
+        "2": "Alerting"
+      }
+    },
+    "slack-history": {
+      "evidence_id": "E7",
+      "collector": "synthetic configured-channel read",
+      "scope": "fixture-channel, exact09:00\u201312:00UTC",
+      "matching_messages": [],
+      "cap": 100,
+      "next_cursor": null,
+      "limitation": "no matching messages in returned scope; thread coverage unexamined"
+    },
+    "recovery-profile": {
+      "evidence_id": "E3r",
+      "collector": "synthetic provider fixture, representing gcx profiles query",
+      "context": "fixture-eu",
+      "datasource": "fixture-profiles",
+      "selector": "{service_name=\"worker\",pod=\"worker-0\"}",
+      "profile_type": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+      "window": {
+        "start": "2026-06-14T11:45:00Z",
+        "end": "2026-06-14T12:00:00Z"
+      },
+      "max_nodes": 1000,
+      "labels": {
+        "service_name": "worker",
+        "pod": "worker-0"
+      },
+      "flamegraph": {
+        "names": [
+          "total",
+          "Thread.run",
+          "FileLoader.processJobs",
+          "EventParser.parse",
+          "HTTP.handle"
+        ],
+        "levels": [
+          {
+            "values": [
+              0,
+              100,
+              0,
+              0
+            ]
+          },
+          {
+            "values": [
+              0,
+              100,
+              0,
+              1
+            ]
+          },
+          {
+            "values": [
+              0,
+              15,
+              0,
+              2,
+              0,
+              85,
+              85,
+              4
+            ]
+          },
+          {
+            "values": [
+              0,
+              15,
+              1,
+              3
+            ]
+          }
+        ],
+        "total": 100,
+        "maxSelf": 85
+      }
+    },
+    "aws-workload-audit": {
+      "evidence_id": "E4",
+      "collector": "synthetic provider fixture, representing AWS API MCP call_aws CloudWatch Logs query",
+      "profile": "fixture-eu",
+      "region": "eu-central-1",
+      "query_status": "Complete",
+      "cap": 100,
+      "returned": 4,
+      "next_token": null,
+      "events": [
+        {
+          "id": "restart-template",
+          "time": "2026-06-14T11:30:00Z",
+          "api": "Kubernetes",
+          "verb": "patch",
+          "kind": "StatefulSet",
+          "resource": "demo/worker",
+          "http_status": 200,
+          "changed_field": "spec.template.metadata.annotations.kubectl.kubernetes.io/restartedAt",
+          "new_value": "2026-06-14T07:30:00-04:00",
+          "image_before": "example/worker:v1.2.3",
+          "image_after": "example/worker:v1.2.3"
+        },
+        {
+          "id": "pod-delete",
+          "time": "2026-06-14T11:31:00Z",
+          "api": "Kubernetes",
+          "verb": "delete",
+          "kind": "Pod",
+          "resource": "demo/worker-0",
+          "http_status": 200
+        },
+        {
+          "id": "pod-create",
+          "time": "2026-06-14T11:31:01Z",
+          "api": "Kubernetes",
+          "verb": "create",
+          "kind": "Pod",
+          "resource": "demo/worker-0",
+          "http_status": 201
+        },
+        {
+          "id": "process-start",
+          "time": "2026-06-14T11:31:05Z",
+          "api": "runtime metric",
+          "verb": "start",
+          "kind": "Process",
+          "resource": "demo/worker-0"
+        }
+      ]
+    },
+    "profile-catalog": {
+      "scope": {
+        "profile": "fixture-eu",
+        "region": "eu-central-1",
+        "context": "fixture-eu",
+        "window": {
+          "start": "2026-06-14T09:00:00Z",
+          "end": "2026-06-14T12:00:00Z"
+        }
+      },
+      "selector": "{service_name=\"worker\",pod=\"worker-0\"}",
+      "available": [
+        "prior-profile-early",
+        "prior-profile-low",
+        "prior-profile-gap",
+        "prior-profile-high",
+        "incident-profile",
+        "recovery-profile"
+      ],
+      "limit": 20,
+      "next_cursor": null
+    },
+    "prior-profile-high": {
+      "evidence_id": "E2d",
+      "collector": "synthetic provider fixture, representing gcx profiles query",
+      "context": "fixture-eu",
+      "datasource": "fixture-profiles",
+      "selector": "{service_name=\"worker\",pod=\"worker-0\"}",
+      "profile_type": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+      "window": {
+        "start": "2026-06-14T10:30:00Z",
+        "end": "2026-06-14T10:45:00Z"
+      },
+      "max_nodes": 1000,
+      "labels": {
+        "service_name": "worker",
+        "pod": "worker-0"
+      },
+      "flamegraph": {
+        "names": [
+          "total",
+          "Thread.run",
+          "FileLoader.processJobs",
+          "EventParser.parse",
+          "HTTP.handle"
+        ],
+        "levels": [
+          {
+            "values": [
+              0,
+              100,
+              0,
+              0
+            ]
+          },
+          {
+            "values": [
+              0,
+              100,
+              0,
+              1
+            ]
+          },
+          {
+            "values": [
+              0,
+              80,
+              0,
+              2,
+              0,
+              20,
+              20,
+              4
+            ]
+          },
+          {
+            "values": [
+              0,
+              80,
+              30,
+              3
+            ]
+          }
+        ],
+        "total": 100,
+        "maxSelf": 30
+      }
+    }
+  },
+  "question": "When did elevated loader/parser work first appear, and what operational/source changes correlate?",
+  "hypothesis": "duplicate replay remains unproven",
+  "recorded_token_accounting": {
+    "cutoff": "2026-06-15T12:00:00Z",
+    "total": null
+  }
+}

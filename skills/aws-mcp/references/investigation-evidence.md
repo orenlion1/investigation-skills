@@ -56,6 +56,8 @@ AWS CloudWatch can hold Kubernetes audit evidence; its storage location does not
 operation into an AWS infrastructure patch. Do not infer an image upgrade from a restart:
 pre-restart image tag/digest, replacement requested tag, replacement running digest, and
 deployed source revision are separate facts requiring their own evidence.
+Even a successful restart sequence does not establish the incident's cause or which state
+the restart cleared; those remain separate execution-evidence questions.
 
 ## Hand off and verify
 
@@ -67,3 +69,8 @@ Name these receiving owners in investigation plans as well as completed results;
 query steps without the report/graph handoff is incomplete. Do not leave material AWS
 findings only in a tool transcript. Check that the handoff can
 support the report's claims without a new search or an unstated account/timezone assumption.
+
+An empty audit result does not cancel that handoff. Pass its exact negative scope to the
+receiving owners alongside any relevant source-change evidence, keeping source merge time
+separate from unverified apply time. Let those owners retain accurate source-event context
+in the report and graphs; never relabel the merge as an observed Service PATCH.
