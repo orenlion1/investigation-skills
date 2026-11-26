@@ -122,12 +122,11 @@ The store and task files are the user's, and people edit them by hand. `lint` fi
 in a legacy or non-canonical form and `lint --fix` updates them; rules and exit statuses are in
 the [lint reference](references/profile-store.md#lint).
 
-- **Never repair implicitly.** When any helper result carries `lint_notice` (or `render`
-  prints it), finish the requested operation, then tell the user their `.env` holds legacy or
-  hand-edited settings and ask them to run `lint profiles`. Do not run `lint --fix` on your
-  own initiative.
-- **`lint profiles`** is the user's request to update their `.env`: run `lint`, then
-  `lint --fix`, and report what changed by rule and field, never by value.
+- **Never repair implicitly.** A `lint_notice` reports store findings, not permission.
+  Finish the requested operation and offer lint unless the user already requested repair.
+- **Store repair requests** such as `lint profiles` or “fix the store” authorize `lint`,
+  `lint --fix --dry-run`, then `lint --fix`; do not seek confirmation again. Report changes
+  by rule and field, never by stored value. Honor plan-only requests without running commands.
 - **Tasks are linted separately.** When a store lint returns `task_notice`, name each listed
   task and ask the user to run `lint task <path>`; on that request run
   `lint --task <path> --fix`. A finalized task stays subject to the editor contract.

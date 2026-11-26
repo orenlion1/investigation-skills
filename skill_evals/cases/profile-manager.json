@@ -196,7 +196,7 @@
       "expected_output": "Plans the requested load but blocks it before writing because the target TASK has illegal Fan-out: off. Reports the earlier lint notice, plans separately authorized lint/lint --fix with safe previews and field/rule-only reporting, and asks for a legal task value before completing the load. Does not reinterpret off or fabricate a successful load.",
       "expectations": [
         "Plans schema/preview and reports the earlier lint notice, but blocks the invalid target TASK load before writing and never claims it completed; permits completion only after the user selects a legal value",
-        "Plans lint and lint --fix on the store only because the user asked, reporting changes by rule and field, never by stored value",
+        "Plans lint, lint --fix --dry-run and lint --fix on the store under the existing explicit repair request, without asking for confirmation again; reports changes by rule and field without private stored values (may quote the invalid literal supplied by the user)",
         "Does not guess a replacement for the illegal Fan-out value; states the legal values and asks the user"
       ]
     },

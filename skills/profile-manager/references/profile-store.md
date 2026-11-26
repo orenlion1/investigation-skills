@@ -323,7 +323,12 @@ value.
   findings that need a decision stay exactly as written; the store keeps its mode.
 - Exit status: `0` nothing unresolved, `1` findings remain, `2` error.
 
-Two notices prompt for a lint without performing one:
+Notices report findings without performing a lint. Offer the corresponding lint when it
+was not requested. An existing request to lint or fix that store already authorizes the
+safe preview and unambiguous repairs; no exact phrase or second confirmation is needed.
+A plan-only request still permits no execution. Invalid task values need a separate user
+choice and never block independently authorized store lint. Report rules and fields without
+private stored values; a user-supplied invalid literal may be quoted to explain rejection.
 
 - **`lint_notice`** is added to every other command's result (standard error for `render`)
   when the store holds findings. The command still completes and the store is not changed.
