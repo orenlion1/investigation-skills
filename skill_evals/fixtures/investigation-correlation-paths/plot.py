@@ -21,7 +21,7 @@ for theme in ('light', 'dark'):
     bg, fg, accent = ('#ffffff', '#0f172a', '#0e7490') if theme == 'light' else ('#0f172a', '#f1f5f9', '#67e8f9')
     with plt.rc_context({'font.size': 11, 'svg.fonttype': 'none', 'svg.hashsalt': 'correlation-fixture'}):
         for index, v in enumerate(views, 1):
-            fig, (ax, lane) = plt.subplots(2, 1, figsize=(13, 6), gridspec_kw={'height_ratios': [2, 1]}, layout='constrained')
+            fig, (ax, lane) = plt.subplots(2, 1, figsize=(13, 6), sharex=True, gridspec_kw={'height_ratios': [2, 1]}, layout='constrained')
             fig.patch.set_facecolor(bg)
             for axis in (ax, lane):
                 axis.set_facecolor(bg)
