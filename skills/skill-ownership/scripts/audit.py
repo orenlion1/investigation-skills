@@ -14,6 +14,7 @@ import re
 from pathlib import Path
 
 import guardrails
+import skill_validation
 
 CLAUSE = ('This document routes requests to their owners. Each owner holds its workflow, '
           'guidance, and verification; follow the owner rather than restating or overriding it '
@@ -96,7 +97,21 @@ def audit(repository: Path) -> dict:
         sections.append({'title': match.group(1), 'class': section_class, 'signals': signals,
                          'lines': len([line for line in body.splitlines() if line.strip()])})
 
-    skills = [d.name for d in guardrails.skill_dirs(repository, skills_dir)]
+    directories = guardrails.skill_dirs(repository, skills_dir)
+    skills = [d.name for d in directories]
+    naming_findings = []
+    for directory in directories:
+        path = directory / 'SKILL.md'
+        relative = path.relative_to(repository).as_posix()
+        try:
+            fields = skill_validation.frontmatter_fields(guardrails.read_regular(path))
+        except ValueError as error:
+            naming_findings.append({'rule': 'NAME000', 'path': relative, 'severity': 'error',
+                                    'reason': str(error),
+                                    'source': skill_validation.STRUCTURE_SOURCE})
+            continue
+        naming_findings.extend(skill_validation.name_findings(
+            fields.get('name', ''), relative, directory.name))
     baseline = None
     baseline_path = repository / guardrails.BASELINE_RELATIVE
     if baseline_path.is_file():
@@ -119,6 +134,7 @@ def audit(repository: Path) -> dict:
                                  if name not in skills],
         'oversized_skills': oversized,
         'broken_links': guardrails.link_errors(repository, skills_dir),
+        'naming_findings': naming_findings,
     }
 
 
@@ -126,7 +142,8 @@ def finding_count(report: dict) -> int:
     return (sum(1 for s in report['sections'] if s['class'] == 'workflow')
             + (not report['clause_present']) + (not report['root_files_identical'])
             + len(report['unrouted_skills']) + len(report['routes_without_skill'])
-            + len(report['oversized_skills']) + len(report['broken_links']))
+            + len(report['oversized_skills']) + len(report['broken_links'])
+            + len(report.get('naming_findings', [])))
 
 
 def render_markdown(report: dict) -> str:
@@ -152,6 +169,9 @@ def render_markdown(report: dict) -> str:
     listing('Oversized skills', [f'{o["skill"]}: {o["bytes"]} bytes, over {o["limit"]} '
                                  f'({o["against"]})' for o in report['oversized_skills']])
     listing('Broken links', report['broken_links'])
+    listing('Skill naming', [f'{f["rule"]} ({f["severity"]}) {f["path"]}: '
+                             f'{f["reason"]} ([source]({f["source"]}))'
+                             for f in report.get('naming_findings', [])])
     count = finding_count(report)
     lines.extend(['', f'{count} finding(s).' if count else 'No findings.'])
     return '\n'.join(lines) + '\n'

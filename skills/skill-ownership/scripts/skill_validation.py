@@ -14,6 +14,12 @@ from pathlib import Path
 
 MAX_SKILL_BYTES = 1_048_576
 NAME_PATTERN = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
+NAMING_SOURCE = ('https://platform.claude.com/docs/en/agents-and-tools/agent-skills/'
+                 'best-practices#naming-conventions')
+STRUCTURE_SOURCE = ('https://platform.claude.com/docs/en/agents-and-tools/agent-skills/'
+                    'overview#skill-structure')
+RESERVED_WORDS = frozenset({'anthropic', 'claude'})
+VAGUE_NAMES = frozenset({'helper', 'utils', 'tools', 'documents', 'data', 'files'})
 PLACEHOLDER = re.compile(r'\[TODO(?:[:\]])|\bTBD\b|\bYOUR_[A-Z_]+\b', re.IGNORECASE)
 
 
@@ -21,6 +27,53 @@ def unquote(value: str) -> str:
     if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
         return value[1:-1]
     return value
+
+
+def frontmatter_fields(source: str) -> dict[str, str]:
+    """Read the catalog's scalar top-level fields; reject ambiguous duplicates."""
+    lines = source.splitlines()
+    if not lines or lines[0] != '---':
+        raise ValueError('SKILL.md lacks opening YAML frontmatter')
+    try:
+        closing_index = lines.index('---', 1)
+    except ValueError:
+        raise ValueError('SKILL.md lacks closing YAML frontmatter') from None
+    fields: dict[str, str] = {}
+    for line in lines[1:closing_index]:
+        if not line.strip() or line.startswith((' ', '\t', '#')):
+            continue
+        if ':' not in line:
+            raise ValueError('invalid frontmatter line')
+        key, value = line.split(':', 1)
+        key = key.strip()
+        if key in fields:
+            raise ValueError(f'duplicate frontmatter field: {key}')
+        fields[key] = unquote(value.strip())
+    return fields
+
+
+def name_findings(name: str, path: str, directory: str) -> list[dict[str, str]]:
+    """Shared offline naming rules for the check and read-only audit."""
+    findings = []
+
+    def add(rule, severity, reason, source=STRUCTURE_SOURCE):
+        findings.append({'rule': rule, 'path': path, 'severity': severity,
+                         'reason': reason, 'source': source})
+
+    if not NAME_PATTERN.fullmatch(name):
+        add('NAME001', 'error', f'invalid or missing skill name: {name or "<missing>"}')
+    if len(name) > 64:
+        add('NAME002', 'error', 'skill name exceeds 64 characters')
+    reserved = sorted(RESERVED_WORDS.intersection(name.split('-')))
+    if reserved:
+        add('NAME003', 'error', f'skill name contains reserved word(s): {", ".join(reserved)}')
+    if name != directory:
+        add('NAME004', 'error', f'skill name {name!r} does not match directory {directory!r}',
+            'https://agentskills.io/specification#name-field')
+    if name in VAGUE_NAMES:
+        add('NAME101', 'advisory', f'skill name {name!r} is vague or overly generic; '
+            'review the capability and suggest a more specific name', NAMING_SOURCE)
+    return findings
 
 
 def validate(skill_dir: Path) -> str | None:
@@ -34,27 +87,16 @@ def validate(skill_dir: Path) -> str | None:
     if size < 1 or size > MAX_SKILL_BYTES:
         return f'SKILL.md size is outside 1..{MAX_SKILL_BYTES} bytes: {size}'
     source = skill_file.read_text(encoding='utf-8')
-    lines = source.splitlines()
-    if not lines or lines[0] != '---':
-        return f'SKILL.md lacks opening YAML frontmatter: {skill_file}'
     try:
-        closing_index = lines.index('---', 1)
-    except ValueError:
-        return f'SKILL.md lacks closing YAML frontmatter: {skill_file}'
-    fields: dict[str, str] = {}
-    for line in lines[1:closing_index]:
-        if not line.strip() or line.startswith((' ', '\t', '#')):
-            continue
-        if ':' not in line:
-            return f'invalid frontmatter line in {skill_file}: {line}'
-        key, value = line.split(':', 1)
-        fields[key.strip()] = unquote(value.strip())
+        fields = frontmatter_fields(source)
+    except ValueError as error:
+        return f'{skill_file}: {error}'
     name = fields.get('name', '')
     description = fields.get('description', '')
-    if not NAME_PATTERN.fullmatch(name):
-        return f'invalid or missing skill name: {name or "<missing>"}'
-    if name != skill_dir.name:
-        return f'skill name {name!r} does not match directory {skill_dir.name!r}'
+    for finding in name_findings(name, str(skill_file), skill_dir.name):
+        if finding['severity'] == 'error':
+            return (f'{finding["rule"]} {finding["path"]}: {finding["reason"]} '
+                    f'({finding["source"]})')
     if not description:
         return f'missing description: {skill_file}'
     if len(description) > 1024:

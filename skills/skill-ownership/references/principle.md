@@ -1,6 +1,6 @@
 # The Ownership Principle
 
-One owner per rule. The clause that opens the root files defines a model with three
+One skill per capability. The clause that opens the root files defines a model with three
 classes, and every level-two section of a root file belongs to exactly one.
 
 | Class | What it is | Where it lives |
