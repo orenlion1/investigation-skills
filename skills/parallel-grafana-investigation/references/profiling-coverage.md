@@ -57,6 +57,19 @@ Record unavailable history or capability instead of silently widening scope or i
 start time. Hand these measurements and limits to Report Authoring for a timeline beside the
 representative stack evidence.
 
+In an offline plan, describe the same protocol without claiming reads occurred: reuse saved
+evidence; define a measurable stack/activity signature and its whole-profile denominator;
+compare like-for-like earlier windows coarsely, then refine changes while allowing recurrence;
+retain matching/nonmatching brackets, missing or pruned buckets, widths and identity limits;
+and name the Report Authoring/Diagramming Style handoff. Do not invent a numeric threshold
+or observed bracket when inputs are absent. Normal parser presence, abnormal sampled dominance,
+and proven replay are separate claims in both the plan and returned findings.
+
+Missing buckets remain gaps or explicit no-data markers, never zero-valued observations—even
+if the caller insists or offers a footnote. Truncated stacks cannot establish nonmatching
+activity. A supplied bucket timestamp cannot turn a coverage boundary into the actual replay
+start; explain that limit rather than promising an exact start after receiving the timestamp.
+
 ## Hand off source leads
 
 The handoff to [Source Investigation](../../source-investigation/SKILL.md) carries the

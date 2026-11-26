@@ -152,14 +152,14 @@
     {
       "id": 11,
       "kind": "dialogue",
-      "prompt": "Your bounded historical searches returned 20 IRM incidents (the CLI internally paged, count unknown) and an exact service-a CPU/replay match: the current investigation copied into a prior-looking publication and Assistant chat. Another candidate only has similar symptoms and a restart recommendation, with no retrieved source body. The investigation API filtered creation dates, while conversation metadata has no reliable event date. Report the result and next check without more reads.",
+      "prompt": "Reconcile only; execute no more provider reads. Local bundled guidance may be read. The saved IRM receipt has arguments [gcx, irm, incidents, list, --context, incident-lab, --from, 2026-04-04T10:00:00Z, --to, 2026-04-18T10:00:00Z, --limit, 20, -o, json], target service-a, and 20 returned incidents. The CLI internally paged; native request count is unknown. Two of three permitted CLI invocations are used; one verification invocation remains, with at most one native detail request and a 60-second process deadline. Candidate 17 reference is https://example.grafana.net/a/grafana-irm-app/incidents/17; its similar-symptom/restart summary was read but its body was not. Another exact CPU/replay match is the current investigation copied into a prior-looking publication and Assistant chat. The investigation API filtered creation dates; conversation metadata has no reliable event date. Preserve the supplied receipt context/arguments/reference/limits, report the result and budget the next check without executing it.",
       "expected_output": "Excludes self-corroboration and treats other similarities as hypotheses, recording capped and incomplete temporal/native request coverage.",
       "expectations": [
         "Excludes the current investigation, its copied publication and Assistant chat as independent corroboration and deduplicates copies",
         "Keeps symptom/restart similarity without verified body/mechanism as a hypothesis rather than shared root cause",
         "Discloses twenty-result cap, unknown native page count and that CLI read count does not bound underlying API requests",
         "Distinguishes creation/update dates from event dates and does not claim exhaustive temporal coverage or no prior matches",
-        "Retains commands/context/references/limits and proposes a budgeted source-body verification as the next check without executing it"
+        "Retains the supplied command arguments, incident-lab context, candidate 17 reference and limits, and proposes source-body verification using only the remaining one CLI invocation/one native detail request with a 60-second deadline, without executing it"
       ]
     }
   ]

@@ -91,6 +91,15 @@ is only a lead; do not infer a shared root cause. Save exact command arguments, 
 IDs/URLs, timestamps, source versions, caps, verification references and unavailable coverage.
 Report attempted/unavailable searches separately from completed searches with no scoped matches.
 
+A reconciliation response retains the supplied command argument arrays, context, source
+references, temporal filters, caps and remaining verification budget, even when no more reads
+are authorized. Mark absent fields unavailable instead of omitting their provenance gap or
+inventing them. State separately how many CLI invocations and native API requests are known:
+the CLI count does not bound underlying API requests, and unknown paging leaves native-budget
+compliance unverified. Do not call a creation-date filter an event-date bound. Name one next
+source-body verification with its explicit remaining CLI/native request allocation and process
+deadline; a proposed check is not an executed read or permission to exceed either budget.
+
 History-only endpoints read existing objects only and never use prompt/create/share/mode/cancel/pause/resume.
 The explicit `grafana-assistant-search` kind alone permits its prepared scoped prompt under
 [Assistant matching](assistant-search.md); it does not permit other state changes.

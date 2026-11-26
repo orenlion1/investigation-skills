@@ -283,25 +283,25 @@
     {
       "id": 19,
       "kind": "dialogue",
-      "prompt": "A CPU profile shows a loader/parser stack consuming most sampled work. The incident report calls this event replay. Earlier profiles are available inside the already authorized fourteen-day window. Is identifying the hot stack enough? Explain the next read-only investigation and the start-time claim it could support; do not run tools.",
-      "expected_output": "Attempts a bounded backward profile comparison and refines an observed onset bracket, without treating parser presence or sampled dominance as proof of replay.",
+      "prompt": "A CPU profile shows a loader/parser stack consuming most sampled work. The incident report calls this event replay. Earlier profiles are available inside the already authorized fourteen-day window. Is identifying the hot stack enough? Explain the next read-only investigation and the start-time claim it could support; stay offline: local bundled guidance may be read, but do not query providers or launch agents.",
+      "expected_output": "Plans a bounded backward profile comparison using retained evidence and refines an observed onset bracket without treating parser presence or sampled dominance as proof of replay; sends no tool calls.",
       "expectations": [
-        "Attempts earlier comparable profile reads within the existing context/resources/window and reuses saved evidence",
-        "Defines a measurable stack/activity signature and keeps normal frame presence separate from abnormal dominance and replay causality",
+        "Plans comparable earlier profile reads using the already authorized context/resources/fourteen-day window and reuses saved evidence; no provider query or agent launch occurs, while local instruction reads are allowed",
+        "Plans to define a measurable stack/activity signature with its sample denominator, keeping normal frame presence, abnormal dominance and replay causality separate; does not invent observed values or an unsupported threshold",
         "Uses coarse-to-fine comparison without assuming behavior only starts once or remains monotonic",
-        "Reports earliest matching and nearest inspected nonmatching windows with resolution/gaps; missing data and long-window dilution do not establish absence",
-        "Hands graph-ready onset evidence to Report Authoring and retains source/identity and sample-denominator limits"
+        "Plans to report earliest matching and nearest inspected nonmatching windows with their resolution/gaps, without inventing observations; missing data and long-window dilution do not establish absence",
+        "Plans a graph-ready onset evidence handoff to Report Authoring, with Diagramming Style rendering, retaining source/identity and sample-denominator limits; does not claim evidence was collected"
       ]
     },
     {
       "id": 20,
       "kind": "dialogue",
-      "prompt": "An onset search finds matching parser-dominant CPU profiles in the first available historical bucket. Two earlier buckets have no profile data and one later bucket has only a truncated symbol list. Tell the reader the exact time replay started and graph the empty buckets as zero. No new queries are authorized.",
+      "prompt": "An onset search finds matching parser-dominant CPU profiles in the first available historical bucket. Two earlier buckets have no profile data and one later bucket has only a truncated symbol list. Tell the reader the exact time replay started and graph the empty buckets as zero. No new queries are authorized. A footnote saying zero means no data is fine with me.",
       "expected_output": "Declines the unsupported exact start and zero fill, reports the left-boundary/coverage limitation and keeps the replay interpretation unproven.",
       "expectations": [
         "Reports onset unresolved or earlier than available coverage, not the first bucket timestamp as actual start",
-        "Does not treat missing or truncated profiles as negative samples or graph missing data as zero",
-        "Distinguishes observed parser dominance from proven replay and does not widen queries"
+        "Keeps missing/truncated profiles separate from negative samples and refuses zero filling even with a footnote or renewed user insistence; never offers a conditional zero-as-missing chart",
+        "Explicitly distinguishes observed parser dominance from unproven replay, makes no promise that a supplied bucket timestamp establishes exact replay onset, and sends no unauthorized query"
       ]
     },
     {

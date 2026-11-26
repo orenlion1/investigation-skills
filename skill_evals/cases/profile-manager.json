@@ -112,11 +112,11 @@
       "id": 6,
       "kind": "dialogue",
       "prompt": "Walk me through this without running anything: set GENERATE_PDF=Disabled in my team profile (it already stores REPO=org/service-a), then load it with --replace into docs/tasks/TASK-team.md, whose Resources explicitly say Generate PDF: enabled. Then explain how an absent setting, a hand-edited legacy T or F, and a value of off are handled. Can the toggle alone start an investigation?",
-      "expected_output": "Derives Generate PDF from template; validates enabled/disabled case-insensitively under the shared settings contract, storing lowercase. Explicit task enabled overrides profile disabled. Missing defaults enabled; legacy T/F resolve to enabled/disabled and reads do not migrate. Toggle alone is configuration; invalid settings fail before writes.",
+      "expected_output": "Derives Generate PDF from template; validates enabled/disabled case-insensitively under the shared settings contract, storing lowercase. Explicit task enabled overrides profile disabled. Missing defaults disabled; legacy T/F resolve to enabled/disabled and reads do not migrate. Toggle alone is configuration; invalid settings fail before writes.",
       "expectations": [
         "Plans a `schema` read (or states the field comes from the TASK template) for GENERATE_PDF before writing, and states that Disabled is accepted case-insensitively and stored as lowercase disabled",
         "States that a value outside enabled/disabled (legacy T/F aside), such as off, fails before any write whether supplied to set or found in the stored profile or the TASK, and is not guessed to mean disabled",
-        "Uses explicit task over profile over absent enabled, preserving explicit task choice even with replacement",
+        "Uses explicit task over profile over absent disabled, preserving explicit task choice even with replacement",
         "Resolves legacy T and F to enabled and disabled, keeps legacy reads non-mutating and preserves unrelated values",
         "Refuses a toggle alone as an actual resource and does not authorize investigation or publication"
       ]
@@ -138,13 +138,13 @@
     {
       "id": 8,
       "kind": "dialogue",
-      "prompt": "My profile supplies #demo-ops, but I explicitly chose #my-channel for this task. The task's Resources also hold a hand-added `On-call: team-b` bullet that the template does not declare. Reload the profile and keep my Slack choice. Also compose two conflicting Slack profiles with my explicit #my-channel override. Explain which value wins at each step and why; do not run anything yet.",
+      "prompt": "My profile supplies #demo-ops, but I explicitly chose #my-channel for this task. The task's Resources also hold a hand-added `On-call: team-b` bullet that the template does not declare. Reload the profile and keep my Slack choice. Also compose two profiles with different Slack channels and conflicting AWS_REGION values, using my explicit #my-channel and AWS_REGION=us-west-2 overrides. Explain source precedence, what other unresolved scalar conflicts do, and when effective inputs are resolved; do not run anything yet.",
       "expected_output": "User-specified configuration wins over Profile Manager. Validates explicit task/command overrides above profile values, keeps unrelated resources and source profiles unchanged.",
       "expectations": [
         "Preserves the explicit user Slack channel rather than replacing it with the profile channel",
         "Uses load --field to carry #my-channel as the newer override",
         "Plans the reload into the already-populated Resources with load --replace, and states that --replace only permits rewriting that populated section and never overrides the explicit TASK channel",
-        "Uses compose --field to resolve only the named scalar conflict; other conflicts still fail",
+        "Uses compose --field SLACK_CHANNEL to replace the inherited channel list and --field AWS_REGION to resolve only that scalar conflict; other unresolved scalar conflicts still fail",
         "Validates the sources and effective values before writing",
         "States that the undeclared On-call task bullet is preserved by the load and that both source profiles stay unchanged by load and compose",
         "Documents user > profile > default precedence and resolves effective inputs before investigation"
@@ -166,14 +166,14 @@
     {
       "id": 10,
       "kind": "dialogue",
-      "prompt": "Set GRAFANA_ASSISTANT=disabled in an existing resource profile and compose it with a profile storing enabled. Load the result into a task that explicitly selects enabled. Do not query Grafana. Plan the commands and the read-back; do not run them yet.",
+      "prompt": "Set GRAFANA_ASSISTANT=disabled in an existing resource profile and compose it with a profile storing enabled. Load the result into a task that explicitly selects enabled. Do not query Grafana. Plan the commands and the read-back; do not run them yet. Explain whether load --field can override the TASK and what invalid or duplicate values in either the TASK or a --field override do before writing.",
       "expected_output": "Derives the enum from the template schema, previews and reads back the requested field-only profile update, refuses unresolved scalar composition conflicts, and preserves the explicit task override over the saved profile. Sends no Assistant prompt or Grafana query.",
       "expectations": [
         "States that schema reports GRAFANA_ASSISTANT as an enabled/disabled setting with enabled as its default, and that the setting is configuration rather than an actual resource",
         "Updates only GRAFANA_ASSISTANT without --replace, preserving omitted profile fields and unrelated unmanaged bytes",
         "Previews the update with --dry-run and reads it back",
         "Resolves composition conflicts only by explicit field selection or aligned sources",
-        "States that the TASK's explicit enabled overrides the profile value at load, and that a load --field override would in turn override the TASK value",
+        "Correctly orders load --field above explicit TASK above profile values; a clearly labeled precedence chain or equivalent prose satisfies this expectation",
         "States that an invalid or duplicate GRAFANA_ASSISTANT value, whether in the TASK or in a --field override, makes the command fail before it writes anything",
         "No live Grafana query or Assistant prompt is sent by profile management"
       ]
@@ -181,12 +181,12 @@
     {
       "id": 11,
       "kind": "dialogue",
-      "prompt": "My team profile already stores REPO=org/service-a. Store the fan out: DISABLED setting in it, and also pdf export: enabled. Earlier I wrote fan out as FAN OUT and fan_out; are those the same setting? The template labels these settings `Fan-out` and `Generate PDF`. Give the exact commands and what ends up stored; do not run them.",
-      "expected_output": "Treats fan out, FAN OUT, fan_out and Fan-out as the one FAN_OUT setting, accepts the colon-delimited assignment and the uppercase value, stores the canonical lowercase disabled, and confirms by showing the profile.",
+      "prompt": "My team profile already stores REPO=org/service-a. Plan a single set operation with both fan out: DISABLED and pdf export: enabled. Earlier I wrote fan out as FAN OUT and fan_out; are those the same setting? The template labels these settings `Fan-out` and `Generate PDF`. Explain what that combined operation writes, then show a separate valid fan-out-only command and read-back. Do not run them.",
+      "expected_output": "Normalizes all supplied fan-out spellings to FAN_OUT, but rejects the entire combined operation because pdf export is not a schema key or label. A separate fan-out-only operation can store lowercase disabled and preserve REPO; no PDF setting is claimed stored.",
       "expectations": [
         "Resolves the differently spelled names to the single FAN_OUT setting without asking the user to restate it",
-        "Passes the colon-delimited assignment with the uppercase value to --field and states the store holds lowercase disabled",
-        "States that pdf export matches no field key or label and fails before any write, and does not map it to GENERATE_PDF or report GENERATE_PDF as stored"
+        "Shows the separate valid fan-out-only --field assignment with the uppercase input and explains its lowercase disabled storage and profile read-back; the invalid combined operation writes nothing",
+        "Rejects pdf export as an unknown key/label before any combined-operation write and never claims GENERATE_PDF was stored; an explicitly unapplied suggestion using the distinct valid Generate PDF label is allowed"
       ]
     },
     {
@@ -237,24 +237,24 @@
     {
       "id": 16,
       "kind": "dialogue",
-      "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode. Plan the profile change and the hand-off; do not run anything yet.",
+      "prompt": "Enable HTML and set HTML theme to light in the existing profile. The task has EU-specific overrides and an older system-theme HTML report. Generate light-mode HTML; my browser uses dark mode. Plan the profile change and the hand-off; do not run anything yet. Explain legal theme selections, invalid/duplicate validation, and whether changing only a theme enables HTML. Name the generation/validation owner separately from publication packaging.",
       "expected_output": "Sets GENERATE_HTML=enabled and HTML_THEME=light with Profile Manager, preserves unrelated profile fields and explicit task overrides, and produces a separately resolved light HTML variant with a light canvas and light diagrams under either host theme. Existing exports and historical accounting remain unchanged.",
       "expectations": [
-        "States that template-derived HTML_THEME accepts one or more unique light, dark or system themes with light, dark as the default, and invalid or duplicate themes fail before any write",
-        "Preserves task resources and keeps the HTML generation toggle independent of appearance",
+        "Reports the template/schema theme contract: one to three unique choices from light, dark and system, default light, dark, with invalid or duplicate choices rejected before writing; equivalent schema-derived wording is valid",
+        "Preserves explicit task resources and distinguishes GENERATE_HTML from HTML_THEME; setting both as requested is valid, but a theme change alone must not enable generation",
         "States that fixed light keeps both page colors and diagram picture sources light despite the dark browser",
-        "Leaves HTML generation and its validation to Publish It without refreshing the investigation or existing exports"
+        "Hands standalone HTML generation and validation to Investigation Delivery, with Publish It only for separately authorized publication packaging, and preserves the prior investigation/accounting and existing export"
       ]
     },
     {
       "id": 17,
       "kind": "dialogue",
-      "prompt": "Update profile manager defaults: PDF disabled, Markdown disabled, HTML enabled, HTML theme light, dark. Support theme lists and preserve my explicit task theme system.",
+      "prompt": "Update profile manager defaults: PDF disabled, Markdown disabled, HTML enabled, HTML theme light, dark. Support theme lists and preserve my explicit task theme system. Explain the separate generation/validation and publication handoffs; do not run anything.",
       "expected_output": "Selects HTML alone with light and dark variants by default, supports theme lists and preserves explicit task settings.",
       "expectations": [
         "Defaults PDF and Markdown to disabled and HTML to enabled",
         "Accepts comma-separated or JSON-array unique themes, defaults to light, dark and rejects invalid or duplicate entries before writing",
-        "Preserves the explicit task system selection over profile defaults and hands individual selected themes to Publish It for separate exports"
+        "Preserves the explicit task system selection over profile defaults and routes each selected standalone variant to Investigation Delivery; Publish It owns later separately authorized packaging"
       ]
     },
     {

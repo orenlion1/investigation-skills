@@ -70,8 +70,9 @@ remove-env [--dry-run] [--force]
 ## Derive the schema
 
 Read `schema` before a dependent read or write. Each field reports its `label`, optional
-`sublabel`, and the field it `requires`. Report an unknown field against the template rather
-than inventing a key for it. A planned command sequence starts with `schema` and names fields
+`sublabel`, and the field it `requires`. Unknown fields fail the whole command before writing;
+never guess aliases or claim storage. Label any distinct valid correction unapplied.
+A planned command sequence starts with `schema` and names fields
 by their keys; each write is previewed with `--dry-run` and read back. For each field a plan
 touches, state what `schema` reports (legal values, default, and whether it is configuration or
 an actual resource), and that an invalid or duplicate value in a profile, the TASK or a
@@ -227,11 +228,11 @@ Any one output can be the only enabled format; a disabled format is never requir
 or attached. Every enabled format keeps the same findings, evidence and accounting cutoff, and
 choosing or changing formats never reruns the investigation; state both when answering about
 formats.
-The template's independent `HTML_THEME` setting accepts one or more `light`, `dark` or
-`system` themes (default `light, dark`); see [HTML theme](references/profile-store.md#html-theme)
-for list syntax and validation. A fixed theme keeps page colors and diagram sources in that
-mode under any viewer preference.
-Publish It renders and validates each variant; themes do not enable generation.
+`HTML_THEME` accepts 1–3 unique `light`, `dark` or `system` themes (default `light, dark`); see
+[HTML theme](references/profile-store.md#html-theme) for validation. Fixed themes keep page
+colors and diagrams in that mode under any viewer preference.
+[Investigation Delivery](../investigation-delivery/SKILL.md) owns variant generation/validation;
+Publish It owns packaging. Themes never enable generation.
 
 A toggle or historical-window setting alone is configuration: never an actual resource, never
 a trigger for the supplied-resource overwrite guard, never scope or authorization for an
@@ -240,7 +241,7 @@ actual resource. Differing stored settings are a composition conflict like any o
 
 ## Grafana contexts
 
-The independent `GRAFANA_CONTEXT` and `GRAFANA_IRM_CONTEXT` fields follow the
+`GRAFANA_CONTEXT` and `GRAFANA_IRM_CONTEXT` follow the
 [context contract](references/profile-store.md#grafana-contexts).
 
 ## Grafana Assistant
