@@ -67,6 +67,27 @@ class RhymingEndpointTests(unittest.TestCase):
             self.set_endpoints([dict(endpoint, **change)], ok=False)
             self.assertEqual(before, self.store.read_bytes())
 
+    def test_irm_incident_endpoint_roundtrip_with_separate_context(self):
+        endpoint = {'id': 'irm-history', 'kind': 'grafana-irm-incidents',
+                    'target': 'service-a', 'context': 'incident-lab'}
+        self.set_endpoints([endpoint], True, '--field', 'GRAFANA_CONTEXT=metrics-lab',
+                           '--field', 'GRAFANA_IRM_CONTEXT=incident-lab')
+        result = json.loads(self.cli('endpoints', '--profile', 'ops').stdout)
+        self.assertEqual(result['endpoints'], [endpoint])
+        rendered = self.cli('render', '--profile', 'ops').stdout
+        self.assertIn('- Grafana context: `metrics-lab`', rendered)
+        self.assertIn('- Grafana IRM context: `incident-lab`', rendered)
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n')
+        self.cli('load', '--profile', 'ops', '--task', str(task))
+        self.assertIn('- Grafana IRM context: `incident-lab`', task.read_text())
+        for invalid in ({k: v for k, v in endpoint.items() if k != 'context'},
+                        dict(endpoint, context='wrong context'),
+                        dict(endpoint, target='$(execute)')):
+            before = self.store.read_bytes()
+            self.set_endpoints([invalid], False)
+            self.assertEqual(self.store.read_bytes(), before)
+
     def test_legacy_profile_returns_no_endpoints(self):
         self.cli('set', '--profile', 'ops', '--field', 'REPO=service-a')
         self.assertEqual(json.loads(self.cli('endpoints', '--profile', 'ops').stdout)['endpoints'], [])
@@ -74,7 +95,8 @@ class RhymingEndpointTests(unittest.TestCase):
     def test_schema_exposes_structured_constraints(self):
         fields = {x['field']: x for x in json.loads(self.cli('schema').stdout)['fields']}
         self.assertEqual(fields['RHYMING_ENDPOINTS']['type'], 'endpoint-array')
-        self.assertEqual(len(fields['RHYMING_ENDPOINTS']['kinds']), 6)
+        self.assertEqual(len(fields['RHYMING_ENDPOINTS']['kinds']), 7)
+        self.assertIn('grafana-irm-incidents', fields['RHYMING_ENDPOINTS']['kinds'])
         self.assertIn('grafana-assistant-search', fields['RHYMING_ENDPOINTS']['kinds'])
 
     def test_invalid_structures_never_write(self):

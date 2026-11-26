@@ -55,6 +55,18 @@
       "files": [
         "gcx-cli-assistant-handoff"
       ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "Plan commands only: TASK Resources have Grafana context metrics-lab and Grafana IRM context incident-lab. List prior IRM incidents and OnCall alert groups, and query CPU metrics. A bundled example uses --context metrics-lab for irm. Which contexts do you pass? What if Grafana IRM context is absent? Do not run live queries or send Assistant prompts.",
+      "expected_output": "Overrides bundled example context using the independent IRM setting for all irm commands and the ordinary setting for telemetry.",
+      "expectations": [
+        "Uses --context incident-lab for both gcx irm incidents and gcx irm oncall commands, overriding the bundled example",
+        "Uses --context metrics-lab for the metrics command and retains separate context authentication/verification",
+        "When Grafana IRM context is absent, stops dependent IRM operations to resolve it without falling back to the ordinary or current context",
+        "Plans required skill refresh and sends no live query or Assistant prompt"
+      ]
     }
   ]
 }

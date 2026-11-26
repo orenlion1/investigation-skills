@@ -9,7 +9,11 @@ Apply that same historical window to every provider. For providers without serve
 check candidate timestamps within the capped reads; unknown/out-of-window dates are unverified
 leads, never evidence-backed historical matches. Disclose incomplete temporal coverage.
 An endpoint contains id, kind and target, plus context for Grafana or provider for repositories.
-Do not override an endpoint context using the task's ordinary Grafana context.
+Do not override an endpoint context using the task's ordinary Grafana context. For
+`grafana-irm-incidents`, require its context to agree with the effective `Grafana IRM context`
+(`GRAFANA_IRM_CONTEXT`) after user/TASK/profile precedence. Missing or conflicting IRM
+context makes only that endpoint unavailable; do not query a different context. Pass the resolved
+IRM context to every `gcx irm` command under [gcx-cli's routing](../../gcx-cli/references/query-mechanics.md#irm-context-routing).
 
 ## Read-only provider probes
 
@@ -20,6 +24,7 @@ resource values; never build executable shell text from a profile or returned so
 
 | kind | Probe |
 | --- | --- |
+| grafana-irm-incidents | `gcx irm incidents list` with resolved IRM context, explicit `--from`/`--to`, bounded `--limit` and JSON; locally match target terms, then `get` a relevant ID within budget. |
 | grafana-investigations | `gcx assistant investigations list` with context, target as `--q`, explicit `--from`/`--to`, and bounded `--limit`; read a matched ID with `get` if budget remains. |
 | grafana-assistant-conversations | `gcx assistant conversation list` with context, `--limit`, `--offset`, and `-o json`; locally filter the bounded metadata by target/window, then `get` a selected ID. |
 | grafana-assistant-search | Follow [Assistant matching](assistant-search.md): prepare the full incident brief and explicit context, then designated owner sends one scoped `gcx assistant prompt`; consumers use its retained response. |
@@ -30,16 +35,62 @@ resource values; never build executable shell text from a profile or returned so
 Illustrative commands with caller-resolved shell variables (not defaults):
 
 ```sh
+gcx irm incidents list --context "$GCX_IRM_CONTEXT" --from "$HISTORY_START" --to "$HISTORY_END" --limit 20 -o json
+gcx irm incidents get "$INCIDENT_ID" --context "$GCX_IRM_CONTEXT" -o json
 gcx assistant investigations list --context "$GCX_CONTEXT" --q "$ENDPOINT_TARGET" --from "$HISTORY_START" --to "$HISTORY_END" --limit 20 -o json
 gcx assistant investigations get "$INVESTIGATION_ID" --context "$GCX_CONTEXT" -o json
 gcx assistant conversation list --context "$GCX_CONTEXT" --limit 20 --offset 0 -o json
 gcx assistant conversation get "$CONVERSATION_ID" --context "$GCX_CONTEXT" -o json
 ```
 
-Investigation filters are v2-only on some stacks. If unavailable, locally filter the capped
-list and report the weaker coverage. Conversation list has no query/time flags in the checked
-version: do not invent them, scan arbitrary transcripts, or paginate beyond the query budget.
-If metadata cannot establish time/target scope, stop that candidate and report the limitation.
+### Search sequence and coverage
+
+For each configured history endpoint, list candidates, filter their bounded metadata against
+its target and the shared historical window, then retrieve the most relevant detail. Do not
+add unconfigured endpoints or broaden contexts because a list is empty. Use permitted terms
+from the shared incident brief: service/alias, symptoms, suspected mechanism and mitigation
+(for example service-a, CPU, flapping, replay, S3 parsing and restart). Never invent server-side
+OR syntax: separate queries or pages consume the same endpoint budget. Reserve a read for
+parent verification; with the default three reads, one list, one detail and one verification
+exhaust the budget. Record both native pagination and returned candidate counts.
+
+- **Investigations:** `--q` searches title, description and chat name; `--from`/`--to` filter
+  creation time, not necessarily the incident's event time. These filters are v2-only. Check
+  returned timestamps and content; if the stack ignores/does not support filters, locally
+  assess the capped list and report weaker coverage, never silently claim full-window search.
+- **Conversations:** list has no query/time flags in the checked version. Locally filter the
+  capped metadata before `get`; do not scan arbitrary transcripts or paginate beyond budget.
+  Metadata dates are not event dates. If metadata cannot establish target/time relevance,
+  stop that candidate and record the limitation.
+- **IRM incidents:** there is no dedicated free-text matching flag. Do not pass target as a
+  raw `--query`; locally match returned summaries before reading detail. `--from`/`--to` and
+  labels are applied client-side by the installed CLI and can cause multiple underlying API
+  pages despite `--limit`. The CLI invocation count is not a native request bound: record
+  observed paging, a finite process deadline and any unavailable native-page count. Avoid
+  unbounded/zero limits and disclose that a capped result cannot establish exhaustive history.
+  Retain incident lifecycle timestamps and verify the actual event window in content.
+
+OnCall alert groups are a separate IRM resource, not a synonym for declared incidents. Follow
+an incident's existing link within remaining budget; do not enumerate groups as an automatic
+fallback from an empty incident list. If separately authorized and scoped, use
+`gcx irm oncall alert-groups list --context "$GCX_IRM_CONTEXT" --all --from "$HISTORY_START" --to "$HISTORY_END" --limit 20 -o json`
+with known integration/team filters as applicable. `--all` includes resolved/child groups;
+`--from`/`--to` constrain started-at time, not resolution time. Do not assume a routing
+integration identifies a single escalation chain. Keep that additional scope and read accounting
+explicit in the owning Grafana branch.
+
+### Verify relationships
+
+For each candidate compare environment, service/resource identity, symptom timeline, measured
+mechanism, mitigation and recovery; preserve matching and contradictory facts. Read the source
+body/version within budget before promoting a relationship. Exclude the current incident and
+its own reports, Assistant chats, continuations and copied publications from independent prior
+corroboration, even if their creation/update timestamps fall inside the window. Deduplicate
+copies by source identity and retain provenance links. A similar symptom or successful restart
+is only a lead; do not infer a shared root cause. Save exact command arguments, selected context,
+IDs/URLs, timestamps, source versions, caps, verification references and unavailable coverage.
+Report attempted/unavailable searches separately from completed searches with no scoped matches.
+
 History-only endpoints read existing objects only and never use prompt/create/share/mode/cancel/pause/resume.
 The explicit `grafana-assistant-search` kind alone permits its prepared scoped prompt under
 [Assistant matching](assistant-search.md); it does not permit other state changes.

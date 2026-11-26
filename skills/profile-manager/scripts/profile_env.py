@@ -65,7 +65,7 @@ MAX_LINTED_TASKS = 200
 # Values written before the contract; accepted on input and stored as their canonical value.
 LEGACY_TOGGLE_VALUES = {GENERATE_PDF: {'T': ENABLED, 'F': DISABLED}}
 ENDPOINT_KINDS = ('grafana-investigations', 'grafana-assistant-conversations',
-                  'grafana-assistant-search',
+                  'grafana-assistant-search', 'grafana-irm-incidents',
                   'confluence', 'slack', 'repository')
 IGNORE_BLOCK = ('# Local resource-profile store; never commit.', '.env', '.env.*', '!.env.example')
 

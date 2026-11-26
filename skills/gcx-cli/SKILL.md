@@ -80,11 +80,10 @@ its write actions.
 
 ## Resolve the Context
 
-Use the context explicitly selected in the request or already resolved for the active task.
-For example, `context: example`, `context: example-eu`, or `context: example-secondary` maps to
-the same `--context` value only if that context exists. These names are examples, not an allowlist:
-another explicitly selected configured context is valid. Do not silently use `current-context`,
-switch to a lookalike stack, or run a query across contexts to discover which one was intended.
+Follow [command-family context routing](references/query-mechanics.md#irm-context-routing):
+`gcx irm` uses `Grafana IRM context`; other families use ordinary/endpoint context. Never
+fall back between them. Resolve the explicit configured context and verify its server; do not
+silently select current-context or repoint a context during authentication.
 
 Inspect local metadata before any live request:
 
