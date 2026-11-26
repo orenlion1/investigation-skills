@@ -23,6 +23,10 @@
       {
         "prompt": "Publish the finished task and report to Confluence with downloadable evidence",
         "owner": "publish-it"
+      },
+      {
+        "prompt": "Apply the shared investigation delivery checkpoint and coordinate report formats independently of an editor",
+        "owner": "investigation-delivery"
       }
     ]
   },
@@ -36,65 +40,6 @@
         "Identifies that a launcher exit is not a wait-for-close signal",
         "Requires a tracked close or explicit user confirmation before executing",
         "States that it rereads and runs the saved requirements only after that close or confirmation"
-      ]
-    },
-    {
-      "id": 2,
-      "kind": "dialogue",
-      "prompt": "An investigation request arrived 12 minutes ago. The editor wait ran from minute 1 to minute 6 after receipt and the auth wait from minute 5 to minute 7, overlapping it by a minute; two delegated children then ran concurrently for 3 and 4 minutes. No other phase timings were recorded. Core findings are ready but report QA is pending. Hard-stop now?",
-      "expected_output": "Uses the ten-minute soft checkpoint from request receipt, which includes setup, waits, reporting and QA; checkpoints findings, gaps, waits and remaining QA and continues without redundant permission; counts the overlapping waits once as six minutes, does not add child runtimes, and leaves unrecorded phase time unavailable; preserves gates with no hard cancellation.",
-      "expectations": [
-        "Names the ten-minute soft checkpoint measured from request receipt and states explicitly that setup, editor and auth waits, reporting and QA all count inside it",
-        "Checkpoints verified findings, evidence gaps, known waits and remaining QA; explains continuation without redundant permission",
-        "Counts the overlapping editor and auth waits once as a six-minute union (minute 1 to minute 7) rather than adding them to seven minutes",
-        "Does not add the two children's runtimes together as elapsed time, and leaves unrecorded processing or phase time unavailable rather than estimating it",
-        "States that the budget never overrides editor closure, authorization, or required evidence and quality gates; no automatic failure or hard cancellation"
-      ]
-    },
-    {
-      "id": 3,
-      "kind": "dialogue",
-      "prompt": "Execute the saved investigation with Generate PDF: disabled in its task Resources. Reuse verified setup and reporting machinery; an older PDF already exists. The task and its reports are not in this workspace, so before acting tell me how you resolve the report formats, which outputs and checks you will produce or skip, what happens to the older PDF, and what you record.",
-      "expected_output": "Validates exact task PDF choice with task over profile over absent enabled before PDF dependency setup; Produces verified Markdown, evidence and required graphs; skips PDF rendering, PDF-only dependencies and checks; Preserves old PDF as historical and excludes it from current companions and delivery links; Records effective choice and verified output provenance without granting publication.",
-      "expectations": [
-        "States that the PDF choice resolves as explicit task over loaded profile over default (enabled when absent), before any PDF dependency setup",
-        "Plans the Markdown report with its evidence and required graphs, and validates them in that Markdown output",
-        "Skips PDF rendering, PDF-only dependencies and PDF-only checks",
-        "Preserves old PDF as historical and excludes it from current companions and delivery links",
-        "Records effective choice and verified output provenance without granting publication"
-      ]
-    },
-    {
-      "id": 4,
-      "kind": "dialogue",
-      "prompt": "Deliver and publish an existing investigation with Generate Markdown: disabled, Generate PDF: disabled, Generate HTML: enabled. No companion reports exist. Can the other formats be required?",
-      "expected_output": "Selects HTML alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
-      "expectations": [
-        "Supports HTML as the only enabled report format",
-        "Does not require, generate or attach either disabled format",
-        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
-      ]
-    },
-    {
-      "id": 5,
-      "kind": "dialogue",
-      "prompt": "Deliver and publish an existing investigation with Generate Markdown: disabled, Generate PDF: enabled, Generate HTML: disabled. No companion reports exist. Can the other formats be required?",
-      "expected_output": "Selects PDF alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
-      "expectations": [
-        "Supports PDF as the only enabled report format",
-        "Does not require, generate or attach either disabled format",
-        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
-      ]
-    },
-    {
-      "id": 6,
-      "kind": "dialogue",
-      "prompt": "Deliver and publish an existing investigation with Generate Markdown: enabled, Generate PDF: disabled, Generate HTML: disabled. No companion reports exist. Can the other formats be required?",
-      "expected_output": "Selects Markdown alone, preserves both disabled settings, and requires no disabled format artifact or dependency. Validates evidence, graphs, references and accounting in the selected output and publishes only within authorized scope.",
-      "expectations": [
-        "Supports Markdown as the only enabled report format",
-        "Does not require, generate or attach either disabled format",
-        "Preserves the canonical evidence and accounting cutoff without rerunning the investigation"
       ]
     }
   ]

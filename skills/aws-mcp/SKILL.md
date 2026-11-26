@@ -20,7 +20,7 @@ in us-east-1 between <start> and <end> UTC; open sign-in if needed and wait.
 ```
 
 When this skill runs as part of an investigation, use the root
-[soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md)
+[soft delivery budget](../investigation-delivery/references/delivery-contract.md)
 from request receipt; carry its original start into this work and check it at control boundaries.
 Reuse verified setup and shared evidence; preserve this skill's required coverage and gates.
 
@@ -183,7 +183,7 @@ Return observed facts, the supported cause or ranked hypotheses, evidence, gaps,
 and the next discriminating check. State when root cause remains unconfirmed.
 Recommendations do not authorize restarts, deployments, security changes, writes,
 or remediation. For saved investigations, follow repository Report Authoring,
-Workflow Artifact Naming, Token Usage, and required Markdown/PDF report contracts.
+Workflow Artifact Naming, Token Usage, and the selected-format [delivery contract](../investigation-delivery/references/delivery-contract.md#report-formats).
 
 ## Verification
 

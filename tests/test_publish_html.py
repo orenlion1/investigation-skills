@@ -10,7 +10,7 @@ import unittest
 import test_profile_manager as profiles
 
 ROOT = Path(__file__).resolve().parents[1]
-GENERATOR = ROOT / 'skills/publish-it/scripts/generate_html.py'
+GENERATOR = ROOT / 'skills/investigation-delivery/scripts/generate_html.py'
 CONTENT = '''# Example investigation
 
 [Evidence](#E1) and [findings](#findings).

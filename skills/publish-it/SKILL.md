@@ -107,15 +107,15 @@ destination's outcome in the publication manifest and return one result per dest
    are available. A task-only publication presents its saved requirements and recorded outcomes;
    it does not execute them or invent a completed investigation report.
 3. Resolve the saved report's independent Markdown/PDF/HTML choices and same-source metadata under the
-   [format contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats).
-   Defaults: Markdown/PDF `disabled`, HTML `enabled`; legacy PDF `T`/`F` remain valid.
+   [format contract](../investigation-delivery/references/delivery-contract.md#report-formats).
+   Read effective settings and legacy-input validation through Profile Manager.
    Disabled formats need no artifacts or tooling; preserve historical files outside the package.
    Reject invalid values and reconcile task/report conflicts before writes. An HTML-only report
-   needs no Markdown/PDF companion. Follow [HTML generation](references/html-generation.md) and
+   needs no Markdown/PDF companion. Use [Investigation Delivery](../investigation-delivery/references/html-generation.md) for rendering, and follow
+   [HTML packaging](references/html-packaging.md) and
    [HTML-only Confluence](references/confluence-html-only.md) for its format/theme overrides.
-   `HTML theme` selects `light`, `dark` and/or `system` (default `light, dark`) through Profile
-   Manager, independently of Generate HTML; validate before writes. Fixed light/dark sets both
-   page colors and picture sources whatever the host browser theme.
+   Resolve themes through Profile Manager; Investigation Delivery owns export appearance,
+   independently of Confluence-native theme handling.
    Build a bounded inventory: parent TASK, selected original reports and matching generated companions,
    every report diagram and caption, theme variants, editable diagram sources, and actually cited
    local evidence. Follow links only within verified authorized roots. Do not upload whole task/log

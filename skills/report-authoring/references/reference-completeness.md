@@ -89,7 +89,7 @@ skill folder; reuse a compatible environment when present. When no PDF is select
 an explicit HTML-only publication override, install only
 `scripts/requirements-markdown.txt` from this folder and pass only selected Markdown/HTML artifacts;
 PyMuPDF is lazily imported only for a selected PDF. Repository test and tagged-release CI still
-install the full `requirements.txt`. See the [format contract](../../open-edit-close-execute/references/investigation-delivery.md#report-formats). Markdown parsing uses markdown-it-py
+install the full `requirements.txt`. See the [format contract](../../investigation-delivery/references/delivery-contract.md#report-formats). Markdown parsing uses markdown-it-py
 (MIT); PDF text/URI geometry uses PyMuPDF (AGPL-3.0 or its commercial license). These dependencies
 retain their licenses and are not relicensed under this repository's MIT license. No npm package
 or host installer is required.

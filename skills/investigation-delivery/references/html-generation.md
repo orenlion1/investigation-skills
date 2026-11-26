@@ -1,24 +1,23 @@
-# HTML generation and packaging
+# HTML report generation
 
-Generate HTML is independent of Generate Markdown and Generate PDF. Resolve the saved choices
-under the [report format contract](../../open-edit-close-execute/references/investigation-delivery.md#report-formats).
-The default is `enabled`. When disabled, create and attach no standalone HTML, and exclude historical HTML
-without deleting it. Confluence page composition and read-back HTML remain required for page
-publication regardless of this setting. A setting alone never authorizes external writes.
+Investigation Delivery owns local HTML generation and its verification, including reports
+that are never published. Resolve effective output choices and themes through
+[Profile Manager](../../profile-manager/references/profile-store.md#report-formats) and the
+[delivery contract](delivery-contract.md#report-formats) before dependency setup. Do not
+copy setting defaults here. A selected format does not authorize publication.
 
-When `enabled`, generate a portable HTML report from the same canonical investigation content.
-An explicit publication request with this saved selection authorizes this format conversion;
-it never authorizes refreshed findings, evidence windows or accounting. Existing verified HTML
-from that same content may be reused. Do not reuse stale same-name output or overwrite a collision.
-An HTML-only input is sufficient; do not require or synthesize a delivered Markdown/PDF companion.
-For a PDF-only input without canonical text, inspect and faithfully convert it with suitable
-PDF tooling, disclose conversion limitations, and verify the resulting HTML before publication.
+Generate the selected HTML from the canonical content shared by all selected outputs, or
+reuse verified HTML from that same content. Keep source revision, evidence window and
+accounting cutoff frozen when rendering existing findings. Never reuse stale same-name
+output or overwrite a collision. An HTML-only input requires no delivered Markdown/PDF
+companion. For a PDF-only source without canonical text, inspect and faithfully convert it
+with suitable PDF tooling; disclose conversion limitations and verify the derivative.
 
 ## Appearance
 
 Resolve `HTML theme` from the saved task/profile under
 [Profile Manager's contract](../../profile-manager/references/profile-store.md#html-theme).
-Generate and validate one separate export per selected theme (default `light, dark`).
+Generate and validate one separate export per owner-resolved theme.
 Pass each individual theme to the helper with `--theme`; never pass the whole list to a
 single invocation. Resolve a theme suffix for each output and keep each receipt with its
 variant through packaging and attachment inventory. An explicit scalar still selects one export.
@@ -37,13 +36,13 @@ preferences, and system mode under each, checking canvas colors, selected pictur
 ## Generator
 
 Use Python 3.10+ with [pinned Markdown rendering dependencies](../scripts/requirements.txt),
-installed through `python -m pip install -r skills/publish-it/scripts/requirements.txt` in a
+installed through `python -m pip install -r skills/investigation-delivery/scripts/requirements.txt` in a
 compatible user-scoped virtual environment. No PDF runtime is needed for HTML generation.
 The helper uses the [markdown-it-py token and rendering API](https://github.com/executablebooks/markdown-it-py/blob/master/docs/using.md).
 Resolve the title, slug and `.html` output through Workflow Artifact Naming before running:
 
 ```sh
-python skills/publish-it/scripts/generate_html.py --title 'Investigation title' --theme light --output /resolved/REPORT-slug-light.html
+python skills/investigation-delivery/scripts/generate_html.py --title 'Investigation title' --theme light --output /resolved/REPORT-slug-light.html
 ```
 
 Supply the canonical content on stdin using a structured process input, keeping private content
@@ -62,18 +61,15 @@ and disclose any derivative, rather than silently dropping content. No URLs are 
 remote scripts, fonts or style sheets are added. The JSON receipt records canonical input and
 HTML SHA-256 hashes; it is generation evidence, not reference or browser acceptance.
 
-## Validate and publish
+## Validate local delivery
 
-Keep linked diagrams and cited local assets in their verified relative layout. This is a portable
-HTML-plus-assets package; it is not a promise that one downloaded file embeds every image.
-Include dependencies in repository packages. For Confluence, follow the
-[HTML-only packaging and theme procedure](confluence-html-only.md), embedding raster figures
-in a disclosed portable download and verifying published attachment references. Preserve original
-HTML bytes separately. Never rewrite source links to guessed hosted destinations.
+Keep linked diagrams and cited local assets in their verified relative layout. This is a
+portable HTML-plus-assets package, not a promise that one file embeds every image. Run
+[Report Authoring](../../report-authoring/SKILL.md) on selected HTML, and visually check
+readability, tables, every diagram and adjacent caption, internal anchors and external
+references. Read back the generated bytes, selected theme and source/hash receipt. A render
+or hash match alone is not reference or browser acceptance.
 
-Run Report Authoring on the selected HTML, and visually check readability, tables, every diagram
-and adjacent caption, internal anchors and external references. If any selected output is missing,
-stale or unverified, stop dependent publication writes. Add the HTML, assets and source/hash
-receipt to the bounded publication inventory. Verify downloaded HTML hashes for each destination;
-repository read-back also checks HTML-relative asset paths. Hosted preview availability stays a
-separate result from successful file download. Confluence-native media still needs its own checks.
+For separately authorized publication, hand the verified HTML, its receipt and linked
+assets to [Publish It's packaging workflow](../../publish-it/references/html-packaging.md).
+Destination packaging, uploads and hosted read-back stay with that owner.

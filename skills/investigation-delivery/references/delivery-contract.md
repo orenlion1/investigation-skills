@@ -1,4 +1,4 @@
-# Investigation delivery budget
+# Investigation delivery contract
 
 This is the single timing contract for investigations, whether launched directly or through
 the task editor. Reuse one root budget across setup and delegated work; a child never restarts
@@ -36,7 +36,7 @@ authority. These rules apply to investigations, not unrelated editing or softwar
 Use the read-only Python standard-library helper at each boundary, substituting observed inputs:
 
 ```sh
-python3 skills/open-edit-close-execute/scripts/investigation_budget.py --started "$INVESTIGATION_STARTED"
+python3 skills/investigation-delivery/scripts/investigation_budget.py --started "$INVESTIGATION_STARTED"
 ```
 
 `--observed` accepts the current observation or actual handoff timestamp; otherwise the helper
@@ -66,23 +66,18 @@ pass. Final delivery distinguishes completed findings from outstanding evidence/
 
 ## Report formats
 
-Resolve Generate Markdown, Generate PDF and Generate HTML before rendering or dependency setup,
-using [Profile Manager's settings contract](../../profile-manager/references/profile-store.md#report-formats).
-Defaults are Markdown `disabled`, PDF `disabled`, HTML `enabled`. For a finalized task, use its
-validated saved Resources choices (explicit task > loaded profile > defaults). Reject invalid or
-duplicate settings; a toggle alone is never a resource. At least one report format must be enabled
-for report delivery; if all are disabled, resolve the missing output choice before report production.
+Before rendering or dependency setup, read [Profile Manager's report-format contract](../../profile-manager/references/profile-store.md#report-formats) and use its helper/schema to resolve and validate the saved task's effective output choices. Profile Manager owns defaults, precedence, legal values, duplicate/conflict handling, legacy inputs, and the requirement for a usable output selection. Do not copy those values or implement a second resolver here. Record the resolved result and its source before selecting tools.
 
 Build one canonical body of findings, evidence, graphs and accounting metadata. Render each selected
 format independently from that content; a delivered Markdown file is never a prerequisite for HTML
 or PDF. An internal Markdown representation may be passed in memory, on stdin or through a temporary
 working file; it is not a selected deliverable and must not be linked, attached or retained as a report
 when Generate Markdown is `disabled`. HTML-only, PDF-only and Markdown-only are supported.
-Use [Publish It's HTML generator](../../publish-it/references/html-generation.md) for selected HTML.
+Use the [HTML generation workflow](html-generation.md) for selected HTML.
 
 Record all three effective settings, a hash of the canonical content, the source revision and the
 produced/skipped formats in each selected report's delivery metadata and the same-source inventory.
-Read legacy Generate PDF `T`/`F` as `enabled`/`disabled`. Validate evidence and required graphs in
+Use Profile Manager to interpret legacy inputs. Validate evidence and required graphs in
 every selected output, with format-specific reference and visual checks. Disabled formats require
 no renderer, dependency, attachment, preview, download card or format-only check. Preserve older
 files as historical outside the current inventory; never infer freshness from a filename.

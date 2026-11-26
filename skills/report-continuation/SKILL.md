@@ -94,7 +94,7 @@ applying the workflow to an evolving task or repairing earlier fragmentation.
 window and accounting cutoff. Record new evidence and revision boundaries separately; do not
 re-date old evidence, count old usage as new, invent totals or silently refresh accounting.
 
-Use the existing [delivery contract](../open-edit-close-execute/references/investigation-delivery.md#report-formats)
+Use the existing [delivery contract](../investigation-delivery/references/delivery-contract.md#report-formats)
 and selected format owners to regenerate enabled companions from the updated canonical content
 before final delivery. A format conversion does not create new findings or a new canonical report.
 Record current versus stale/historical outputs. Source content may be internal when Markdown

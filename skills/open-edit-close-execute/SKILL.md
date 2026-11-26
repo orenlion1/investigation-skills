@@ -41,14 +41,7 @@ This skill owns the workflow for this repository's templated tasks (template
 - During execution, provide normal progress updates and incorporate user steering as it
   arrives. Continue the active task with that feedback, without a separate instruction to
   resume, unless the user explicitly pauses, stops, or replaces it.
-- For an investigation, establish and check the [shared soft delivery budget](references/investigation-delivery.md)
-  from request receipt, including editor/setup waits. Apply it to direct investigations too.
-  It is a ten-minute soft checkpoint covering setup, editor/auth waits, reporting and QA: at
-  it, report verified findings, gaps, observed waits and remaining QA, then continue authorized
-  work without asking; never hard-stop or skip gates. Union overlapping waits; never sum
-  parallel children or invent processing or phase time. In that checkpoint report, say the ten
-  minutes run from request receipt and include setup, editor/auth waits, reporting and QA, and
-  that the budget never overrides editor closure, authorization, or evidence and quality gates.
+- For direct or editor-started investigations, follow [Investigation Delivery](../investigation-delivery/SKILL.md) for the shared timing/checkpoint and selected-output workflow. It does not override this skill's editor barrier or caller authorization.
 - Before opening a templated-task editor, read [Token Usage](../token-usage/SKILL.md) and
   retain its native task-resolution evidence past the editor/check barrier, so shorthand
   editor requests can be attributed without another user command.
@@ -71,13 +64,9 @@ This skill owns the workflow for this repository's templated tasks (template
   That skill also owns progressive report updates and handoff readiness.
 - Run the finalized task from its resolved path, then generate the matching reports from
   observed results in the selected formats: Markdown, PDF or HTML, with `REPORT` paths via
-  Workflow Artifact Naming. Validate evidence and required graphs in every selected output. Resolve formats before tooling using the [delivery contract](references/investigation-delivery.md). Report completion from verified outcomes, never from readiness or a filename's
+  Workflow Artifact Naming. Validate evidence and required graphs in every selected output. Resolve formats before tooling using the [delivery contract](../investigation-delivery/references/delivery-contract.md). Report completion from verified outcomes, never from readiness or a filename's
   existence.
-- Say how each format setting resolved (explicit task, then loaded profile, then defaults:
-  Markdown and PDF enabled, HTML disabled) before any renderer or dependency setup. A disabled
-  format gets no renderer, dependency, check or attachment; an older file of that format stays
-  historical, outside the current companions and delivery links. Record the effective settings
-  and produced/skipped formats in delivery metadata; recording them authorizes no publication.
+- Before renderer or dependency setup, use [Investigation Delivery](../investigation-delivery/SKILL.md) to obtain and report the effective format decisions from [Profile Manager](../profile-manager/SKILL.md). That owner holds format defaults and precedence; this editor workflow does not restate them. Record production/skips without authorizing publication.
 - Delivering or publishing an existing investigation reuses its frozen evidence window and
   token-accounting cutoff; say so, and never rerun the investigation to deliver it.
 - An explicit TASK path or `edit task` edits that task in place, preserving its filename,

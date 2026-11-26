@@ -1,0 +1,9 @@
+{
+  "schema": "token-removals/v1",
+  "removed": [
+    {
+      "token": "python3 skills/open-edit-close-execute/scripts/investigation_budget.py --started \"$INVESTIGATION_STARTED\"",
+      "reason": "Retire the editor-owned command path after moving the unchanged helper to skills/investigation-delivery/scripts/investigation_budget.py. All flags, numeric bounds and timing behavior are retained under the new owner."
+    }
+  ]
+}

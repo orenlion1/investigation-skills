@@ -16,7 +16,7 @@ the current Atlassian Rovo MCP server. Keep Git transport and broader Jira or Co
 workflows in their owning tools or skills.
 
 When this skill runs as part of an investigation, use the root
-[soft delivery budget](../open-edit-close-execute/references/investigation-delivery.md)
+[soft delivery budget](../investigation-delivery/references/delivery-contract.md)
 from request receipt; carry its original start into this work and check it at control boundaries.
 Reuse verified setup and shared evidence; preserve this skill's required coverage and gates.
 

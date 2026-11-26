@@ -189,7 +189,7 @@ Creating or revising this skill alone does not authorize replaying an earlier pu
 
 ## Conditional format inventory
 
-Follow the [saved format decision](../../open-edit-close-execute/references/investigation-delivery.md#report-formats)
+Follow the [saved format decision](../../investigation-delivery/references/delivery-contract.md#report-formats)
 before dependency setup or attachment preparation. Markdown/PDF/standalone HTML attachments,
 previews and downloads apply only to selected formats. HTML-only, PDF-only and Markdown-only
 reports are valid inputs. Generate HTML `disabled` suppresses the downloadable HTML artifact;
