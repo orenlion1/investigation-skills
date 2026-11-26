@@ -1,0 +1,64 @@
+{
+  "skill_name": "investigation-reasoning",
+  "trigger": {
+    "positive": [
+      {
+        "prompt": "Choose the next discriminating evidence question for this root-cause investigation across profiles and operational history",
+        "top_k": 3
+      },
+      {
+        "prompt": "Turn the user\u2019s investigation follow-up questions into testable hypotheses and a bounded next evidence check",
+        "top_k": 3
+      },
+      {
+        "prompt": "Revise our investigative reasoning after the baseline contradicts the proposed trigger",
+        "top_k": 3
+      }
+    ],
+    "negative": [
+      {
+        "prompt": "Run this exact PromQL query in the specified Grafana context and return only its values",
+        "owner": "parallel-grafana-investigation"
+      },
+      {
+        "prompt": "Update the canonical report continuation record with this answer and preserve its handoff checkpoint",
+        "owner": "report-continuation"
+      }
+    ]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "kind": "dialogue",
+      "prompt": "Extract a reusable questioning method: an alert flaps, profiles show a parser hotspot, a user proposes replay, a later restart is found, a Git alias change exists, and a matching tag has queue-only deduplication. What should the agent ask next, and which skills own the work? Plan only; no tools, mutations or publication.",
+      "expected_output": "Builds an adaptive evidence-question loop, distinguishes observations from causes, and routes checks to their actual owners.",
+      "expectations": [
+        "Distinguishes alert mechanics, sampled workload, replay/duplication and impact; asks when behavior first appeared and what differs in comparison windows",
+        "Questions actual operational changes separately from Git merge/restart coincidence and requires running-artifact/source applicability",
+        "Chooses a bounded discriminating check with a supporting or weakening result and an alternative, rather than merely repeating CPU examples",
+        "Routes profile onset to Parallel Grafana Investigation, AWS reads to AWS MCP, code/applicability to Source Investigation, evidence/graphs to Report Authoring and Q&A retention to Report Continuation"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "dialogue",
+      "prompt": "The supplied profiles have the loader hotspot, but the deployed revision is unmapped and object/request identities are unavailable. Can we call duplicate replay the cause after collecting another thousand similar profiles? Stay offline.",
+      "expected_output": "Preserves the hypothesis and identifies missing discriminating evidence instead of collecting more copies of the symptom.",
+      "expectations": [
+        "Keeps duplicate replay and source applicability unresolved",
+        "Prioritizes immutable build/source linkage and object/request overlap/progress evidence with what would confirm or weaken the mechanism",
+        "Retains a concrete unavailable-evidence gap rather than fabricating certainty or expanding scope"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "dialogue",
+      "prompt": "I only asked for a saved dashboard list, limit5, not root cause. The provider returned exactly five items and a next cursor. Please return the list without investigating profiles or AWS. What should you do? No tools.",
+      "expected_output": "Honors the exact inventory scope and cap, without launching a causal investigation.",
+      "expectations": [
+        "Returns only the scoped inventory outcome and disclosed cap/cursor limits",
+        "Does not turn inventory into profile/AWS/source investigation or additional paid prompts"
+      ]
+    }
+  ]
+}
