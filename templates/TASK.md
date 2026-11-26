@@ -29,6 +29,6 @@ the settings that do not apply. Placeholders and examples do not count as resour
 - Rhyming historical window days: `<positive integer days>`
 - Generate Markdown: `<enabled or disabled>`
 - Generate HTML: `<enabled or disabled>`
-- HTML theme: `<light, dark or system>`
+- HTML theme: `<one or more: light, dark, system>`
 - Generate PDF: `<enabled or disabled>`
 - Fan-out: `<enabled or disabled>`

@@ -65,11 +65,11 @@ class ProfileStoreTests(unittest.TestCase):
     def test_html_theme_schema_defaults_precedence_and_validation(self):
         schema = {entry['field']: entry for entry in self.ok('schema')['fields']}
         self.assertEqual(schema['HTML_THEME']['enum'], ['light', 'dark', 'system'])
-        self.assertEqual(schema['HTML_THEME']['default'], 'system')
+        self.assertEqual(schema['HTML_THEME']['default'], 'light, dark')
         self.assertFalse(schema['HTML_THEME']['resource'])
         self.ignore_and_init()
         self.ok('set', '--profile', 'ops', '--field', 'REPO=service-a')
-        self.assertEqual(self.ok('show', '--profile', 'ops')['effective_html_theme'], 'system')
+        self.assertEqual(self.ok('show', '--profile', 'ops')['effective_html_theme'], 'light, dark')
         self.ok('set', '--profile', 'ops', '--field', 'HTML theme: DARK')
         self.ok('set', '--profile', 'ops', '--field', 'GENERATE_HTML=enabled')
         self.assertEqual(self.ok('show', '--profile', 'ops')['fields']['HTML_THEME'], 'dark')
@@ -91,7 +91,54 @@ class ProfileStoreTests(unittest.TestCase):
         self.ok('lint', '--task', str(task), '--fix')
         self.assertIn('- HTML theme: `light`', task.read_text())
         self.ok('set', '--profile', 'ops', '--field', 'HTML_THEME=')
-        self.assertEqual(self.ok('show', '--profile', 'ops')['effective_html_theme'], 'system')
+        self.assertEqual(self.ok('show', '--profile', 'ops')['effective_html_theme'], 'light, dark')
+
+    def test_html_theme_list_roundtrip_precedence_lint_and_atomic_validation(self):
+        self.ignore_and_init()
+        self.ok('set', '--profile', 'ops', '--field', 'REPO=service-a',
+                '--field', 'HTML theme: LIGHT, dark')
+        shown = self.ok('show', '--profile', 'ops')
+        self.assertEqual(shown['effective_html_theme'], 'light, dark')
+        task = self.root / 'TASK.md'
+        task.write_text('## Resources\n')
+        self.ok('load', '--profile', 'ops', '--task', str(task))
+        self.assertIn('- HTML theme: `light, dark`', task.read_text())
+        for key in ('Markdown', 'PDF'):
+            self.assertIn('- Generate ' + key + ': `disabled`', task.read_text())
+        self.assertIn('- Generate HTML: `enabled`', task.read_text())
+        first = task.read_bytes()
+        self.ok('load', '--profile', 'ops', '--task', str(task), '--replace')
+        self.assertEqual(task.read_bytes(), first)
+        task.write_text('## Resources\n- HTML theme: DARK, LIGHT\n')
+        self.ok('lint', '--task', str(task), '--fix')
+        self.assertIn('- HTML theme: `dark, light`', task.read_text())
+        self.ok('load', '--profile', 'ops', '--task', str(task))
+        self.assertIn('- HTML theme: `dark, light`', task.read_text())
+        self.ok('load', '--profile', 'ops', '--task', str(task), '--replace',
+                '--field', 'HTML_THEME=system')
+        self.assertIn('- HTML theme: `system`', task.read_text())
+        before = self.store.read_bytes()
+        for invalid in ('light,light', 'light,', 'light,blue', '[]',
+                        '["light","LIGHT"]', '["light",2]'):
+            self.assertIn('invalid HTML_THEME', self.fails(
+                'set', '--profile', 'ops', '--field', 'HTML_THEME=' + invalid))
+            self.assertEqual(self.store.read_bytes(), before)
+        self.ok('set', '--profile', 'ops', '--field', 'HTML_THEME=["light","dark"]')
+        self.assertEqual(self.ok('show', '--profile', 'ops')['effective_html_theme'],
+                         'light, dark')
+        for value in ('light, blue', 'dark, DARK'):
+            task.write_text('## Resources\n- HTML theme: ' + value + '\n')
+            before_task = task.read_bytes()
+            self.fails('load', '--profile', 'ops', '--task', str(task))
+            self.assertEqual(task.read_bytes(), before_task)
+        self.ok('set', '--profile', 'other', '--field', 'REPO=service-b',
+                '--field', 'HTML_THEME=dark')
+        self.assertIn('HTML_THEME', self.fails('compose', '--profile', 'ops',
+                      '--profile', 'other', '--into', 'both'))
+        self.ok('compose', '--profile', 'ops', '--profile', 'other', '--into', 'both',
+                '--field', 'HTML_THEME=light, dark')
+        self.assertEqual(self.ok('show', '--profile', 'both')['effective_html_theme'],
+                         'light, dark')
 
     def test_html_theme_composition_conflict_and_custom_template(self):
         self.ignore_and_init()
@@ -134,12 +181,12 @@ class ProfileStoreTests(unittest.TestCase):
 
     def test_generate_html_default_override_validation_and_no_resource(self):
         schema = {field['field']: field for field in self.ok('schema')['fields']}
-        self.assertEqual(schema['GENERATE_HTML']['default'], DISABLED)
+        self.assertEqual(schema['GENERATE_HTML']['default'], ENABLED)
         self.assertFalse(schema['GENERATE_HTML']['resource'])
         self.ignore_and_init()
         self.store.write_text("PROFILE__OPS__REPO='service-a'\n")
         before = self.store.read_bytes()
-        self.assertEqual(self.ok('show', '--profile', 'ops')['effective_generate_html'], DISABLED)
+        self.assertEqual(self.ok('show', '--profile', 'ops')['effective_generate_html'], ENABLED)
         self.assertEqual(self.store.read_bytes(), before)
         self.ok('set', '--profile', 'ops', '--field', 'Generate HTML: ENABLED')
         self.ok('set', '--profile', 'ops', '--field', 'SLACK_CHANNEL=#ops')
@@ -158,7 +205,7 @@ class ProfileStoreTests(unittest.TestCase):
             self.assertIn(TOGGLE_ERROR, self.fails('set', '--profile', 'ops',
                           '--field', 'GENERATE_HTML=' + bad))
         self.ok('set', '--profile', 'ops', '--field', 'GENERATE_HTML=')
-        self.assertEqual(self.ok('show', '--profile', 'ops')['effective_generate_html'], DISABLED)
+        self.assertEqual(self.ok('show', '--profile', 'ops')['effective_generate_html'], ENABLED)
         self.assertIn('no actual resource', self.fails('set', '--profile', 'only',
                       '--field', 'GENERATE_HTML=enabled'))
 
@@ -246,7 +293,7 @@ class ProfileStoreTests(unittest.TestCase):
     def test_generate_pdf_roundtrip_default_and_task_override(self):
         self.ignore_and_init()
         added = self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
-        self.assertEqual(added['fields']['GENERATE_PDF'], ENABLED)
+        self.assertEqual(added['fields']['GENERATE_PDF'], DISABLED)
         self.ok('set', '--profile', 'example', '--field', 'GENERATE_PDF=disabled')
         self.assertIn('- Generate PDF: `disabled`', self.ok('render', '--profile', 'example'))
         task = self.root / 'TASK.md'
@@ -263,8 +310,8 @@ class ProfileStoreTests(unittest.TestCase):
         self.store.write_text('UNMANAGED="keep"\nPROFILE__example__REPO="example-service"\n')
         before = self.store.read_bytes()
         shown = self.ok('show', '--profile', 'example')
-        self.assertEqual(shown['effective_generate_pdf'], ENABLED)
-        self.assertIn('- Generate PDF: `enabled`', self.ok('render', '--profile', 'example'))
+        self.assertEqual(shown['effective_generate_pdf'], DISABLED)
+        self.assertIn('- Generate PDF: `disabled`', self.ok('render', '--profile', 'example'))
         self.assertEqual(self.store.read_bytes(), before)
         for bad in ('true', 'False', '0', 'on', 'yes', 'enable'):
             self.assertIn(TOGGLE_ERROR, self.fails('set', '--profile', 'example',
@@ -383,7 +430,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertEqual(self.lint(), (0, self.lint()[1], []))
         with self.store.open('a') as stream:
             stream.write('OTHER="keep me"\n'
-                         'PROFILE__team__generate_pdf="F"\n'               # duplicate, differs
+                         'PROFILE__team__generate_pdf="T"\n'               # duplicate, differs
                          "PROFILE__TEAM__Fan_Out='DISABLED'\n"             # duplicate, agrees
                          'PROFILE__team__slack_channel="#example-support"\n'
                          'export PROFILE__TEAM__AWS_REGION=us-east-1\n'
@@ -413,7 +460,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertEqual(text.upper().count('__FAN_OUT='), 1)
         # Unrelated lines and findings only the user can resolve are left exactly as written.
         self.assertIn('OTHER="keep me"\n', text)
-        self.assertIn('PROFILE__team__generate_pdf="F"\n', text)
+        self.assertIn('PROFILE__team__generate_pdf="T"\n', text)
         self.assertIn("PROFILE__TEAM__NOT_A_FIELD='x'\n", text)
         self.assertEqual(oct(self.store.stat().st_mode & 0o777), '0o600')
         # A second pass finds only what needs a decision, and is idempotent.
@@ -595,18 +642,18 @@ class ProfileStoreTests(unittest.TestCase):
         self.ok('set', '--profile', 'example', '--field', 'REPO=example-service')
         merged = self.ok('set', '--profile', 'example', '--field', 'GRAFANA_CONTEXT=example')
         self.assertEqual(merged['fields'], {'REPO': 'example-service',
-                                            'GRAFANA_CONTEXT': 'example', 'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_MARKDOWN': ENABLED, 'GENERATE_HTML': DISABLED, 'HTML_THEME': 'system', 'GENERATE_PDF': ENABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
+                                            'GRAFANA_CONTEXT': 'example', 'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_MARKDOWN': DISABLED, 'GENERATE_HTML': ENABLED, 'HTML_THEME': 'light, dark', 'GENERATE_PDF': DISABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
         self.assertEqual(merged['added'], ['GRAFANA_CONTEXT'])
         contents = self.store.read_text(encoding='utf-8')
         self.assertIn('# local only\nUNRELATED_TOKEN="keep me"\n', contents)
         self.assertIn("PROFILE__EXAMPLE__REPO='example-service'", contents)
         replaced = self.ok('set', '--profile', 'example', '--replace',
                            '--field', 'REPO=example-service')
-        self.assertEqual(replaced['fields'], {'REPO': 'example-service', 'GENERATE_MARKDOWN': ENABLED, 'GENERATE_HTML': DISABLED, 'HTML_THEME': 'system', 'GENERATE_PDF': ENABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
+        self.assertEqual(replaced['fields'], {'REPO': 'example-service', 'GENERATE_MARKDOWN': DISABLED, 'GENERATE_HTML': ENABLED, 'HTML_THEME': 'light, dark', 'GENERATE_PDF': DISABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
         self.assertEqual(replaced['cleared'], ['GRAFANA_CONTEXT', 'RHYMING_HISTORICAL_WINDOW_DAYS'])
         cleared = self.ok('set', '--profile', 'example', '--field', 'REPO=other-service',
                           '--field', 'GRAFANA_CONTEXT=')
-        self.assertEqual(cleared['fields'], {'REPO': 'other-service', 'GENERATE_MARKDOWN': ENABLED, 'GENERATE_HTML': DISABLED, 'HTML_THEME': 'system', 'GENERATE_PDF': ENABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
+        self.assertEqual(cleared['fields'], {'REPO': 'other-service', 'GENERATE_MARKDOWN': DISABLED, 'GENERATE_HTML': ENABLED, 'HTML_THEME': 'light, dark', 'GENERATE_PDF': DISABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
         self.assertIn('UNRELATED_TOKEN="keep me"', self.store.read_text(encoding='utf-8'))
 
     def test_dependent_field_requires_its_primary_field(self):
@@ -642,7 +689,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertNotIn('keep me', json.dumps(listed))
         shown = self.ok('show', '--profile', 'example')
         self.assertEqual(shown['fields'], {'REPO': 'example-service',
-                                           'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_MARKDOWN': ENABLED, 'GENERATE_HTML': DISABLED, 'HTML_THEME': 'system', 'GENERATE_PDF': ENABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
+                                           'RHYMING_HISTORICAL_WINDOW_DAYS': '7', 'GENERATE_MARKDOWN': DISABLED, 'GENERATE_HTML': ENABLED, 'HTML_THEME': 'light, dark', 'GENERATE_PDF': DISABLED, 'GRAFANA_ASSISTANT': ENABLED, 'FAN_OUT': ENABLED})
         self.assertIn('PUBLISH', shown['missing_fields'])
         self.assertEqual(shown['unknown_fields'], [])
         self.assertNotIn('keep me', json.dumps(shown))
@@ -704,7 +751,7 @@ class ProfileStoreTests(unittest.TestCase):
         self.assertEqual(preview['resources'],
                          ['- Repo (Bitbucket/Github): `example-service`',
                           '- Slack channel: `#example-support`', '- Grafana Assistant: `enabled`',
-                          '- Generate Markdown: `enabled`', '- Generate HTML: `disabled`', '- HTML theme: `system`', '- Generate PDF: `enabled`',
+                          '- Generate Markdown: `disabled`', '- Generate HTML: `enabled`', '- HTML theme: `light, dark`', '- Generate PDF: `disabled`',
                           '- Fan-out: `enabled`'])
         self.assertFalse(preview['replaced'])
         self.assertEqual(task.read_text(encoding='utf-8'), original)
@@ -877,7 +924,7 @@ class ProfileStoreTests(unittest.TestCase):
         shown = self.ok('show', '--profile', 'combined')['fields']
         self.assertEqual(shown['AWS_ACCOUNT'], 'ops-readonly')
         self.assertEqual(shown['AWS_REGION'], 'us-east-1')
-        self.assertEqual(shown['GENERATE_PDF'], ENABLED)
+        self.assertEqual(shown['GENERATE_PDF'], DISABLED)
         self.assertEqual(oct(self.store.stat().st_mode & 0o777), '0o600')
         target_before = self.store.read_bytes()
         self.assertIn('already exists', self.fails('compose', '--profile', 'prod-us',

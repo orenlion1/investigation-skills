@@ -68,7 +68,7 @@ pass. Final delivery distinguishes completed findings from outstanding evidence/
 
 Resolve Generate Markdown, Generate PDF and Generate HTML before rendering or dependency setup,
 using [Profile Manager's settings contract](../../profile-manager/references/profile-store.md#report-formats).
-Defaults are Markdown `enabled`, PDF `enabled`, HTML `disabled`. For a finalized task, use its
+Defaults are Markdown `disabled`, PDF `disabled`, HTML `enabled`. For a finalized task, use its
 validated saved Resources choices (explicit task > loaded profile > defaults). Reject invalid or
 duplicate settings; a toggle alone is never a resource. At least one report format must be enabled
 for report delivery; if all are disabled, resolve the missing output choice before report production.

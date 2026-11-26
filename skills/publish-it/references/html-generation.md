@@ -2,7 +2,7 @@
 
 Generate HTML is independent of Generate Markdown and Generate PDF. Resolve the saved choices
 under the [report format contract](../../open-edit-close-execute/references/investigation-delivery.md#report-formats).
-The default is `disabled`: create and attach no standalone HTML, and exclude historical HTML
+The default is `enabled`. When disabled, create and attach no standalone HTML, and exclude historical HTML
 without deleting it. Confluence page composition and read-back HTML remain required for page
 publication regardless of this setting. A setting alone never authorizes external writes.
 
@@ -18,7 +18,11 @@ PDF tooling, disclose conversion limitations, and verify the resulting HTML befo
 
 Resolve `HTML theme` from the saved task/profile under
 [Profile Manager's contract](../../profile-manager/references/profile-store.md#html-theme).
-Pass the effective value to the helper with `--theme`; omission retains system-following output.
+Generate and validate one separate export per selected theme (default `light, dark`).
+Pass each individual theme to the helper with `--theme`; never pass the whole list to a
+single invocation. Resolve a theme suffix for each output and keep each receipt with its
+variant through packaging and attachment inventory. An explicit scalar still selects one export.
+The helper's omitted `--theme` retains system-following output; callers must pass resolved themes.
 The fixed modes set the page color scheme and theme-aware picture selection, so a light export
 uses light diagrams even in a dark browser, and vice versa. System mode retains media queries.
 No JavaScript or browser storage is needed. Fixed mode supports single `prefers-color-scheme`
